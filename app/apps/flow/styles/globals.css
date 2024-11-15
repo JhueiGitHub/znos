@@ -1,0 +1,40 @@
+/* styles/globals.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Base Colors */
+  --color-black: #000000;
+  --color-night: #010203;
+  --color-graphite: #292929;
+  --color-smoke: #cccccc;
+  --color-latte: #4c4f69;
+}
+
+body {
+  @apply bg-[#010203];
+}
+
+/* Override default Button styles for Flow app */
+.btn-flow {
+  @apply p-0 h-8 hover:bg-transparent hover:opacity-80;
+}
+
+/* Fine-tune card transitions */
+.card-flow {
+  transition: transform 0.2s ease;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-white/[0.09] rounded-sm;
+}

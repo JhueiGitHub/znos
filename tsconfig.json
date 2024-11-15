@@ -1,0 +1,46 @@
+{
+  "compilerOptions": {
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "forceConsistentCasingInFileNames": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["./*"],
+      "@os/*": ["./app/*"],
+      "@f/*": ["./app/apps/flow/*"],
+      "@fc/*": ["./app/apps/flow/components/*"],
+      "@dis/*": ["./app/apps/discord/*"],
+      "@disc/*": ["./app/apps/discord/components/*"],
+      "@fig/*": ["./app/apps/figma/*"],
+      "@flow/*": ["./app/apps/flow/*"],
+      "@flowc/*": ["./app/apps/flow/components/*"],
+      "@an/*": ["./app/apps/anki/*"],
+      "@anc/*": ["./app/apps/anki/components/*"]
+    },
+    "target": "es2018",
+    "typeRoots": ["apps/figma/types"]
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    ".next/types/**/*.tsx",
+    "apps/figma/types/**/*.d.ts"
+  ],
+  "exclude": ["node_modules"]
+}
