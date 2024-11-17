@@ -179,6 +179,47 @@ export const initialProfile = async () => {
       },
     });
 
+    // Add this inside the initialProfile function after the designSystem creation
+    const orionFlow = await db.flow.create({
+      data: {
+        name: "Zenith",
+        description: "OS Configuration",
+        type: "CONFIG",
+        appId: "orion",
+        profileId: profile.id,
+        designSystemId: designSystem.id,
+        components: {
+          create: [
+            // Wallpaper with Black token as background
+            {
+              name: "Wallpaper",
+              type: "WALLPAPER",
+              mode: "color",
+              tokenId: "Black",
+              order: 0,
+            },
+            // 4 Dock icons using Overlaying BG token
+            ...Array.from({ length: 4 }).map((_, i) => ({
+              name: `Dock Icon ${i + 1}`,
+              type: "DOCK_ICON",
+              mode: "color",
+              tokenId: "Overlaying BG",
+              order: i,
+            })),
+          ],
+        },
+      },
+    });
+
+    // Create the AppConfig to link the flow
+    await db.appConfig.create({
+      data: {
+        appId: "orion",
+        flowId: orionFlow.id,
+        profileId: profile.id,
+      },
+    });
+
     // Root folder creation stays the same...
     const rootFolder = await tx.folder.create({
       data: {

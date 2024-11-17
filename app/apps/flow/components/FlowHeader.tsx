@@ -5,9 +5,15 @@ interface FlowHeaderProps {
   title: string;
   subtitle: string;
   onBack: (() => void) | null;
+  onForward: (() => void) | null;
 }
 
-export const FlowHeader = ({ title, subtitle, onBack }: FlowHeaderProps) => {
+export const FlowHeader = ({
+  title,
+  subtitle,
+  onBack,
+  onForward,
+}: FlowHeaderProps) => {
   return (
     <div className="flex flex-col">
       {/* Navigation */}
@@ -16,13 +22,27 @@ export const FlowHeader = ({ title, subtitle, onBack }: FlowHeaderProps) => {
           <Button
             variant="ghost"
             size="icon"
-            className="w-5 h-5"
+            className="w-[4.8px] h-[9.6px]"
             onClick={onBack}
           >
             <img
               src="/icns/system/chev/chevL.png"
               alt="Back"
-              className="w-5 h-5"
+              className="w-[4.8px] h-[9.6px]"
+            />
+          </Button>
+        )}
+        {onBack && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="w-[4.8px] h-[9.6px]"
+            onClick={onBack} // Ensure this is correctly passed
+          >
+            <img
+              src="/icns/system/chev/chevR.png"
+              alt="Forward"
+              className="w-[4.8px] h-[9.6px] rotate-180"
             />
           </Button>
         )}
@@ -60,7 +80,7 @@ export const FlowHeader = ({ title, subtitle, onBack }: FlowHeaderProps) => {
           </Button>
           <Button
             variant="outline"
-            className="h-8 px-[11px] border-[#292929]/80 text-[11px] text-[#cccccc]/70"
+            className="h-8 px-[11px] border-[#292929]/80 text-[11px] text-[#cccccc]/70 bg-opacity-0"
           >
             Export
           </Button>
