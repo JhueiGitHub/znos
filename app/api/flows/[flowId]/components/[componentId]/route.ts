@@ -16,38 +16,35 @@ export async function PATCH(
     const { flowId, componentId } = params;
     const updates = await req.json();
 
-    // Verify flow ownership and type
-    const flow = await db.flow.findFirst({
-      where: {
-        id: flowId,
-        profileId: profile.id,
-        type: "CONFIG", // Ensure it's a CONFIG type flow
-        appId: "orion", // Ensure it's the Orion app
-      },
-    });
-
-    if (!flow) {
-      return new NextResponse("Flow not found", { status: 404 });
-    }
-
-    // Handle different component types
-    const component = await db.flowComponent.update({
+    // Simplified flow check - only verify ownership
+    const component = await db.flowComponent.findUnique({
       where: {
         id: componentId,
         flowId: flowId,
+        flow: {
+          profileId: profile.id,
+        },
+      },
+    });
+
+    if (!component) {
+      return new NextResponse("Component not found", { status: 404 });
+    }
+
+    const updatedComponent = await db.flowComponent.update({
+      where: {
+        id: componentId,
       },
       data: {
-        // For wallpaper
         ...(updates.mode && { mode: updates.mode }),
         ...(updates.value && { value: updates.value }),
         ...(updates.tokenId && { tokenId: updates.tokenId }),
         ...(updates.mediaId && { mediaId: updates.mediaId }),
-        // For dock icons
         ...(updates.icon && { value: updates.icon }),
       },
     });
 
-    return NextResponse.json(component);
+    return NextResponse.json(updatedComponent);
   } catch (error) {
     console.error("[FLOW_COMPONENT_UPDATE]", error);
     return new NextResponse("Internal Error", { status: 500 });

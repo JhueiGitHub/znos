@@ -48,6 +48,33 @@ export const initialProfile = async () => {
               { name: "Teal Accent", value: "#003431", opacity: 100 },
               { name: "Text Primary (Hd)", value: "#ABC4C3", opacity: 100 },
               { name: "Text Secondary (Bd)", value: "#748393", opacity: 100 },
+              // Base colors with undefined (100%) strength
+              { name: "black", value: "#000000", opacity: 100 },
+              { name: "night", value: "#010203", opacity: 100 },
+              { name: "graphite", value: "#292929", opacity: 100 },
+              { name: "smoke", value: "#CCCCCC", opacity: 100 },
+              { name: "latte", value: "#4C4F69", opacity: 100 },
+              // Color variants with strengths
+              { name: "black-thick", value: "#000000", opacity: 81 },
+              { name: "black-med", value: "#000000", opacity: 72 },
+              { name: "black-thin", value: "#000000", opacity: 54 },
+              { name: "black-glass", value: "#000000", opacity: 30 },
+              { name: "night-thick", value: "#010203", opacity: 81 },
+              { name: "night-med", value: "#010203", opacity: 72 },
+              { name: "night-thin", value: "#010203", opacity: 54 },
+              { name: "night-glass", value: "#010203", opacity: 30 },
+              { name: "graphite-thick", value: "#292929", opacity: 81 },
+              { name: "graphite-med", value: "#292929", opacity: 72 },
+              { name: "graphite-thin", value: "#292929", opacity: 54 },
+              { name: "graphite-glass", value: "#292929", opacity: 30 },
+              { name: "smoke-thick", value: "#CCCCCC", opacity: 81 },
+              { name: "smoke-med", value: "#CCCCCC", opacity: 72 },
+              { name: "smoke-thin", value: "#CCCCCC", opacity: 54 },
+              { name: "smoke-glass", value: "#CCCCCC", opacity: 30 },
+              { name: "latte-thick", value: "#4C4F69", opacity: 81 },
+              { name: "latte-med", value: "#4C4F69", opacity: 72 },
+              { name: "latte-thin", value: "#4C4F69", opacity: 54 },
+              { name: "latte-glass", value: "#4C4F69", opacity: 30 },
             ],
           },
         },
@@ -179,44 +206,58 @@ export const initialProfile = async () => {
       },
     });
 
-    // Add this inside the initialProfile function after the designSystem creation
-    const orionFlow = await db.flow.create({
+    const orionStream = await tx.stream.create({
       data: {
-        name: "Zenith",
+        name: "Orion",
         description: "OS Configuration",
         type: "CONFIG",
         appId: "orion",
         profileId: profile.id,
-        designSystemId: designSystem.id,
-        components: {
-          create: [
-            // Wallpaper with Black token as background
-            {
-              name: "Wallpaper",
-              type: "WALLPAPER",
-              mode: "color",
-              tokenId: "Black",
-              order: 0,
+        flows: {
+          create: {
+            name: "Zenith",
+            description: "Default OS Configuration",
+            type: "CONFIG",
+            profileId: profile.id,
+            designSystemId: designSystem.id,
+            components: {
+              create: [
+                {
+                  name: "Wallpaper",
+                  type: "WALLPAPER",
+                  mode: "color",
+                  tokenId: "black", // Using new token name
+                  value: "/media/wallpaper.jpg",
+                  order: 0,
+                },
+                {
+                  name: "Finder",
+                  type: "DOCK_ICON",
+                  mode: "color",
+                  tokenId: "graphite-med", // Using new token name
+                  value: "/icns/_finder.png",
+                  order: 1,
+                },
+                {
+                  name: "Flow",
+                  type: "DOCK_ICON",
+                  mode: "color",
+                  tokenId: "graphite-med",
+                  value: "/icns/_flow.png",
+                  order: 2,
+                },
+                {
+                  name: "Discord",
+                  type: "DOCK_ICON",
+                  mode: "color",
+                  tokenId: "graphite-med",
+                  value: "/icns/_discord.png",
+                  order: 3,
+                },
+              ],
             },
-            // 4 Dock icons using Overlaying BG token
-            ...Array.from({ length: 4 }).map((_, i) => ({
-              name: `Dock Icon ${i + 1}`,
-              type: "DOCK_ICON",
-              mode: "color",
-              tokenId: "Overlaying BG",
-              order: i,
-            })),
-          ],
+          },
         },
-      },
-    });
-
-    // Create the AppConfig to link the flow
-    await db.appConfig.create({
-      data: {
-        appId: "orion",
-        flowId: orionFlow.id,
-        profileId: profile.id,
       },
     });
 
