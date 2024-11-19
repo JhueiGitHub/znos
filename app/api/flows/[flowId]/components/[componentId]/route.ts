@@ -16,7 +16,8 @@ export async function PATCH(
     const { flowId, componentId } = params;
     const updates = await req.json();
 
-    // Simplified flow check - only verify ownership
+    console.log("Received updates:", updates);
+
     const component = await db.flowComponent.findUnique({
       where: {
         id: componentId,
@@ -36,13 +37,15 @@ export async function PATCH(
         id: componentId,
       },
       data: {
-        ...(updates.mode && { mode: updates.mode }),
-        ...(updates.value && { value: updates.value }),
-        ...(updates.tokenId && { tokenId: updates.tokenId }),
-        ...(updates.mediaId && { mediaId: updates.mediaId }),
-        ...(updates.icon && { value: updates.icon }),
+        mode: updates.mode,
+        value: updates.value,
+        tokenId: updates.tokenId,
+        mediaId: updates.mediaId,
+        mediaUrl: updates.mediaUrl,
       },
     });
+
+    console.log("Updated component:", updatedComponent);
 
     return NextResponse.json(updatedComponent);
   } catch (error) {

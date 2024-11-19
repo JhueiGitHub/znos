@@ -1,3 +1,4 @@
+// store/appStore.ts
 import { create } from "zustand";
 import { AppDefinition } from "../types/AppTypes";
 
@@ -6,21 +7,57 @@ interface AppWithState extends AppDefinition {
   isMinimized: boolean;
 }
 
+interface OrionConfig {
+  wallpaper: {
+    mode: "color" | "media";
+    value: string | null;
+    tokenId?: string;
+  };
+  dockIcons: Array<{
+    id: string;
+    mode: "color" | "media";
+    value: string | null;
+    tokenId?: string;
+    order: number;
+  }>;
+}
+
 interface AppState {
   openApps: AppWithState[];
   activeAppId: string | null;
+  orionConfig: OrionConfig | null;
+
+  // App window management
   openApp: (app: AppDefinition) => void;
   closeApp: (appId: string) => void;
   setActiveApp: (appId: string) => void;
   updateAppState: (appId: string, newState: Record<string, any>) => void;
   minimizeApp: (appId: string) => void;
   toggleAppMinimize: (appId: string) => void;
+
+  // Orion configuration
+  setOrionConfig: (config: OrionConfig) => void;
+  updateWallpaper: (wallpaper: OrionConfig["wallpaper"]) => void;
+  updateDockIcon: (
+    iconId: string,
+    updates: Partial<OrionConfig["dockIcons"][0]>
+  ) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
+  // Initial state
   openApps: [],
   activeAppId: null,
+  orionConfig: {
+    wallpaper: {
+      mode: "color",
+      value: null,
+      tokenId: "Black", // Default system color
+    },
+    dockIcons: [],
+  },
 
+  // Original app window management methods (unchanged)
   openApp: (app) =>
     set((state) => {
       const existingApp = state.openApps.find(
@@ -98,4 +135,32 @@ export const useAppStore = create<AppState>((set) => ({
         };
       }
     }),
+
+  // New Orion configuration methods
+  setOrionConfig: (config) => set({ orionConfig: config }),
+
+  updateWallpaper: (wallpaper) =>
+    set((state) => ({
+      orionConfig: state.orionConfig
+        ? {
+            ...state.orionConfig,
+            wallpaper: {
+              ...state.orionConfig.wallpaper,
+              ...wallpaper,
+            },
+          }
+        : null,
+    })),
+
+  updateDockIcon: (iconId, updates) =>
+    set((state) => ({
+      orionConfig: state.orionConfig
+        ? {
+            ...state.orionConfig,
+            dockIcons: state.orionConfig.dockIcons.map((icon) =>
+              icon.id === iconId ? { ...icon, ...updates } : icon
+            ),
+          }
+        : null,
+    })),
 }));

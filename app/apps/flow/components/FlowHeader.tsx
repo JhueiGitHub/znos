@@ -5,15 +5,9 @@ interface FlowHeaderProps {
   title: string;
   subtitle: string;
   onBack: (() => void) | null;
-  onForward: (() => void) | null;
 }
 
-export const FlowHeader = ({
-  title,
-  subtitle,
-  onBack,
-  onForward,
-}: FlowHeaderProps) => {
+export const FlowHeader = ({ title, subtitle, onBack }: FlowHeaderProps) => {
   return (
     <div className="flex flex-col">
       {/* Navigation */}

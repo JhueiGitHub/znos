@@ -1,4 +1,4 @@
-import { createClient, LiveMap } from "@liveblocks/client";
+import { createClient, LiveMap, LiveObject } from "@liveblocks/client";
 import { createRoomContext } from "@liveblocks/react";
 import { Presence } from "@fig/types/type";
 
@@ -20,9 +20,8 @@ const client = createClient({
 // LiveList, LiveMap, LiveObject instances, for which updates are
 // automatically persisted and synced to all connected clients.
 type Storage = {
-  // author: LiveObject<{ firstName: string, lastName: string }>,
-  // ...
   canvasObjects: LiveMap<string, any>;
+  orionConfig?: LiveMap<string, any>; // Make orionConfig optional
 };
 
 // Optionally, UserMeta represents static/readonly metadata on each user, as

@@ -1,5 +1,14 @@
 // hooks/useStyles.ts
+
 import { useDesignSystem } from "../contexts/DesignSystemContext";
+
+export interface AppComponentStyle {
+  backgroundColor?: string;
+  backgroundImage?: string;
+  backgroundSize?: string;
+  backgroundPosition?: string;
+  [key: string]: string | undefined;
+}
 
 export const useStyles = () => {
   const { designSystem, isLoading, updateDesignSystem } = useDesignSystem();
@@ -37,6 +46,67 @@ export const useStyles = () => {
     return token?.fontFamily || "";
   };
 
+  const getAppComponent = (
+    appId: string,
+    componentType: "wallpaper" | "dock-icon",
+    options: {
+      mode: "color" | "media";
+      tokenId?: string;
+      mediaUrl?: string | null;
+      value?: string | null;
+    }
+  ): AppComponentStyle => {
+    const { mode, tokenId, mediaUrl, value } = options;
+
+    // Handle media mode
+    if (mode === "media") {
+      const mediaSource = mediaUrl || value;
+      if (mediaSource) {
+        return {
+          backgroundImage: `url(${mediaSource})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        };
+      }
+    }
+
+    // Handle color mode
+    if (mode === "color") {
+      if (componentType === "wallpaper") {
+        const wallpaperToken = designSystem.colorTokens.find(
+          (t) => t.name === (tokenId || "Black")
+        );
+
+        if (wallpaperToken) {
+          return {
+            backgroundColor: `rgba(${hexToRgb(wallpaperToken.value)}, ${
+              wallpaperToken.opacity / 100
+            })`,
+          };
+        }
+      }
+
+      if (componentType === "dock-icon") {
+        const iconToken = designSystem.colorTokens.find(
+          (t) => t.name === (tokenId || "Graphite")
+        );
+
+        if (iconToken) {
+          return {
+            backgroundColor: `rgba(${hexToRgb(iconToken.value)}, ${
+              iconToken.opacity / 100
+            })`,
+          };
+        }
+      }
+    }
+
+    // Default fallback
+    return {
+      backgroundColor: getColor("Glass"),
+    };
+  };
+
   const updateColor = async (name: string, value: string, opacity: number) => {
     if (!designSystem) return;
     const updatedTokens = designSystem.colorTokens.map((token) =>
@@ -71,5 +141,12 @@ export const useStyles = () => {
       : null;
   };
 
-  return { getColor, getFont, updateColor, updateFont, isLoading };
+  return {
+    getColor,
+    getFont,
+    updateColor,
+    updateFont,
+    getAppComponent,
+    isLoading,
+  };
 };
