@@ -1,11 +1,10 @@
-// /app/apps/flow/components/canvas/OrionFlowEditor.tsx
 import { useEffect, useRef, useState } from "react";
 import { fabric } from "fabric";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { useOthers } from "@/liveblocks.config";
 import { useDesignSystem } from "@/app/contexts/DesignSystemContext";
-import { ComponentUpdate, OrionFlowComponent } from "./orion-flow-types";
+import { OrionFlowComponent } from "./orion-flow-types";
 import OrionEditorSidebar from "./OrionEditorSidebar";
 import { useAppStore } from "@/app/store/appStore";
 import { AnimatePresence, motion } from "framer-motion";
@@ -123,7 +122,6 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
   } | null>(null);
   const updateOrionConfig = useAppStore((state) => state.setOrionConfig);
 
-  // Add the missing flow query
   const { data: flow } = useQuery({
     queryKey: ["flow", flowId],
     queryFn: async () => {
@@ -161,7 +159,15 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
       );
 
       if (updatedComponent.type === "WALLPAPER") {
-        const currentConfig = queryClient.getQueryData(["orion-config"]);
+        const currentConfig = queryClient.getQueryData<{
+          wallpaper?: {
+            mode?: string;
+            value?: string | null;
+            tokenId?: string;
+          };
+          dockIcons?: any[];
+        }>(["orion-config"]) || { wallpaper: {}, dockIcons: [] };
+
         updateOrionConfig({
           wallpaper: {
             mode: updatedComponent.mode,
@@ -172,11 +178,10 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
                 ? updatedComponent.tokenId
                 : undefined,
           },
-          dockIcons: currentConfig?.dockIcons || [],
+          dockIcons: currentConfig.dockIcons || [],
         });
       }
 
-      // Update canvas
       const canvas = fabricRef.current;
       if (canvas) {
         const objectToUpdate = canvas
@@ -216,20 +221,16 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
     },
   });
 
-  // Update handleMediaSelect to match new types
   const handleMediaSelect = (mediaItem: MediaItem) => {
     if (!selectedComponent) return;
-
     handleComponentUpdate(selectedComponent.id, {
       mode: "media",
       value: mediaItem.url,
       mediaId: mediaItem.id,
     } as Partial<OrionFlowComponent>);
-
     setMediaSelector(null);
   };
 
-  // Keep all your existing useEffect hooks and other functionality
   useEffect(() => {
     if (!canvasRef.current || !flow?.components || !designSystem) return;
 
@@ -295,6 +296,108 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
       canvas.renderAll();
     }
 
+    // Handle trackpad gestures
+    canvas.on("mouse:wheel", (opt) => {
+      const e = opt.e as WheelEvent;
+
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+        const delta = e.deltaY;
+        let zoom = canvas.getZoom();
+        zoom = zoom * 0.999 ** delta;
+        zoom = Math.min(Math.max(0.1, zoom), 20);
+        canvas.zoomToPoint(new fabric.Point(e.offsetX, e.offsetY), zoom);
+      } else {
+        if (canvas.viewportTransform) {
+          canvas.viewportTransform[4] -= e.deltaX;
+          canvas.viewportTransform[5] -= e.deltaY;
+          canvas.requestRenderAll();
+        }
+      }
+    });
+
+    let isPanning = false;
+    let lastClientX = 0;
+    let lastClientY = 0;
+    let isSpacebarPressed = false;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.code === "Space" || e.key === " ") {
+        isSpacebarPressed = true;
+        if (fabricRef.current) {
+          fabricRef.current.defaultCursor = "grab";
+        }
+      }
+    };
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.code === "Space" || e.key === " ") {
+        isSpacebarPressed = false;
+        isPanning = false;
+        if (fabricRef.current) {
+          fabricRef.current.defaultCursor = "default";
+        }
+      }
+    };
+
+    const handleMouseDown = (e: MouseEvent) => {
+      if (isSpacebarPressed) {
+        isPanning = true;
+        lastClientX = e.clientX;
+        lastClientY = e.clientY;
+        if (fabricRef.current) {
+          fabricRef.current.defaultCursor = "grabbing";
+        }
+      }
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isPanning) return;
+
+      const deltaX = e.clientX - lastClientX;
+      const deltaY = e.clientY - lastClientY;
+
+      if (fabricRef.current?.viewportTransform) {
+        fabricRef.current.viewportTransform[4] += deltaX;
+        fabricRef.current.viewportTransform[5] += deltaY;
+        fabricRef.current.requestRenderAll();
+      }
+
+      lastClientX = e.clientX;
+      lastClientY = e.clientY;
+    };
+
+    const handleMouseUp = () => {
+      isPanning = false;
+      if (fabricRef.current) {
+        fabricRef.current.defaultCursor = isSpacebarPressed
+          ? "grab"
+          : "default";
+      }
+    };
+
+    // Handle resize
+    const handleResize = () => {
+      if (fabricRef.current) {
+        const currentVPT = fabricRef.current.viewportTransform
+          ? [...fabricRef.current.viewportTransform]
+          : undefined;
+        const currentZoom = fabricRef.current.getZoom();
+
+        fabricRef.current.setDimensions({
+          width: window.innerWidth - 560,
+          height: window.innerHeight,
+        });
+
+        if (currentVPT) {
+          fabricRef.current.setViewportTransform(currentVPT);
+          fabricRef.current.setZoom(currentZoom);
+        }
+
+        fabricRef.current.requestRenderAll();
+      }
+    };
+
     canvas.on("selection:created", (options) => {
       const selectedObject = options.selected?.[0];
       if (selectedObject && selectedObject.data) {
@@ -306,64 +409,23 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
       setSelectedComponent(null);
     });
 
-    let isPanning = false;
-    let lastClientX = 0;
-    let lastClientY = 0;
-
-    canvas.on("mouse:down", (opt) => {
-      const evt = opt.e as MouseEvent;
-      if (evt.altKey) {
-        isPanning = true;
-        lastClientX = evt.clientX;
-        lastClientY = evt.clientY;
-        canvas.defaultCursor = "grabbing";
-      }
-    });
-
-    canvas.on("mouse:move", (opt) => {
-      if (isPanning && opt.e) {
-        const evt = opt.e as MouseEvent;
-        const deltaX = evt.clientX - lastClientX;
-        const deltaY = evt.clientY - lastClientY;
-
-        if (canvas.viewportTransform) {
-          canvas.viewportTransform[4] += deltaX;
-          canvas.viewportTransform[5] += deltaY;
-          canvas.requestRenderAll();
-        }
-
-        lastClientX = evt.clientX;
-        lastClientY = evt.clientY;
-      }
-    });
-
-    canvas.on("mouse:up", () => {
-      isPanning = false;
-      canvas.defaultCursor = "default";
-    });
-
-    canvas.on("mouse:wheel", (opt) => {
-      const evt = opt.e as WheelEvent;
-      evt.preventDefault();
-      const delta = evt.deltaY;
-      let zoom = canvas.getZoom();
-      zoom *= 0.999 ** delta;
-      zoom = Math.min(Math.max(0.1, zoom), 20);
-      canvas.zoomToPoint(new fabric.Point(evt.offsetX, evt.offsetY), zoom);
-    });
-
-    const handleResize = () => {
-      canvas.setDimensions({
-        width: window.innerWidth - 560,
-        height: window.innerHeight,
-      });
-      canvas.requestRenderAll();
-    };
-
+    const canvasElement = canvasRef.current;
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
+    canvasElement.addEventListener("mousedown", handleMouseDown);
+    canvasElement.addEventListener("mousemove", handleMouseMove);
+    canvasElement.addEventListener("mouseup", handleMouseUp);
+    canvasElement.addEventListener("mouseleave", handleMouseUp);
     window.addEventListener("resize", handleResize);
 
     return () => {
       canvas.dispose();
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keyup", handleKeyUp);
+      canvasElement.removeEventListener("mousedown", handleMouseDown);
+      canvasElement.removeEventListener("mousemove", handleMouseMove);
+      canvasElement.removeEventListener("mouseup", handleMouseUp);
+      canvasElement.removeEventListener("mouseleave", handleMouseUp);
       window.removeEventListener("resize", handleResize);
     };
   }, [canvasRef, flow, designSystem]);
@@ -394,10 +456,6 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
         )}
       </AnimatePresence>
 
-      <div className="fixed top-4 right-20 text-[#cccccc]/70 text-xs">
-        {others.length} other user{others.length === 1 ? "" : "s"} present
-      </div>
-
       <div className="fixed top-4 right-4 flex items-center gap-4">
         <SaveStatusIndicator status={saveStatus} />
         <div className="text-[#cccccc]/70 text-xs">
@@ -407,5 +465,4 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
     </div>
   );
 };
-
 export default OrionFlowEditor;
