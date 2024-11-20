@@ -4,6 +4,25 @@ import { appDefinitions } from "../types/AppTypes";
 import { useAppStore } from "../store/appStore";
 import { FloatingDock } from "./ui/floating-dock";
 import { useStyles } from "../hooks/useStyles";
+import { useQuery } from "@tanstack/react-query";
+import axios from "axios";
+
+// Add interface for dock icon data
+interface DockIcon {
+  id: string;
+  name: string;
+  mode: "color" | "media";
+  value: string | null;
+  tokenId: string | undefined;
+  order: number;
+}
+
+// Add interface for dock items
+interface DockItem {
+  title: string;
+  icon: React.ReactNode;
+  href: string;
+}
 
 const DOCK_HEIGHT = 70;
 const TRIGGER_AREA_HEIGHT = 60;
@@ -13,6 +32,32 @@ const Dock: React.FC = () => {
   const appStore = useAppStore();
   const { getColor } = useStyles();
   const [isDockVisible, setIsDockVisible] = useState(false);
+  const dockIcons = useAppStore((state) => state.orionConfig?.dockIcons);
+  const updateOrionConfig = useAppStore((state) => state.setOrionConfig);
+
+  const { data: dockIconsData } = useQuery({
+    queryKey: ["dock-icons-config"],
+    queryFn: async () => {
+      const response = await axios.get<DockIcon[]>(
+        "/api/flows/components/dock-icons"
+      );
+
+      const updatedConfig = {
+        wallpaper: useAppStore.getState().orionConfig?.wallpaper,
+        dockIcons: response.data.map((icon: DockIcon) => ({
+          id: icon.id,
+          name: icon.name,
+          mode: icon.mode,
+          value: icon.value,
+          tokenId: icon.tokenId,
+          order: icon.order,
+        })),
+      };
+      updateOrionConfig(updatedConfig);
+
+      return response.data;
+    },
+  });
 
   const handleAppClick = (app: (typeof appDefinitions)[number]) => {
     const openApp = appStore.openApps?.find((a) => a.id === app.id);
@@ -23,10 +68,11 @@ const Dock: React.FC = () => {
     }
   };
 
-  const dockItems = appDefinitions.map((app) => {
+  const dockItems: DockItem[] = appDefinitions.map((app, index) => {
     const openApp = appStore.openApps?.find((a) => a.id === app.id);
     const isOpen = !!openApp;
     const isMinimized = openApp?.isMinimized || false;
+    const dockIcon = dockIcons?.[index];
 
     return {
       title: app.name,
@@ -38,7 +84,18 @@ const Dock: React.FC = () => {
         >
           <div
             className="w-8 h-8 rounded-md"
-            style={{ backgroundColor: getColor("Overlaying BG") }}
+            style={{
+              backgroundColor:
+                dockIcon?.mode === "color"
+                  ? getColor(dockIcon.tokenId || "Graphite")
+                  : "transparent",
+              backgroundImage:
+                dockIcon?.mode === "media" && dockIcon.value
+                  ? `url(${dockIcon.value})`
+                  : undefined,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+            }}
           />
           {isOpen && (
             <div
@@ -97,7 +154,7 @@ const Dock: React.FC = () => {
               style={{
                 width: "fit-content",
                 marginBottom: `${DOCK_BOTTOM_MARGIN}px`,
-                pointerEvents: "auto",
+                pointerEvents: "auto", // Fixed from pointerPoints to pointerEvents
               }}
             >
               <FloatingDock

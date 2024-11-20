@@ -8,13 +8,14 @@ interface AppWithState extends AppDefinition {
 }
 
 interface OrionConfig {
-  wallpaper: {
+  wallpaper?: {
     mode: "color" | "media";
     value: string | null;
     tokenId?: string;
   };
-  dockIcons: Array<{
+  dockIcons?: Array<{
     id: string;
+    name: string;
     mode: "color" | "media";
     value: string | null;
     tokenId?: string;
@@ -38,10 +39,7 @@ interface AppState {
   // Orion configuration
   setOrionConfig: (config: OrionConfig) => void;
   updateWallpaper: (wallpaper: OrionConfig["wallpaper"]) => void;
-  updateDockIcon: (
-    iconId: string,
-    updates: Partial<OrionConfig["dockIcons"][0]>
-  ) => void;
+  updateDockIcons: (icons: NonNullable<OrionConfig["dockIcons"]>) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -141,26 +139,16 @@ export const useAppStore = create<AppState>((set) => ({
 
   updateWallpaper: (wallpaper) =>
     set((state) => ({
-      orionConfig: state.orionConfig
-        ? {
-            ...state.orionConfig,
-            wallpaper: {
-              ...state.orionConfig.wallpaper,
-              ...wallpaper,
-            },
-          }
-        : null,
+      orionConfig: {
+        ...state.orionConfig,
+        wallpaper,
+      },
     })),
-
-  updateDockIcon: (iconId, updates) =>
+  updateDockIcons: (dockIcons) =>
     set((state) => ({
-      orionConfig: state.orionConfig
-        ? {
-            ...state.orionConfig,
-            dockIcons: state.orionConfig.dockIcons.map((icon) =>
-              icon.id === iconId ? { ...icon, ...updates } : icon
-            ),
-          }
-        : null,
+      orionConfig: {
+        ...state.orionConfig,
+        dockIcons,
+      },
     })),
 }));

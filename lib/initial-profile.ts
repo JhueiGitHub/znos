@@ -233,9 +233,8 @@ export const initialProfile = async () => {
                 {
                   name: "Finder",
                   type: "DOCK_ICON",
-                  mode: "color",
-                  tokenId: "graphite-med", // Using new token name
-                  value: "/icns/_finder.png",
+                  mode: "color", // Starts in color mode
+                  tokenId: "graphite-med", // Initial fill color
                   order: 1,
                 },
                 {
@@ -243,7 +242,6 @@ export const initialProfile = async () => {
                   type: "DOCK_ICON",
                   mode: "color",
                   tokenId: "graphite-med",
-                  value: "/icns/_flow.png",
                   order: 2,
                 },
                 {
@@ -251,8 +249,42 @@ export const initialProfile = async () => {
                   type: "DOCK_ICON",
                   mode: "color",
                   tokenId: "graphite-med",
-                  value: "/icns/_discord.png",
                   order: 3,
+                },
+                {
+                  name: "Anki",
+                  type: "DOCK_ICON",
+                  mode: "color",
+                  tokenId: "graphite-med",
+                  order: 4,
+                },
+                {
+                  name: "Stellar",
+                  type: "DOCK_ICON",
+                  mode: "color",
+                  tokenId: "graphite-med",
+                  order: 5,
+                },
+                {
+                  name: "Terminal",
+                  type: "DOCK_ICON",
+                  mode: "color",
+                  tokenId: "graphite-med",
+                  order: 6,
+                },
+                {
+                  name: "Settings",
+                  type: "DOCK_ICON",
+                  mode: "color",
+                  tokenId: "graphite-med",
+                  order: 7,
+                },
+                {
+                  name: "GitHub",
+                  type: "DOCK_ICON",
+                  mode: "color",
+                  tokenId: "graphite-med",
+                  order: 8,
                 },
               ],
             },
