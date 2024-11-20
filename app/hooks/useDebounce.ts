@@ -1,46 +1,88 @@
-// /root/hooks/useDebounce.ts
+import { useState, useCallback, useRef } from "react";
+import { debounce } from "lodash";
+import { OrionFlowComponent } from "../apps/flow/components/editors/orion-flow-types";
 
-import { useState, useEffect } from "react";
+export type SaveStatus = "idle" | "saving" | "saved" | "error";
 
-export function useDebounce<T>(value: T, delay: number): T {
-  const [debouncedValue, setDebouncedValue] = useState<T>(value);
-
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedValue(value);
-    }, delay);
-
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [value, delay]);
-
-  return debouncedValue;
+interface ComponentUpdate {
+  componentId: string;
+  updates: {
+    mode?: "color" | "media";
+    value?: string | null;
+    mediaId?: string;
+    tokenId?: string;
+  };
 }
 
-export function useDebounceCallback<T extends (...args: any[]) => any>(
-  callback: T,
-  delay: number
-): [T, () => void] {
-  const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
+interface UseAutosaveOptions {
+  // Match EXACTLY with OrionSidebarProps.onUpdateComponent
+  onSave: (
+    id: string,
+    updates: Partial<OrionFlowComponent>
+  ) => Promise<OrionFlowComponent>;
+  onSuccess?: (updatedComponent: OrionFlowComponent) => void;
+  onError?: (error: any) => void;
+  debounceMs?: number;
+}
 
-  const debouncedCallback = ((...args: Parameters<T>) => {
-    if (timeoutId) {
-      clearTimeout(timeoutId);
-    }
+export function useAutosave({
+  onSave,
+  onSuccess,
+  onError,
+  debounceMs = 2000,
+}: UseAutosaveOptions) {
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
+  const pendingSaveRef = useRef<{
+    id: string;
+    updates: Partial<OrionFlowComponent>;
+  } | null>(null);
+  const isSavingRef = useRef(false);
 
-    const newTimeoutId = setTimeout(() => {
-      callback(...args);
-    }, delay);
+  const executeSave = useCallback(
+    async (id: string, updates: Partial<OrionFlowComponent>) => {
+      if (isSavingRef.current) {
+        pendingSaveRef.current = { id, updates };
+        return;
+      }
 
-    setTimeoutId(newTimeoutId);
-  }) as T;
+      try {
+        isSavingRef.current = true;
+        setSaveStatus("saving");
 
-  const cancelDebounce = () => {
-    if (timeoutId) {
-      clearTimeout(timeoutId);
-    }
-  };
+        const result = await onSave(id, updates);
 
-  return [debouncedCallback, cancelDebounce];
+        setSaveStatus("saved");
+        onSuccess?.(result);
+
+        setTimeout(() => setSaveStatus("idle"), 1000);
+
+        if (pendingSaveRef.current) {
+          const pendingData = pendingSaveRef.current;
+          pendingSaveRef.current = null;
+          await executeSave(pendingData.id, pendingData.updates);
+        }
+      } catch (error) {
+        setSaveStatus("error");
+        onError?.(error);
+        setTimeout(() => setSaveStatus("idle"), 2000);
+      } finally {
+        isSavingRef.current = false;
+      }
+    },
+    [onSave, onSuccess, onError]
+  );
+
+  const debouncedSave = useCallback(debounce(executeSave, debounceMs), [
+    executeSave,
+    debounceMs,
+  ]);
+
+  const handleComponentUpdate = useCallback(
+    (id: string, updates: Partial<OrionFlowComponent>) => {
+      debouncedSave(id, updates);
+    },
+    [debouncedSave]
+  );
+
+  return { handleComponentUpdate, saveStatus };
 }

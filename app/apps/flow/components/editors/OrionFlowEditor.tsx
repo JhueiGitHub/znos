@@ -5,13 +5,15 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { useOthers } from "@/liveblocks.config";
 import { useDesignSystem } from "@/app/contexts/DesignSystemContext";
-import { OrionFlowComponent } from "./orion-flow-types";
+import { ComponentUpdate, OrionFlowComponent } from "./orion-flow-types";
 import OrionEditorSidebar from "./OrionEditorSidebar";
 import { useAppStore } from "@/app/store/appStore";
 import { AnimatePresence, motion } from "framer-motion";
 import * as Portal from "@radix-ui/react-portal";
 import { MediaItem } from "@prisma/client";
 import { useStyles } from "@os/hooks/useStyles";
+import { useAutosave } from "@/app/hooks/useDebounce";
+import SaveStatusIndicator from "@/app/components/SaveStatusIndicator";
 
 interface OrionFlowEditorProps {
   flowId: string;
@@ -89,7 +91,7 @@ const MediaSelector = ({ position, onSelect, onClose }: MediaSelectorProps) => {
             </button>
           </div>
           <div className="p-3 grid grid-cols-3 gap-2 max-h-[400px] overflow-y-auto">
-            {mediaItems?.map((item) => (
+            {mediaItems?.map((item: MediaItem) => (
               <motion.div
                 key={item.id}
                 whileHover={{ scale: 1.05 }}
@@ -121,37 +123,45 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
   } | null>(null);
   const updateOrionConfig = useAppStore((state) => state.setOrionConfig);
 
+  // Add the missing flow query
   const { data: flow } = useQuery({
     queryKey: ["flow", flowId],
     queryFn: async () => {
-      const response = await axios.get(`/api/flows/${flowId}`);
+      const response = await axios.get<{ components: OrionFlowComponent[] }>(
+        `/api/flows/${flowId}`
+      );
       return response.data;
     },
-    // Remove any app store updates from here
-    refetchOnWindowFocus: false,
     staleTime: Infinity,
+    cacheTime: 30 * 60 * 1000,
   });
 
-  const updateComponent = useMutation<
-    UpdateResponse,
-    Error,
-    {
-      componentId: string;
-      updates: Partial<OrionFlowComponent>;
-    }
-  >({
-    mutationFn: async ({ componentId, updates }) => {
-      const response = await axios.patch<UpdateResponse>(
-        `/api/flows/${flowId}/components/${componentId}`,
+  const { handleComponentUpdate, saveStatus } = useAutosave({
+    onSave: async (id: string, updates: Partial<OrionFlowComponent>) => {
+      const response = await axios.patch<OrionFlowComponent>(
+        `/api/flows/${flowId}/components/${id}`,
         updates
       );
       return response.data;
     },
-    onSuccess: (updatedComponent) => {
-      queryClient.invalidateQueries(["flow", flowId]);
-      queryClient.invalidateQueries(["orion-wallpaper"]);
+    onSuccess: (updatedComponent: OrionFlowComponent) => {
+      queryClient.setQueryData(
+        ["flow", flowId],
+        (oldData: { components: OrionFlowComponent[] } | undefined) => {
+          if (!oldData?.components) return oldData;
+          return {
+            ...oldData,
+            components: oldData.components.map((component) =>
+              component.id === updatedComponent.id
+                ? { ...component, ...updatedComponent }
+                : component
+            ),
+          };
+        }
+      );
 
       if (updatedComponent.type === "WALLPAPER") {
+        const currentConfig = queryClient.getQueryData(["orion-config"]);
         updateOrionConfig({
           wallpaper: {
             mode: updatedComponent.mode,
@@ -162,10 +172,11 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
                 ? updatedComponent.tokenId
                 : undefined,
           },
-          dockIcons: [],
+          dockIcons: currentConfig?.dockIcons || [],
         });
       }
 
+      // Update canvas
       const canvas = fabricRef.current;
       if (canvas) {
         const objectToUpdate = canvas
@@ -205,6 +216,7 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
     },
   });
 
+  // Update handleMediaSelect to match new types
   const handleMediaSelect = (mediaItem: MediaItem) => {
     if (!selectedComponent) return;
 
@@ -212,33 +224,12 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
       mode: "media",
       value: mediaItem.url,
       mediaId: mediaItem.id,
-    });
+    } as Partial<OrionFlowComponent>);
+
     setMediaSelector(null);
   };
 
-  const handleComponentUpdate = (
-    componentId: string,
-    updates: Partial<OrionFlowComponent>
-  ) => {
-    if (
-      !flow?.components.find((c: OrionFlowComponent) => c.id === componentId)
-    ) {
-      console.error("Component not found:", componentId);
-      return;
-    }
-
-    const updatedComponent = {
-      ...updates,
-      value: updates.mode === "color" ? undefined : updates.value,
-      tokenId: updates.mode === "media" ? undefined : updates.tokenId,
-    };
-
-    updateComponent.mutate({
-      componentId,
-      updates: updatedComponent,
-    });
-  };
-
+  // Keep all your existing useEffect hooks and other functionality
   useEffect(() => {
     if (!canvasRef.current || !flow?.components || !designSystem) return;
 
@@ -276,7 +267,7 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
         fill:
           component.mode === "media" && component.value
             ? "rgba(0,0,0,0)"
-            : getTokenColor(component.tokenId),
+            : getTokenColor(component.tokenId || null),
       });
 
       canvas.add(circle);
@@ -405,6 +396,13 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
 
       <div className="fixed top-4 right-20 text-[#cccccc]/70 text-xs">
         {others.length} other user{others.length === 1 ? "" : "s"} present
+      </div>
+
+      <div className="fixed top-4 right-4 flex items-center gap-4">
+        <SaveStatusIndicator status={saveStatus} />
+        <div className="text-[#cccccc]/70 text-xs">
+          {others.length} other user{others.length === 1 ? "" : "s"} present
+        </div>
       </div>
     </div>
   );

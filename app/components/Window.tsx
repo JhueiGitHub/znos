@@ -1,11 +1,9 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback } from "react";
 import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
 import { AppDefinition } from "../types/AppTypes";
 import { useAppStore } from "../store/appStore";
 import { useStyles } from "../hooks/useStyles";
-import { useDebounceCallback } from "../hooks/useDebounce";
-import SaveIndicator from "./SaveIndicator";
 
 interface WindowProps {
   app: AppDefinition;
@@ -17,9 +15,6 @@ interface DynamicAppProps {}
 const Window: React.FC<WindowProps> = ({ app, isActive }) => {
   const { closeApp, setActiveApp, updateAppState, openApps } = useAppStore();
   const { getColor } = useStyles();
-  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">(
-    "idle"
-  );
 
   const AppComponent = dynamic<DynamicAppProps>(
     () => import(`../apps/${app.id}/page`),
@@ -37,37 +32,6 @@ const Window: React.FC<WindowProps> = ({ app, isActive }) => {
     updateAppState(app.id, { isMinimized: false });
     setActiveApp(app.id);
   };
-
-  const [debouncedSave, cancelDebounce] = useDebounceCallback(() => {
-    setSaveStatus("saving");
-    setTimeout(() => {
-      setSaveStatus("saved");
-      setTimeout(() => setSaveStatus("idle"), 1000);
-    }, 500);
-  }, 3000);
-
-  const handleContentChange = useCallback(() => {
-    setSaveStatus("saving");
-    debouncedSave();
-  }, [debouncedSave]);
-
-  useEffect(() => {
-    const checkStateChanges = (
-      state: ReturnType<typeof useAppStore.getState>
-    ) => {
-      const appState = state.openApps.find(
-        (openApp) => openApp.id === app.id
-      )?.state;
-      if (appState) {
-        handleContentChange();
-      }
-    };
-
-    const unsubscribe = useAppStore.subscribe(checkStateChanges);
-    return () => {
-      unsubscribe();
-    };
-  }, [app.id, handleContentChange]);
 
   return (
     <motion.div
@@ -110,7 +74,6 @@ const Window: React.FC<WindowProps> = ({ app, isActive }) => {
         >
           {app.name}
         </h2>
-        <SaveIndicator status={saveStatus} />
       </div>
       <div className="flex-grow overflow-auto">
         <AppComponent />
