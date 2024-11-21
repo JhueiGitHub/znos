@@ -32,7 +32,7 @@
       "@anc/*": ["./app/apps/anki/components/*"]
     },
     "target": "es2018",
-    "typeRoots": ["apps/figma/types"]
+    "types": ["@uploadcare/blocks/types/jsx"]
   },
   "include": [
     "next-env.d.ts",

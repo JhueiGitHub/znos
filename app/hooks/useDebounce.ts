@@ -15,7 +15,6 @@ interface ComponentUpdate {
 }
 
 interface UseAutosaveOptions {
-  // Match EXACTLY with OrionSidebarProps.onUpdateComponent
   onSave: (
     id: string,
     updates: Partial<OrionFlowComponent>
@@ -37,6 +36,7 @@ export function useAutosave({
     updates: Partial<OrionFlowComponent>;
   } | null>(null);
   const isSavingRef = useRef(false);
+  const lastSuccessfulSaveRef = useRef<OrionFlowComponent | null>(null);
 
   const executeSave = useCallback(
     async (id: string, updates: Partial<OrionFlowComponent>) => {
@@ -49,13 +49,30 @@ export function useAutosave({
         isSavingRef.current = true;
         setSaveStatus("saving");
 
+        // Optimistically update UI before server response
+        if (onSuccess && lastSuccessfulSaveRef.current) {
+          const optimisticUpdate = {
+            ...lastSuccessfulSaveRef.current,
+            ...updates,
+            id,
+          };
+          onSuccess(optimisticUpdate);
+        }
+
         const result = await onSave(id, updates);
+        lastSuccessfulSaveRef.current = result;
 
         setSaveStatus("saved");
         onSuccess?.(result);
 
-        setTimeout(() => setSaveStatus("idle"), 1000);
+        // Reset status after a delay without triggering refresh
+        const timeout = setTimeout(() => {
+          if (saveStatus === "saved") {
+            setSaveStatus("idle");
+          }
+        }, 1000);
 
+        // Handle any pending saves that came in while we were saving
         if (pendingSaveRef.current) {
           const pendingData = pendingSaveRef.current;
           pendingSaveRef.current = null;
@@ -64,24 +81,45 @@ export function useAutosave({
       } catch (error) {
         setSaveStatus("error");
         onError?.(error);
-        setTimeout(() => setSaveStatus("idle"), 2000);
+
+        // If error, revert to last successful state
+        if (onSuccess && lastSuccessfulSaveRef.current) {
+          onSuccess(lastSuccessfulSaveRef.current);
+        }
+
+        const timeout = setTimeout(() => {
+          if (saveStatus === "error") {
+            setSaveStatus("idle");
+          }
+        }, 2000);
       } finally {
         isSavingRef.current = false;
       }
     },
-    [onSave, onSuccess, onError]
+    [onSave, onSuccess, onError, saveStatus]
   );
 
-  const debouncedSave = useCallback(debounce(executeSave, debounceMs), [
-    executeSave,
-    debounceMs,
-  ]);
+  const debouncedSave = useCallback(
+    debounce((id: string, updates: Partial<OrionFlowComponent>) => {
+      executeSave(id, updates);
+    }, debounceMs),
+    [executeSave, debounceMs]
+  );
 
   const handleComponentUpdate = useCallback(
     (id: string, updates: Partial<OrionFlowComponent>) => {
+      // Apply update optimistically before debounced save
+      if (onSuccess && lastSuccessfulSaveRef.current) {
+        const optimisticUpdate = {
+          ...lastSuccessfulSaveRef.current,
+          ...updates,
+          id,
+        };
+        onSuccess(optimisticUpdate);
+      }
       debouncedSave(id, updates);
     },
-    [debouncedSave]
+    [debouncedSave, onSuccess]
   );
 
   return { handleComponentUpdate, saveStatus };

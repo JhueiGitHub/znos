@@ -143,6 +143,7 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
       return response.data;
     },
     onSuccess: (updatedComponent: OrionFlowComponent) => {
+      // Update flow query data
       queryClient.setQueryData(
         ["flow", flowId],
         (oldData: { components: OrionFlowComponent[] } | undefined) => {
@@ -158,76 +159,111 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
         }
       );
 
-      if (updatedComponent.type === "WALLPAPER") {
+      // If it's a dock icon, ensure orion config stays in sync
+      if (updatedComponent.type === "DOCK_ICON") {
         const currentConfig = queryClient.getQueryData<{
-          wallpaper?: {
-            mode?: string;
-            value?: string | null;
-            tokenId?: string;
+          wallpaper?: any;
+          dockIcons?: Array<any>;
+        }>(["orion-config"]);
+
+        if (currentConfig) {
+          const updatedConfig = {
+            ...currentConfig,
+            dockIcons: currentConfig.dockIcons?.map((icon) =>
+              icon.id === updatedComponent.id
+                ? {
+                    ...icon,
+                    mode: updatedComponent.mode,
+                    value: updatedComponent.value,
+                    mediaId: updatedComponent.mediaId,
+                    tokenId: updatedComponent.tokenId,
+                  }
+                : icon
+            ),
           };
-          dockIcons?: any[];
-        }>(["orion-config"]) || { wallpaper: {}, dockIcons: [] };
-
-        updateOrionConfig({
-          wallpaper: {
-            mode: updatedComponent.mode,
-            value:
-              updatedComponent.mode === "media" ? updatedComponent.value : null,
-            tokenId:
-              updatedComponent.mode === "color"
-                ? updatedComponent.tokenId
-                : undefined,
-          },
-          dockIcons: currentConfig.dockIcons || [],
-        });
-      }
-
-      const canvas = fabricRef.current;
-      if (canvas) {
-        const objectToUpdate = canvas
-          .getObjects()
-          .find((obj) => obj.data?.id === updatedComponent.id);
-
-        if (objectToUpdate) {
-          if (updatedComponent.mode === "media" && updatedComponent.value) {
-            const img = new Image();
-            img.crossOrigin = "anonymous";
-            img.onload = () => {
-              const pattern = new fabric.Pattern({
-                source: img,
-                repeat: "no-repeat",
-              });
-              objectToUpdate.set("fill", pattern);
-              canvas.renderAll();
-            };
-            img.src = updatedComponent.value;
-          } else if (
-            updatedComponent.mode === "color" &&
-            updatedComponent.tokenId
-          ) {
-            const token = designSystem?.colorTokens.find(
-              (t) => t.name === updatedComponent.tokenId
-            );
-            if (token) {
-              objectToUpdate.set("fill", token.value);
-              canvas.renderAll();
-            }
-          }
+          queryClient.setQueryData(["orion-config"], updatedConfig);
         }
       }
     },
     onError: (error) => {
       console.error("Failed to update component:", error);
+      // On error, invalidate queries to ensure data consistency
+      queryClient.invalidateQueries(["flow", flowId]);
+      queryClient.invalidateQueries(["orion-config"]);
     },
   });
 
-  const handleMediaSelect = (mediaItem: MediaItem) => {
+  const handleMediaSelect = async (mediaItem: MediaItem) => {
     if (!selectedComponent) return;
-    handleComponentUpdate(selectedComponent.id, {
-      mode: "media",
+
+    const updates = {
+      mode: "media" as const,
       value: mediaItem.url,
       mediaId: mediaItem.id,
-    } as Partial<OrionFlowComponent>);
+      tokenId: undefined,
+    };
+
+    if (selectedComponent.type === "DOCK_ICON") {
+      // 1. Instant AppStore Update
+      const currentStoreConfig = useAppStore.getState().orionConfig;
+      useAppStore.getState().setOrionConfig({
+        ...currentStoreConfig,
+        dockIcons: currentStoreConfig.dockIcons?.map((icon) =>
+          icon.id === selectedComponent.id ? { ...icon, ...updates } : icon
+        ),
+      });
+
+      // 2. Instant React Query Cache Update
+      const currentQueryConfig = queryClient.getQueryData<{
+        wallpaper?: any;
+        dockIcons?: Array<any>;
+      }>(["orion-config"]);
+
+      if (currentQueryConfig) {
+        queryClient.setQueryData(["orion-config"], {
+          ...currentQueryConfig,
+          dockIcons: currentQueryConfig.dockIcons?.map((icon) =>
+            icon.id === selectedComponent.id ? { ...icon, ...updates } : icon
+          ),
+        });
+      }
+
+      // 3. Force Dock Icons Config Update
+      queryClient.setQueryData<Array<any>>(["dock-icons-config"], (oldData) => {
+        if (!oldData) return oldData;
+        return oldData.map((icon) =>
+          icon.id === selectedComponent.id ? { ...icon, ...updates } : icon
+        );
+      });
+
+      // 4. Invalidate queries to ensure sync
+      queryClient.invalidateQueries(["dock-icons-config"]);
+      queryClient.invalidateQueries(["orion-config"]);
+    }
+
+    // 5. Instant Canvas Update
+    if (fabricRef.current) {
+      const objectToUpdate = fabricRef.current
+        .getObjects()
+        .find((obj) => obj.data?.id === selectedComponent.id);
+
+      if (objectToUpdate) {
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.onload = () => {
+          const pattern = new fabric.Pattern({
+            source: img,
+            repeat: "no-repeat",
+          });
+          objectToUpdate.set("fill", pattern);
+          fabricRef.current?.renderAll();
+        };
+        img.src = mediaItem.url;
+      }
+    }
+
+    // 6. Background save
+    handleComponentUpdate(selectedComponent.id, updates);
     setMediaSelector(null);
   };
 
