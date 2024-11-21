@@ -1,4 +1,3 @@
-// store/appStore.ts
 import { create } from "zustand";
 import { AppDefinition } from "../types/AppTypes";
 
@@ -7,11 +6,13 @@ interface AppWithState extends AppDefinition {
   isMinimized: boolean;
 }
 
+// Updated to include mediaId for video/image handling
 interface OrionConfig {
   wallpaper?: {
     mode: "color" | "media";
     value: string | null;
     tokenId?: string;
+    mediaId?: string; // Add mediaId to track video/image assets
   };
   dockIcons?: Array<{
     id: string;
@@ -20,13 +21,14 @@ interface OrionConfig {
     value: string | null;
     tokenId?: string;
     order: number;
+    mediaId?: string; // Add mediaId to dock icons as well for consistency
   }>;
 }
 
 interface AppState {
   openApps: AppWithState[];
   activeAppId: string | null;
-  orionConfig: OrionConfig | null;
+  orionConfig: OrionConfig; // Remove nullable to ensure config always exists
 
   // App window management
   openApp: (app: AppDefinition) => void;
@@ -38,24 +40,24 @@ interface AppState {
 
   // Orion configuration
   setOrionConfig: (config: OrionConfig) => void;
-  updateWallpaper: (wallpaper: OrionConfig["wallpaper"]) => void;
+  updateWallpaper: (wallpaper: NonNullable<OrionConfig["wallpaper"]>) => void; // Make wallpaper non-nullable
   updateDockIcons: (icons: NonNullable<OrionConfig["dockIcons"]>) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
-  // Initial state
+  // Initial state with guaranteed orionConfig
   openApps: [],
   activeAppId: null,
   orionConfig: {
     wallpaper: {
       mode: "color",
       value: null,
-      tokenId: "Black", // Default system color
+      tokenId: "Black",
     },
     dockIcons: [],
   },
 
-  // Original app window management methods (unchanged)
+  // Original app window management methods remain unchanged
   openApp: (app) =>
     set((state) => {
       const existingApp = state.openApps.find(
@@ -134,21 +136,53 @@ export const useAppStore = create<AppState>((set) => ({
       }
     }),
 
-  // New Orion configuration methods
-  setOrionConfig: (config) => set({ orionConfig: config }),
+  // Updated Orion configuration methods with better type safety and state management
+  setOrionConfig: (config) =>
+    set({
+      orionConfig: {
+        ...config,
+        // Ensure wallpaper has required properties
+        wallpaper: {
+          mode: config.wallpaper?.mode || "color",
+          value: config.wallpaper?.value || null,
+          tokenId: config.wallpaper?.tokenId || "Black",
+          mediaId: config.wallpaper?.mediaId,
+        },
+        // Ensure dockIcons is always an array
+        dockIcons: config.dockIcons || [],
+      },
+    }),
 
+  // Enhanced updateWallpaper to properly merge with existing config
   updateWallpaper: (wallpaper) =>
     set((state) => ({
       orionConfig: {
         ...state.orionConfig,
-        wallpaper,
+        wallpaper: {
+          ...state.orionConfig.wallpaper,
+          ...wallpaper,
+          // Ensure mode and value are always set
+          mode: wallpaper.mode || state.orionConfig.wallpaper?.mode || "color",
+          value: wallpaper.value ?? state.orionConfig.wallpaper?.value ?? null,
+        },
       },
     })),
+
+  // Enhanced updateDockIcons to maintain proper typing and structure
   updateDockIcons: (dockIcons) =>
     set((state) => ({
       orionConfig: {
         ...state.orionConfig,
-        dockIcons,
+        dockIcons: dockIcons.map((icon) => ({
+          ...icon,
+          // Ensure each icon has required properties
+          mode: icon.mode || "color",
+          value: icon.value || null,
+          tokenId: icon.tokenId || undefined,
+          mediaId: icon.mediaId || undefined,
+        })),
       },
     })),
 }));
+
+export default useAppStore;

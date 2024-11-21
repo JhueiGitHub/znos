@@ -2,13 +2,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { currentProfile } from "@/lib/current-profile";
-import { Flow, FlowType, FlowComponent, AppConfig } from "@prisma/client";
-
-interface ConfigWithFlow extends AppConfig {
-  flow: Flow & {
-    components: FlowComponent[];
-  };
-}
 
 export async function GET() {
   try {
@@ -28,14 +21,14 @@ export async function GET() {
       return new NextResponse("Design system not found", { status: 404 });
     }
 
-    // Get the Orion app's config flow with components
-    const existingConfig = await db.appConfig.findFirst({
+    // Get the Orion stream and its flows directly
+    const stream = await db.stream.findFirst({
       where: {
         appId: "orion",
         profileId: profile.id,
       },
       include: {
-        flow: {
+        flows: {
           include: {
             components: {
               orderBy: {
@@ -47,14 +40,14 @@ export async function GET() {
       },
     });
 
-    if (!existingConfig) {
-      return new NextResponse("Config not found", { status: 404 });
+    if (!stream) {
+      return new NextResponse("Stream not found", { status: 404 });
     }
 
-    // Return both design system and config data
+    // Return both design system and stream data
     return NextResponse.json({
       designSystem,
-      config: existingConfig,
+      flow: stream.flows[0], // The main flow containing components
     });
   } catch (error) {
     console.error("[ORION_CONFIG_GET]", error);

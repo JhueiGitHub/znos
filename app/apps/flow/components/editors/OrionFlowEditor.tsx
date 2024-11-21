@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { fabric } from "fabric";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { useOthers } from "@/liveblocks.config";
 import { useDesignSystem } from "@/app/contexts/DesignSystemContext";

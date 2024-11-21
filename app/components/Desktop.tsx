@@ -17,46 +17,37 @@ const Desktop: React.FC = () => {
 
   useEffect(() => {
     const initializeDesktop = async () => {
-      // Loading screen timer
       const timer = setTimeout(() => {
         setIsLoading(false);
       }, 3000);
 
       try {
-        // Fetch complete Orion config - single source for initial data
-        const response = await axios.get("/api/apps/orion/config");
+        const { data } = await axios.get("/api/apps/orion/config");
+        console.log("Full Orion config response:", data);
 
-        if (response.data?.flow?.components) {
-          const components = response.data.flow.components;
-
-          // WALLPAPER INITIALIZATION
-          const wallpaperComponent = components.find(
+        if (data?.flow?.components) {
+          const wallpaper = data.flow.components.find(
             (c: any) => c.type === "WALLPAPER"
           );
-          if (wallpaperComponent) {
-            updateWallpaper({
-              mode: wallpaperComponent.mode,
-              value: wallpaperComponent.value,
-              tokenId: wallpaperComponent.tokenId,
-            });
+
+          if (wallpaper) {
+            // Include ALL wallpaper properties when updating
+            const wallpaperConfig = {
+              mode: wallpaper.mode,
+              value: wallpaper.value,
+              tokenId: wallpaper.tokenId,
+              mediaId: wallpaper.mediaId, // Make sure to include mediaId
+            };
+            console.log("Updating wallpaper with config:", wallpaperConfig);
+            updateWallpaper(wallpaperConfig);
           }
 
-          // DOCK ICONS INITIALIZATION - Parallel to wallpaper
-          const dockIconComponents = components
+          const dockIcons = data.flow.components
             .filter((c: any) => c.type === "DOCK_ICON")
-            .sort((a: any, b: any) => a.order - b.order); // Maintain order
+            .sort((a: any, b: any) => a.order - b.order);
 
-          if (dockIconComponents.length) {
-            updateDockIcons(
-              dockIconComponents.map((icon: any) => ({
-                id: icon.id,
-                name: icon.name,
-                mode: icon.mode,
-                value: icon.value,
-                tokenId: icon.tokenId,
-                order: icon.order,
-              }))
-            );
+          if (dockIcons.length) {
+            updateDockIcons(dockIcons);
           }
         }
       } catch (error) {
