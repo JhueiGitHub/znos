@@ -1,8 +1,19 @@
 // /app/apps/flow/components/StreamView.tsx
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { Card, CardContent } from "@/components/ui/card";
 import { StreamWithFlows } from "@/app/types/flow";
+import { useStyles } from "@os/hooks/useStyles";
+import { useState } from "react";
+import { motion } from "framer-motion";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuSeparator,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu";
+import { toast } from "sonner";
 
 interface StreamViewProps {
   streamId: string;
@@ -10,6 +21,10 @@ interface StreamViewProps {
 }
 
 export const StreamView = ({ streamId, onFlowSelect }: StreamViewProps) => {
+  const { getColor, getFont } = useStyles();
+  const queryClient = useQueryClient();
+  const [isDuplicating, setIsDuplicating] = useState<string | null>(null);
+
   const { data: stream, isLoading } = useQuery<StreamWithFlows>({
     queryKey: ["stream", streamId],
     queryFn: async () => {
@@ -19,9 +34,29 @@ export const StreamView = ({ streamId, onFlowSelect }: StreamViewProps) => {
     },
   });
 
+  const handleDuplicateFlow = async (flowId: string, flowName: string) => {
+    setIsDuplicating(flowId);
+    try {
+      const response = await axios.post(`/api/flows/${flowId}/duplicate`);
+      queryClient.invalidateQueries(["stream", streamId]);
+      toast.success(`Successfully duplicated "${flowName}"`);
+    } catch (error) {
+      console.error("Failed to duplicate flow:", error);
+      toast.error(`Failed to duplicate "${flowName}"`);
+    } finally {
+      setIsDuplicating(null);
+    }
+  };
+
   if (isLoading) {
     return (
-      <div className="p-8 text-[11px] text-[#cccccc]/70">
+      <div
+        className="p-8 text-[11px]"
+        style={{
+          color: getColor("Text Secondary (Bd)"),
+          fontFamily: getFont("Text Secondary"),
+        }}
+      >
         Loading streams...
       </div>
     );
@@ -29,7 +64,15 @@ export const StreamView = ({ streamId, onFlowSelect }: StreamViewProps) => {
 
   if (!stream?.flows?.length) {
     return (
-      <div className="p-8 text-[11px] text-[#cccccc]/70">No flows found</div>
+      <div
+        className="p-8 text-[11px]"
+        style={{
+          color: getColor("Text Secondary (Bd)"),
+          fontFamily: getFont("Text Secondary"),
+        }}
+      >
+        No flows found
+      </div>
     );
   }
 
@@ -37,49 +80,107 @@ export const StreamView = ({ streamId, onFlowSelect }: StreamViewProps) => {
     <div className="flex-1 min-w-0 px-[33px] py-5">
       <div className="flex flex-wrap gap-8">
         {stream.flows.map((flow) => (
-          <Card
-            key={flow.id}
-            onClick={() => onFlowSelect(flow.id)}
-            className="w-[291px] h-[247px] flex-shrink-0 border border-white/[0.09] rounded-[15px] bg-transparent transition-all hover:border-white/20 cursor-pointer"
-          >
-            <CardContent className="p-6">
-              <div className="grid grid-cols-2 gap-3 mb-6">
-                {flow.components?.slice(0, 4).map((component) => (
-                  <div
-                    key={component.id}
-                    className="w-[115px] h-16 rounded-[9px] border border-white/[0.09] flex items-center justify-center"
-                  >
-                    <span className="text-[#cccccc]/70 text-xs">
-                      {component.name}
-                    </span>
-                  </div>
-                ))}
+          <ContextMenu key={flow.id}>
+            <ContextMenuTrigger>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ type: "spring", duration: 0.5 }}
+              >
+                <Card
+                  onClick={() => onFlowSelect(flow.id)}
+                  className="w-[291px] h-[247px] flex-shrink-0 border rounded-[15px] transition-all hover:border-white/20 cursor-pointer"
+                  style={{
+                    backgroundColor: getColor("Glass"),
+                    borderColor: getColor("Brd"),
+                  }}
+                >
+                  <CardContent className="p-6">
+                    <div className="grid grid-cols-2 gap-3 mb-6">
+                      {flow.components?.slice(0, 4).map((component) => (
+                        <div
+                          key={component.id}
+                          className="w-[115px] h-16 rounded-[9px] border flex items-center justify-center"
+                          style={{
+                            borderColor: getColor("Brd"),
+                            backgroundColor: getColor("Overlaying BG"),
+                          }}
+                        >
+                          <span
+                            className="text-xs"
+                            style={{
+                              color: getColor("Text Secondary (Bd)"),
+                              fontFamily: getFont("Text Secondary"),
+                            }}
+                          >
+                            {component.name}
+                          </span>
+                        </div>
+                      ))}
 
-                {/* Fill remaining slots if less than 4 components */}
-                {Array.from({
-                  length: Math.max(0, 4 - (flow.components?.length || 0)),
-                }).map((_, i) => (
-                  <div
-                    key={`empty-${i}`}
-                    className="w-[115px] h-16 rounded-[9px] border border-white/[0.09]"
-                  />
-                ))}
-              </div>
+                      {Array.from({
+                        length: Math.max(0, 4 - (flow.components?.length || 0)),
+                      }).map((_, i) => (
+                        <div
+                          key={`empty-${i}`}
+                          className="w-[115px] h-16 rounded-[9px] border"
+                          style={{
+                            borderColor: getColor("Brd"),
+                            backgroundColor: getColor("Overlaying BG"),
+                          }}
+                        />
+                      ))}
+                    </div>
 
-              <div className="pl-px space-y-2.5">
-                <h3 className="text-sm font-semibold text-[#cccccc]">
-                  {flow.name}
-                </h3>
-                <div className="flex items-center gap-[3px] text-[11px] text-[#cccccc]/70">
-                  <span>{flow.components?.length || 0} components</span>
-                  <span className="text-[6px]">•</span>
-                  <span>
-                    Updated {new Date(flow.updatedAt).toLocaleDateString()}
-                  </span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+                    <div className="pl-px space-y-2.5">
+                      <h3
+                        className="text-sm font-semibold"
+                        style={{
+                          color: getColor("Text Primary (Hd)"),
+                          fontFamily: getFont("Text Primary"),
+                        }}
+                      >
+                        {flow.name}
+                      </h3>
+                      <div
+                        className="flex items-center gap-[3px] text-[11px]"
+                        style={{
+                          color: getColor("Text Secondary (Bd)"),
+                          fontFamily: getFont("Text Secondary"),
+                        }}
+                      >
+                        <span>{flow.components?.length || 0} components</span>
+                        <span className="text-[6px]">•</span>
+                        <span>
+                          Updated{" "}
+                          {new Date(flow.updatedAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </ContextMenuTrigger>
+            <ContextMenuContent
+              style={{
+                backgroundColor: getColor("Glass"),
+                borderColor: getColor("Brd"),
+              }}
+            >
+              <ContextMenuItem
+                onClick={() => handleDuplicateFlow(flow.id, flow.name)}
+                disabled={isDuplicating === flow.id}
+                style={{
+                  color: getColor("Text Primary (Hd)"),
+                  fontFamily: getFont("Text Primary"),
+                }}
+              >
+                {isDuplicating === flow.id
+                  ? "Duplicating..."
+                  : "Duplicate Flow"}
+              </ContextMenuItem>
+            </ContextMenuContent>
+          </ContextMenu>
         ))}
       </div>
     </div>

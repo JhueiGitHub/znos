@@ -1,7 +1,5 @@
-// /app/apps/flow/components/FlowContent.tsx
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
-import Image from "next/image";
+import axios from "axios";
 import { FlowHeader } from "./FlowHeader";
 import { FlowGrid } from "./FlowGrid";
 import { AppsGrid } from "./AppsGrid";
@@ -9,57 +7,86 @@ import { StreamView } from "./StreamView";
 import { AppView } from "./AppView";
 import { EditorView } from "./canvas/EditorView";
 import { OrionEditorView } from "./editors/OrionEditorView";
-import { useStyles } from "@os/hooks/useStyles";
-import axios from "axios";
-
-type ViewState = {
-  type: "dashboard" | "apps" | "app" | "stream" | "editor";
-  id?: string;
-  previousView?: ViewState;
-  flowData?: {
-    id: string;
-    type: string;
-    streamType: string;
-  };
-};
+import { ViewType } from "./modals/CreateDialog";
+import { CommunityView } from "./CommunityView";
 
 interface FlowContentProps {
   currentView?: string;
 }
 
-export const FlowContent = ({ currentView = "streams" }) => {
+// Update ViewState interface
+interface ViewState {
+  type: ViewType;
+  id?: string;
+  previousView?: ViewState | null;
+  flowData?: {
+    id: string;
+    type: string;
+    streamType: string;
+  } | null;
+}
+
+type ViewType =
+  | "streams"
+  | "apps"
+  | "app"
+  | "stream"
+  | "editor"
+  | "community"
+  | "community-creator";
+
+export const FlowContent = ({ currentView = "streams" }: FlowContentProps) => {
   const [viewState, setViewState] = useState<ViewState>(() => ({
-    type: currentView === "apps" ? "apps" : "dashboard",
+    type: currentView === "apps" ? "apps" : "streams",
+    previousView: null,
+    flowData: null,
   }));
 
-  // Update view when sidebar selection changes
   useEffect(() => {
     setViewState((prev) => ({
-      type: currentView === "apps" ? "apps" : "dashboard",
+      type: currentView === "apps" ? "apps" : "streams",
       previousView: prev.type !== currentView ? prev : prev.previousView,
+      flowData: null,
     }));
   }, [currentView]);
 
-  // Navigation handlers
   const handleBack = () => {
     if (viewState.previousView) {
       setViewState(viewState.previousView);
     } else {
-      // Default fallback navigation logic
       switch (viewState.type) {
         case "stream":
           setViewState({
-            type: viewState.id?.startsWith("app-") ? "app" : "dashboard",
+            type: viewState.id?.startsWith("app-") ? "app" : "streams",
+            id: viewState.id?.startsWith("app-")
+              ? viewState.id.slice(4)
+              : undefined,
+            previousView: null,
+            flowData: null,
           });
           break;
         case "app":
-          setViewState({ type: "apps" });
+          setViewState({ type: "apps", previousView: null, flowData: null });
           break;
         case "editor":
-          setViewState({ type: "stream", id: "os-main" }); // Replace with actual stream ID
+          if (viewState.previousView) {
+            setViewState({
+              type: "stream",
+              id: (viewState.previousView as ViewState).id,
+              previousView:
+                (viewState.previousView as ViewState).previousView ?? null,
+              flowData: null,
+            });
+          } else {
+            setViewState({
+              type: "streams",
+              previousView: null,
+              flowData: null,
+            });
+          }
           break;
         default:
-          setViewState({ type: "dashboard" });
+          setViewState({ type: "streams", previousView: null, flowData: null });
       }
     }
   };
@@ -69,6 +96,7 @@ export const FlowContent = ({ currentView = "streams" }) => {
       type: "app",
       id: appId,
       previousView: viewState,
+      flowData: null,
     });
   };
 
@@ -77,6 +105,7 @@ export const FlowContent = ({ currentView = "streams" }) => {
       type: "stream",
       id: streamId,
       previousView: viewState,
+      flowData: null,
     });
   };
 
@@ -102,16 +131,26 @@ export const FlowContent = ({ currentView = "streams" }) => {
 
   return (
     <div className="flex-1 min-w-0">
-      {viewState.type === "dashboard" && (
+      {viewState.type === "streams" && (
         <>
-          <FlowHeader title="Flow" subtitle="All Streams" onBack={null} />
+          <FlowHeader
+            title="Flow"
+            subtitle="All Streams"
+            onBack={null}
+            currentView={viewState.type}
+          />
           <FlowGrid onStreamSelect={handleStreamSelect} />
         </>
       )}
 
       {viewState.type === "apps" && (
         <>
-          <FlowHeader title="Apps" subtitle="OS Configurations" onBack={null} />
+          <FlowHeader
+            title="Apps"
+            subtitle="OS Configurations"
+            onBack={null}
+            currentView={viewState.type}
+          />
           <AppsGrid onAppSelect={handleAppSelect} />
         </>
       )}
@@ -122,6 +161,8 @@ export const FlowContent = ({ currentView = "streams" }) => {
             title={viewState.id}
             subtitle="Configurations"
             onBack={handleBack}
+            currentView={viewState.type}
+            viewId={viewState.id}
           />
           <AppView appId={viewState.id} onStreamSelect={handleStreamSelect} />
         </>
@@ -133,6 +174,8 @@ export const FlowContent = ({ currentView = "streams" }) => {
             title={viewState.id}
             subtitle="Flows"
             onBack={handleBack}
+            currentView={viewState.type}
+            viewId={viewState.id}
           />
           <StreamView streamId={viewState.id} onFlowSelect={handleFlowSelect} />
         </>
@@ -141,10 +184,38 @@ export const FlowContent = ({ currentView = "streams" }) => {
       {viewState.type === "editor" &&
         viewState.id &&
         (viewState.flowData?.streamType === "CONFIG" ? (
-          <OrionEditorView flowId={viewState.id} onClose={() => handleBack()} />
+          <OrionEditorView flowId={viewState.id} onClose={handleBack} />
         ) : (
-          <EditorView flowId={viewState.id} onClose={() => handleBack()} />
+          <EditorView flowId={viewState.id} onClose={handleBack} />
         ))}
+      {viewState.type === "community" && (
+        <>
+          <FlowHeader
+            title="Community"
+            subtitle="Discover Themes"
+            onBack={null}
+            currentView={viewState.type}
+          />
+          <CommunityView />
+        </>
+      )}
+
+      {viewState.type === "community-creator" && viewState.id && (
+        <>
+          <FlowHeader
+            title={viewState.id}
+            subtitle="Available Themes"
+            onBack={handleBack}
+            currentView={viewState.type}
+            viewId={viewState.id}
+          />
+          <StreamView
+            streamId={viewState.id}
+            onFlowSelect={handleFlowSelect}
+            isCommunity
+          />
+        </>
+      )}
     </div>
   );
 };

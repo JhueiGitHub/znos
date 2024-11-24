@@ -9,11 +9,12 @@ generator client {
 }
 
 model Profile {
-  id       String @id @default(cuid())
-  userId   String @unique
-  name     String
-  imageUrl String
-  email    String
+  id           String  @id @default(cuid())
+  userId       String  @unique
+  name         String
+  imageUrl     String
+  email        String
+  hasSeenIntro Boolean @default(false) // NEW: Track intro state
 
   // Add relationship to Stream
   streams Stream[]

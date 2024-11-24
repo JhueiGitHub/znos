@@ -1,0 +1,74 @@
+/* app/components/IntroScreen/intro.css */
+.star-wars {
+    display: flex;
+    justify-content: center;
+    position: relative;
+    height: 100vh;
+    color: #ffffff;  /* Changed to white */
+    font-family: 'Droid Sans', sans-serif;
+    font-size: 500%;
+    font-weight: 600;
+    letter-spacing: 6px;
+    line-height: 150%;
+    perspective: 400px;
+    text-align: justify;
+    background: #000;
+  }
+  
+  .fade {
+    position: relative;
+    width: 100%;
+    min-height: 60vh;
+    top: -25px;
+    background-image: linear-gradient(0deg, transparent, black 75%);
+    z-index: 1;
+  }
+  
+  .titles {
+    position: absolute;
+    width: 90%;  /* Increased from 50% to take up more width */
+    height: 100%;
+    bottom: 0;
+    left: 50%;
+    margin-left: -45%;  /* Half of width */
+    font-size: 80%;
+    text-align: center;
+    transform-origin: 50% 100%;
+    transform: perspective(400px) rotateX(25deg);
+  }
+  
+  #titlecontent {
+    position: absolute;
+    top: 100%;
+    animation: scroll 100s linear 4s forwards;
+  }
+  
+  .titles p {
+    margin: 1.5em 0;
+  }
+  
+  .titles p.center {
+    text-align: center;
+  }
+  
+  @keyframes scroll {
+    0% { top: 100%; }
+    100% { top: -7500px; }
+  }
+  
+  .space-skip {
+    position: fixed;
+    bottom: 5%;  /* Adjusted to be closer to bottom */
+    left: 50%;
+    transform: translate(-50%, -50%);  /* Center both horizontally and vertically */
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .space-skip img {
+    width: 32px;
+    height: 32px;
+    opacity: 0.7;
+  }

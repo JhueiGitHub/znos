@@ -1,44 +1,55 @@
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { CreateDialog, ViewType } from "./modals/CreateDialog";
+import { useStyles } from "@os/hooks/useStyles";
 
 interface FlowHeaderProps {
   title: string;
   subtitle: string;
   onBack: (() => void) | null;
+  currentView: ViewType;
+  viewId?: string;
 }
 
-export const FlowHeader = ({ title, subtitle, onBack }: FlowHeaderProps) => {
+export const FlowHeader = ({
+  title,
+  subtitle,
+  onBack,
+  currentView,
+  viewId,
+}: FlowHeaderProps) => {
+  const { getColor, getFont } = useStyles();
+
   return (
     <div className="flex flex-col">
       {/* Navigation */}
       <div className="pl-[33px] py-5 flex gap-[26px]">
         {onBack && (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="w-[4.8px] h-[9.6px]"
-            onClick={onBack}
-          >
-            <img
-              src="/icns/system/chev/chevL.png"
-              alt="Back"
+          <>
+            <Button
+              variant="ghost"
+              size="icon"
               className="w-[4.8px] h-[9.6px]"
-            />
-          </Button>
-        )}
-        {onBack && (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="w-[4.8px] h-[9.6px]"
-            onClick={onBack} // Ensure this is correctly passed
-          >
-            <img
-              src="/icns/system/chev/chevR.png"
-              alt="Forward"
-              className="w-[4.8px] h-[9.6px] rotate-180"
-            />
-          </Button>
+              onClick={onBack}
+            >
+              <img
+                src="/icns/system/chev/chevL.png"
+                alt="Back"
+                className="w-[4.8px] h-[9.6px]"
+              />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="w-[4.8px] h-[9.6px]"
+              onClick={onBack}
+            >
+              <img
+                src="/icns/system/chev/chevR.png"
+                alt="Forward"
+                className="w-[4.8px] h-[9.6px] rotate-180"
+              />
+            </Button>
+          </>
         )}
       </div>
 
@@ -53,7 +64,13 @@ export const FlowHeader = ({ title, subtitle, onBack }: FlowHeaderProps) => {
                 className="w-[45px] h-[45px]"
               />
             </div>
-            <span className="text-2xl font-semibold text-[#cccccc]/80">
+            <span
+              className="text-2xl font-semibold"
+              style={{
+                color: getColor("Text Primary (Hd)"),
+                fontFamily: getFont("Text Primary"),
+              }}
+            >
               {title}
             </span>
             <img
@@ -65,16 +82,15 @@ export const FlowHeader = ({ title, subtitle, onBack }: FlowHeaderProps) => {
         </div>
 
         <div className="flex items-center gap-2">
-          <Button
-            variant="default"
-            className="h-8 px-4 bg-[#4c4f69] text-[11px] text-black hover:bg-[#4c4f69]/90"
-          >
-            <Plus className="w-2 h-2 mr-1.5" />
-            Project
-          </Button>
+          <CreateDialog currentView={currentView} viewId={viewId} />
           <Button
             variant="outline"
-            className="h-8 px-[11px] border-[#292929]/80 text-[11px] text-[#cccccc]/70 bg-opacity-0"
+            className="h-8 px-[11px] border text-[11px] bg-opacity-0"
+            style={{
+              borderColor: getColor("Brd"),
+              color: getColor("Text Secondary (Bd)"),
+              fontFamily: getFont("Text Secondary"),
+            }}
           >
             Export
           </Button>
@@ -83,7 +99,13 @@ export const FlowHeader = ({ title, subtitle, onBack }: FlowHeaderProps) => {
 
       {/* Subtitle */}
       <div className="pl-[33px] py-5">
-        <div className="text-[11px] font-semibold text-[#cccccc]">
+        <div
+          className="text-[11px] font-semibold"
+          style={{
+            color: getColor("Text Primary (Hd)"),
+            fontFamily: getFont("Text Primary"),
+          }}
+        >
           {subtitle}
         </div>
       </div>

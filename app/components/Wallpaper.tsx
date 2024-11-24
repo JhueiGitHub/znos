@@ -1,51 +1,104 @@
 import { useEffect, useRef } from "react";
 import { useStyles } from "../hooks/useStyles";
 import { useAppStore } from "../store/appStore";
+import { useQuery } from "@tanstack/react-query";
+import axios from "axios";
 
 const Wallpaper = () => {
+  // PRESERVED: Original style hooks
   const { getColor } = useStyles();
+  
+  // PRESERVED: Original store access plus new active flow
   const wallpaperConfig = useAppStore((state) => state.orionConfig?.wallpaper);
+  const activeOSFlowId = useAppStore((state) => state.activeOSFlowId);
+  const updateWallpaper = useAppStore((state) => state.updateWallpaper);
+  
+  // PRESERVED: Original video ref handling
   const videoRef = useRef<HTMLVideoElement>(null);
   const loadAttempted = useRef(false);
 
+  // NEW: Query for active flow's wallpaper
+  useQuery({
+    queryKey: ["active-flow-wallpaper", activeOSFlowId],
+    queryFn: async () => {
+      if (!activeOSFlowId) return null;
+      // AFTER (correct):
+const { data } = await axios.get(
+  `/api/flows/${activeOSFlowId}/components`
+);
+      const wallpaper = data?.components?.find(
+        (c: any) => c.type === "WALLPAPER"
+      );
+      if (wallpaper) {
+        updateWallpaper({
+          mode: wallpaper.mode,
+          value: wallpaper.value,
+          tokenId: wallpaper.tokenId,
+          mediaId: wallpaper.mediaId,
+        });
+      }
+      return wallpaper;
+    },
+    enabled: !!activeOSFlowId,
+  });
+
+  // PRESERVED: Original video URL transformation
   const getVideoUrl = (url: string) => {
-    // Remove any trailing slashes and add transformations
     const baseUrl = url.replace(/\/+$/, "");
     return `${baseUrl}/-/format/auto/`;
   };
 
-  useEffect(() => {
-    console.log("Current wallpaper config:", wallpaperConfig);
+  // PRESERVED: Original video handling effect
+  // AFTER - Surgical fix:
+useEffect(() => {
+  console.log("Current wallpaper config:", wallpaperConfig);
 
-    if (!wallpaperConfig?.value || loadAttempted.current) return;
+  if (!wallpaperConfig?.value) return;
 
-    if (
-      videoRef.current &&
-      wallpaperConfig.mode === "media" &&
-      wallpaperConfig.mediaId
-    ) {
-      loadAttempted.current = true;
-      const videoUrl = getVideoUrl(wallpaperConfig.value);
-      console.log("Loading video with URL:", videoUrl);
+  if (
+    videoRef.current &&
+    wallpaperConfig.mode === "media" &&
+    wallpaperConfig.mediaId
+  ) {
+    // Reset load attempted when wallpaper changes
+    loadAttempted.current = false;
+    
+    const videoUrl = getVideoUrl(wallpaperConfig.value);
+    console.log("Loading video with URL:", videoUrl);
 
-      videoRef.current.src = videoUrl;
-      videoRef.current.load();
-      videoRef.current.play().catch((error) => {
-        console.error("Video play error:", error);
-        // If transformation fails, try original URL
-        if (videoUrl !== wallpaperConfig.value) {
-          console.log("Falling back to original URL");
-          if (wallpaperConfig.value) {
-            videoRef.current!.src = wallpaperConfig.value;
-            videoRef.current!.load();
-            videoRef.current!.play().catch(console.error);
-          }
+    // Cleanup previous video state
+    videoRef.current.pause();
+    videoRef.current.currentTime = 0;
+    
+    videoRef.current.src = videoUrl;
+    videoRef.current.load();
+    videoRef.current.play().catch((error) => {
+      console.error("Video play error:", error);
+      if (videoUrl !== wallpaperConfig.value) {
+        console.log("Falling back to original URL");
+        if (wallpaperConfig.value) {
+          videoRef.current!.src = wallpaperConfig.value;
+          videoRef.current!.load();
+          videoRef.current!.play().catch(console.error);
         }
-      });
-    }
-  }, [wallpaperConfig?.value, wallpaperConfig?.mediaId]);
+      }
+    });
 
-  // Color mode
+    loadAttempted.current = true;
+  }
+
+  // Cleanup function
+  return () => {
+    if (videoRef.current) {
+      videoRef.current.pause();
+      videoRef.current.src = '';
+      videoRef.current.load();
+      loadAttempted.current = false;
+    }
+  };
+}, [wallpaperConfig?.value, wallpaperConfig?.mediaId, wallpaperConfig?.mode]); // Added mode as dependency
+
+  // PRESERVED: Original color mode rendering
   if (wallpaperConfig?.mode === "color") {
     return (
       <div
@@ -57,7 +110,7 @@ const Wallpaper = () => {
     );
   }
 
-  // Media mode (both images and videos)
+  // PRESERVED: Original media mode rendering
   if (wallpaperConfig?.mode === "media" && wallpaperConfig.value) {
     const isVideo = Boolean(wallpaperConfig.mediaId);
 
@@ -90,7 +143,7 @@ const Wallpaper = () => {
       );
     }
 
-    // Image handler
+    // PRESERVED: Original image rendering
     return (
       <div
         className="absolute inset-0 w-full h-full"
@@ -103,6 +156,7 @@ const Wallpaper = () => {
     );
   }
 
+  // PRESERVED: Original fallback
   return (
     <div
       className="absolute inset-0 w-full h-full"

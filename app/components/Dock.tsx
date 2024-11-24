@@ -7,7 +7,7 @@ import { useStyles } from "../hooks/useStyles";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 
-// Add interface for dock icon data
+// PRESERVED: Original interfaces
 interface DockIcon {
   id: string;
   name: string;
@@ -17,57 +17,59 @@ interface DockIcon {
   order: number;
 }
 
-// Add interface for dock items
 interface DockItem {
   title: string;
   icon: React.ReactNode;
   href: string;
 }
 
+// PRESERVED: Original constants
 const DOCK_HEIGHT = 70;
 const TRIGGER_AREA_HEIGHT = 60;
 const DOCK_BOTTOM_MARGIN = 9;
 
 const Dock: React.FC = () => {
+  // PRESERVED: Original hooks and state
   const appStore = useAppStore();
   const { getColor } = useStyles();
   const [isDockVisible, setIsDockVisible] = useState(false);
   const dockIcons = useAppStore((state) => state.orionConfig?.dockIcons);
-  const updateOrionConfig = useAppStore((state) => state.setOrionConfig);
+  const updateDockIcons = useAppStore((state) => state.updateDockIcons);
+  
+  // NEW: Get active flow ID
+  const activeOSFlowId = useAppStore((state) => state.activeOSFlowId);
 
-  const { data: dockIconsData } = useQuery({
-    queryKey: ["dock-icons-config"],
+  // NEW: Query for active flow's dock icons
+  useQuery({
+    queryKey: ["active-flow-dock", activeOSFlowId],
     queryFn: async () => {
-      const response = await axios.get<DockIcon[]>(
-        "/api/flows/components/dock-icons"
-      );
-
-      const updatedConfig = {
-        wallpaper: useAppStore.getState().orionConfig?.wallpaper,
-        dockIcons: response.data.map((icon: DockIcon) => ({
-          id: icon.id,
-          name: icon.name,
-          mode: icon.mode,
-          value: icon.value,
-          tokenId: icon.tokenId,
-          order: icon.order,
-        })),
-      };
-      updateOrionConfig(updatedConfig);
-
-      return response.data;
+      if (!activeOSFlowId) return null;
+      // AFTER (correct):
+const { data } = await axios.get(
+  `/api/flows/${activeOSFlowId}/components`
+);
+      const icons = data?.components
+        ?.filter((c: any) => c.type === "DOCK_ICON")
+        ?.sort((a: any, b: any) => a.order - b.order);
+      if (icons?.length) {
+        updateDockIcons(icons);
+      }
+      return icons;
     },
+    enabled: !!activeOSFlowId,
   });
 
-  const handleAppClick = (app: (typeof appDefinitions)[number]) => {
+  // PRESERVED: Original app click handler
+  const handleAppClick = useCallback((app: (typeof appDefinitions)[number]) => {
     const openApp = appStore.openApps?.find((a) => a.id === app.id);
     if (openApp) {
       appStore.toggleAppMinimize?.(app.id);
     } else {
       appStore.openApp?.(app);
     }
-  };
+  }, [appStore]);
 
+  // PRESERVED: Original dock items mapping
   const dockItems: DockItem[] = appDefinitions.map((app, index) => {
     const openApp = appStore.openApps?.find((a) => a.id === app.id);
     const isOpen = !!openApp;
@@ -113,6 +115,7 @@ const Dock: React.FC = () => {
     };
   });
 
+  // PRESERVED: Original mouse move handler
   const handleMouseMove = useCallback((e: MouseEvent) => {
     const { clientY } = e;
     const windowHeight = window.innerHeight;
@@ -121,6 +124,7 @@ const Dock: React.FC = () => {
     setIsDockVisible(shouldShowDock);
   }, []);
 
+  // PRESERVED: Original mouse move effect
   useEffect(() => {
     window.addEventListener("mousemove", handleMouseMove);
     return () => {
@@ -128,6 +132,7 @@ const Dock: React.FC = () => {
     };
   }, [handleMouseMove]);
 
+  // PRESERVED: Original render with exact animation
   return (
     <>
       <div
@@ -154,7 +159,7 @@ const Dock: React.FC = () => {
               style={{
                 width: "fit-content",
                 marginBottom: `${DOCK_BOTTOM_MARGIN}px`,
-                pointerEvents: "auto", // Fixed from pointerPoints to pointerEvents
+                pointerEvents: "auto",
               }}
             >
               <FloatingDock

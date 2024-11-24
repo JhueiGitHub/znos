@@ -1,3 +1,4 @@
+// app/apps/flow/components/FlowSidebar.tsx
 import { Button } from "@/components/ui/button";
 
 interface FlowSidebarProps {
@@ -18,7 +19,7 @@ export const FlowSidebar = ({ onViewChange }: FlowSidebarProps) => {
       </div>
 
       {/* Navigation */}
-      <div className="h-[152px] py-3 border-b border-white/[0.09]">
+      <div className="py-3 border-b border-white/[0.09]">
         <div className="h-8 pl-[15px] flex items-center gap-[13px]">
           <img src="/icns/_avatar.png" alt="Avatar" className="w-4 h-4" />
           <span className="text-[13px] font-semibold text-[#cccccc]/80">
@@ -55,6 +56,15 @@ export const FlowSidebar = ({ onViewChange }: FlowSidebarProps) => {
         >
           <img src="/icns/_archive.png" alt="Archive" className="w-4 h-4" />
           Archive
+        </Button>
+
+        <Button
+          variant="ghost"
+          className="w-full h-8 pl-[15px] justify-start gap-[13px] text-[11px] text-[#cccccc]/70 hover:bg-[#292929] hover:text-white"
+          onClick={() => onViewChange("community")}
+        >
+          <img src="/icns/_community.png" alt="Community" className="w-4 h-4" />
+          Community
         </Button>
       </div>
 
