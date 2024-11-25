@@ -169,34 +169,7 @@ export const FlowContent = ({ currentView = "streams" }: FlowContentProps) => {
           <EditorView flowId={viewState.id} onClose={handleBack} />
         ))}
 
-      {viewState.type === "community" && (
-        <>
-          <FlowHeader
-            title="Community"
-            subtitle="Discover Themes"
-            onBack={null}
-            currentView={viewState.type}
-          />
-          <CommunityView />
-        </>
-      )}
-
-      {viewState.type === "community-creator" && viewState.id && (
-        <>
-          <FlowHeader
-            title={viewState.id}
-            subtitle="Available Themes"
-            onBack={handleBack}
-            currentView={viewState.type}
-            viewId={viewState.id}
-          />
-          <StreamView
-            streamId={viewState.id}
-            onFlowSelect={handleFlowSelect}
-            isCommunity
-          />
-        </>
-      )}
+      {viewState.type === "community" && <CommunityView isFullscreen={false} />}
     </div>
   );
 };

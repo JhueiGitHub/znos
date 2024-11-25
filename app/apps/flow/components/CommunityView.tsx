@@ -1,7 +1,7 @@
 // app/apps/flow/components/CommunityView.tsx
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useStyles } from "@os/hooks/useStyles";
 import { Button } from "@/components/ui/button";
 import { XPProfileView } from "@/app/components/xp/XPProfileView";
@@ -9,14 +9,26 @@ import { toast } from "sonner";
 import { XPProfile } from "@/app/types/xp";
 import { useState } from 'react';
 import { UploadedFlowsGrid } from "./UploadedFlowsGrid";
+import { PublicationView } from "./PublicationView";
 import { User } from "lucide-react";
+import { FlowHeader } from "./FlowHeader";
 
-export const CommunityView = () => {
+interface CommunityViewProps {
+  isFullscreen?: boolean;
+}
+
+type ViewState = "flows" | "profile" | "publication";
+
+interface ViewStateData {
+  type: ViewState;
+  publicationId?: string;
+}
+
+export const CommunityView = ({ isFullscreen = false }: CommunityViewProps) => {
   const { getColor, getFont } = useStyles();
   const queryClient = useQueryClient();
-  const [view, setView] = useState<"flows" | "profile">("flows");
+  const [viewState, setViewState] = useState<ViewStateData>({ type: "flows" });
   
-  // Query current user's XP profile
   const { data: profile, isLoading } = useQuery<XPProfile>({
     queryKey: ["xp-profile"],
     queryFn: async () => {
@@ -25,7 +37,6 @@ export const CommunityView = () => {
     }
   });
 
-  // XP account creation
   const { mutate: createXPProfile, isLoading: isCreating } = useMutation({
     mutationFn: async () => {
       const xpProfileData = {
@@ -39,7 +50,6 @@ export const CommunityView = () => {
         }
       };
       
-      console.log("Creating XP Profile:", xpProfileData);
       const response = await axios.post("/api/xp/profile", xpProfileData);
       return response.data;
     },
@@ -52,7 +62,10 @@ export const CommunityView = () => {
     }
   });
 
-  // Show loading state
+  const handlePublicationSelect = (publicationId: string) => {
+    setViewState({ type: "publication", publicationId });
+  };
+
   if (isLoading) {
     return (
       <div className="flex-1 min-w-0 px-[33px] py-5 flex items-center justify-center">
@@ -68,7 +81,6 @@ export const CommunityView = () => {
     );
   }
 
-  // Show creation button if no profile exists
   if (!profile) {
     return (
       <div className="flex-1 min-w-0 px-[33px] py-5 flex items-center justify-center">
@@ -94,57 +106,84 @@ export const CommunityView = () => {
     );
   }
 
-  // Show main community interface with view toggle
-  return (
-    <div className="flex-1 min-w-0 px-[33px] py-5">
-      {/* Header with view toggle */}
-      <div className="flex justify-between items-center mb-8">
-        <h1
-          className="text-2xl font-semibold"
-          style={{
-            color: getColor("Text Primary (Hd)"),
-            fontFamily: getFont("Text Primary"),
-          }}
-        >
-          {view === "flows" ? "Published Design Systems" : "Creator Profile"}
-        </h1>
-        <Button
-          onClick={() => setView(view === "flows" ? "profile" : "flows")}
-          className="gap-2 border-solid border-[0.6px] border-[#4C4F69]/70 hover:border-[#4C4F69] bg-red-500 bg-opacity-0 hover:bg-red-500 hover:bg-opacity-0"
-          style={{
-            color: getColor("Text Primary (Hd)"),
-            fontFamily: getFont("Text Primary"),
-          }}
-        >
-          {view === "flows" ? (
-            <>
-              <img src="/icns/_xp.png" alt="Community" className="w-4 h-4" />
-              View Profile
-            </>
-          ) : (
-            <>
-              <img src="/icns/_community.png" alt="Flows" className="w-4 h-4" />
-              View Flows
-            </>
-          )}
-        </Button>
-      </div>
+  // Handle publication view
+  if (viewState.type === "publication" && viewState.publicationId) {
+    return (
+      <PublicationView 
+        publicationId={viewState.publicationId} 
+        onBack={() => setViewState({ type: "flows" })}
+      />
+    );
+  }
 
-      {/* View content */}
-      <motion.div
-        key={view}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -20 }}
-        transition={{ type: "spring", duration: 0.5 }}
-      >
-        {view === "flows" ? (
-          <UploadedFlowsGrid profile={profile} />
-        ) : (
-          <XPProfileView profile={profile} />
-        )}
-      </motion.div>
-    </div>
+  // Regular community view with header
+  return (
+    <>
+      {!isFullscreen && (
+        <FlowHeader
+          title="Community"
+          subtitle="Discover Themes"
+          onBack={null}
+          currentView="community"
+        />
+      )}
+      <div className="flex-1 min-w-0 px-[33px] py-5">
+        {/* Header with view toggle */}
+        <div className="flex justify-between items-center mb-8">
+          <h1
+            className="text-2xl font-semibold"
+            style={{
+              color: getColor("Text Primary (Hd)"),
+              fontFamily: getFont("Text Primary"),
+            }}
+          >
+            {viewState.type === "flows" ? "Published Design Systems" : "Creator Profile"}
+          </h1>
+          <Button
+            onClick={() => setViewState({ 
+              type: viewState.type === "flows" ? "profile" : "flows" 
+            })}
+            className="gap-2 border-solid border-[0.6px] border-[#4C4F69]/70 hover:border-[#4C4F69] bg-red-500 bg-opacity-0 hover:bg-red-500 hover:bg-opacity-0"
+            style={{
+              color: getColor("Text Primary (Hd)"),
+              fontFamily: getFont("Text Primary"),
+            }}
+          >
+            {viewState.type === "flows" ? (
+              <>
+                <img src="/icns/_xp.png" alt="Community" className="w-4 h-4" />
+                View Profile
+              </>
+            ) : (
+              <>
+                <img src="/icns/_community.png" alt="Flows" className="w-4 h-4" />
+                View Flows
+              </>
+            )}
+          </Button>
+        </div>
+
+        {/* View content */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={viewState.type}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ type: "spring", duration: 0.5 }}
+          >
+            {viewState.type === "flows" ? (
+              <UploadedFlowsGrid 
+                profile={profile} 
+                onPublicationSelect={handlePublicationSelect} 
+              />
+            ) : (
+              <XPProfileView profile={profile} />
+            )}
+          </motion.div>
+        </AnimatePresence>
+      </div>
+    </>
   );
 };
 
