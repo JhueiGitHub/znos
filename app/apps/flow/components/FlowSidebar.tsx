@@ -65,7 +65,7 @@ export const FlowSidebar = ({ onViewChange }: FlowSidebarProps) => {
         className="w-full h-8 pl-[15px] justify-start gap-[13px] text-[11px] text-[#cccccc]/70 hover:bg-[#292929] hover:text-white"
         onClick={() => onViewChange("community")}
       >
-        <img src="/icns/_community.png" alt="Community" className="w-4 h-4" />
+        <img src="/icns/_xp.png" alt="Community" className="w-4 h-4" />
         Community
       </Button>
       </div>

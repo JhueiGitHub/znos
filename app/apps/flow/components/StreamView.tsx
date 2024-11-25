@@ -1,5 +1,5 @@
 // app/apps/flow/components/StreamView.tsx
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { Card, CardContent } from "@/components/ui/card";
 import { StreamWithFlows } from "@/app/types/flow";
@@ -25,6 +25,7 @@ export const StreamView = ({ streamId, onFlowSelect, isCommunity = false }: Stre
   const { getColor, getFont } = useStyles();
   const queryClient = useQueryClient();
   const [isDuplicating, setIsDuplicating] = useState<string | null>(null);
+  const [isPublishing, setIsPublishing] = useState<string | null>(null);
 
   const { data: stream, isLoading } = useQuery<StreamWithFlows>({
     queryKey: ["stream", streamId],
@@ -48,6 +49,29 @@ export const StreamView = ({ streamId, onFlowSelect, isCommunity = false }: Stre
       setIsDuplicating(null);
     }
   };
+
+  // NEW: Publish to XP mutation
+  const { mutate: publishToXP } = useMutation({
+    mutationFn: async (flowId: string) => {
+      setIsPublishing(flowId);
+      const response = await axios.post(`/api/xp/publications`, {
+        flowId
+      });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(["xp-profile"]);
+      queryClient.invalidateQueries(["published-flows"]);
+      toast.success("Design system published to XP successfully!");
+    },
+    onError: () => {
+      toast.error("Failed to publish design system");
+    },
+    onSettled: () => {
+      setIsPublishing(null);
+    }
+  });
+
 
   if (isLoading) {
     return (
@@ -168,6 +192,22 @@ export const StreamView = ({ streamId, onFlowSelect, isCommunity = false }: Stre
                 borderColor: getColor("Brd"),
               }}
             >
+              {/* NEW: Show Add to XP option only for Orion config flows */}
+              {stream?.type === "CONFIG" && stream?.appId === "orion" && (
+                <>
+                  <ContextMenuItem
+                    onClick={() => publishToXP(flow.id)}
+                    disabled={isPublishing === flow.id}
+                    style={{
+                      color: getColor("Text Primary (Hd)"),
+                      fontFamily: getFont("Text Primary"),
+                    }}
+                  >
+                    {isPublishing === flow.id ? "Publishing..." : "Add to XP"}
+                  </ContextMenuItem>
+                  <ContextMenuSeparator />
+                </>
+              )}
               <ContextMenuItem
                 onClick={() => handleDuplicateFlow(flow.id, flow.name)}
                 disabled={isDuplicating === flow.id}

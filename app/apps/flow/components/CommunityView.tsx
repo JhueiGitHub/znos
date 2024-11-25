@@ -7,10 +7,14 @@ import { Button } from "@/components/ui/button";
 import { XPProfileView } from "@/app/components/xp/XPProfileView";
 import { toast } from "sonner";
 import { XPProfile } from "@/app/types/xp";
+import { useState } from 'react';
+import { UploadedFlowsGrid } from "./UploadedFlowsGrid";
+import { User } from "lucide-react";
 
 export const CommunityView = () => {
   const { getColor, getFont } = useStyles();
   const queryClient = useQueryClient();
+  const [view, setView] = useState<"flows" | "profile">("flows");
   
   // Query current user's XP profile
   const { data: profile, isLoading } = useQuery<XPProfile>({
@@ -64,35 +68,81 @@ export const CommunityView = () => {
     );
   }
 
-  // Show XP Profile if exists
-  if (profile) {
+  // Show creation button if no profile exists
+  if (!profile) {
     return (
-      <div className="flex-1 min-w-0 px-[33px] py-5">
-        <XPProfileView profile={profile} />
+      <div className="flex-1 min-w-0 px-[33px] py-5 flex items-center justify-center">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ type: "spring", duration: 0.5 }}
+        >
+          <Button
+            onClick={() => createXPProfile()}
+            disabled={isCreating}
+            className="px-6 py-3 text-sm"
+            style={{
+              backgroundColor: getColor("Lilac Accent"),
+              color: getColor("Text Primary (Hd)"),
+              fontFamily: getFont("Text Primary"),
+            }}
+          >
+            {isCreating ? "Creating..." : "Create XP Account"}
+          </Button>
+        </motion.div>
       </div>
     );
   }
 
-  // Show creation button if no profile exists
+  // Show main community interface with view toggle
   return (
-    <div className="flex-1 min-w-0 px-[33px] py-5 flex items-center justify-center">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ type: "spring", duration: 0.5 }}
-      >
-        <Button
-          onClick={() => createXPProfile()}
-          disabled={isCreating}
-          className="px-6 py-3 text-sm"
+    <div className="flex-1 min-w-0 px-[33px] py-5">
+      {/* Header with view toggle */}
+      <div className="flex justify-between items-center mb-8">
+        <h1
+          className="text-2xl font-semibold"
           style={{
-            backgroundColor: getColor("Lilac Accent"),
             color: getColor("Text Primary (Hd)"),
             fontFamily: getFont("Text Primary"),
           }}
         >
-          {isCreating ? "Creating..." : "Create XP Account"}
+          {view === "flows" ? "Published Design Systems" : "Creator Profile"}
+        </h1>
+        <Button
+          onClick={() => setView(view === "flows" ? "profile" : "flows")}
+          className="gap-2 border-solid border-[0.6px] border-[#4C4F69]/70 hover:border-[#4C4F69] bg-red-500 bg-opacity-0 hover:bg-red-500 hover:bg-opacity-0"
+          style={{
+            color: getColor("Text Primary (Hd)"),
+            fontFamily: getFont("Text Primary"),
+          }}
+        >
+          {view === "flows" ? (
+            <>
+              <img src="/icns/_xp.png" alt="Community" className="w-4 h-4" />
+              View Profile
+            </>
+          ) : (
+            <>
+              <img src="/icns/_community.png" alt="Flows" className="w-4 h-4" />
+              View Flows
+            </>
+          )}
         </Button>
+      </div>
+
+      {/* View content */}
+      <motion.div
+        key={view}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -20 }}
+        transition={{ type: "spring", duration: 0.5 }}
+      >
+        {view === "flows" ? (
+          <UploadedFlowsGrid profile={profile} />
+        ) : (
+          <XPProfileView profile={profile} />
+        )}
       </motion.div>
     </div>
   );
