@@ -323,6 +323,7 @@ model DesignSystemPublication {
   
   // Content Reference
   designSystemId  String    // Reference to original DesignSystem
+  mediaReferences PublicationMediaReference[]
   
   // Timestamps
   createdAt      DateTime  @default(now())
@@ -331,6 +332,16 @@ model DesignSystemPublication {
   @@index([xpProfileId])
 }
 
+model PublicationMediaReference {
+  id              String   @id @default(cuid())
+  publicationId   String
+  publication     DesignSystemPublication @relation(fields: [publicationId], references: [id])
+  originalMediaId String
+  mediaUrl        String
+  componentId     String
+
+  @@index([publicationId])
+}
 // NEW: Following relationships
 model CreatorFollow {
   id          String    @id @default(cuid())
