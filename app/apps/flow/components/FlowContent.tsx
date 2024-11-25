@@ -1,3 +1,4 @@
+// app/apps/flow/components/FlowContent.tsx
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { FlowHeader } from "./FlowHeader";
@@ -7,44 +8,23 @@ import { StreamView } from "./StreamView";
 import { AppView } from "./AppView";
 import { EditorView } from "./canvas/EditorView";
 import { OrionEditorView } from "./editors/OrionEditorView";
-import { ViewType } from "./modals/CreateDialog";
 import { CommunityView } from "./CommunityView";
+import { ViewState, ViewType } from "../types/view";
 
 interface FlowContentProps {
-  currentView?: string;
+  currentView?: ViewType;
 }
-
-// Update ViewState interface
-interface ViewState {
-  type: ViewType;
-  id?: string;
-  previousView?: ViewState | null;
-  flowData?: {
-    id: string;
-    type: string;
-    streamType: string;
-  } | null;
-}
-
-type ViewType =
-  | "streams"
-  | "apps"
-  | "app"
-  | "stream"
-  | "editor"
-  | "community"
-  | "community-creator";
 
 export const FlowContent = ({ currentView = "streams" }: FlowContentProps) => {
   const [viewState, setViewState] = useState<ViewState>(() => ({
-    type: currentView === "apps" ? "apps" : "streams",
+    type: currentView === "apps" ? "apps" : currentView,
     previousView: null,
     flowData: null,
   }));
 
   useEffect(() => {
     setViewState((prev) => ({
-      type: currentView === "apps" ? "apps" : "streams",
+      type: currentView === "apps" ? "apps" : currentView,
       previousView: prev.type !== currentView ? prev : prev.previousView,
       flowData: null,
     }));
@@ -188,6 +168,7 @@ export const FlowContent = ({ currentView = "streams" }: FlowContentProps) => {
         ) : (
           <EditorView flowId={viewState.id} onClose={handleBack} />
         ))}
+
       {viewState.type === "community" && (
         <>
           <FlowHeader

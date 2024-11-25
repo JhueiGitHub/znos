@@ -1,4 +1,4 @@
-// /app/apps/flow/components/StreamView.tsx
+// app/apps/flow/components/StreamView.tsx
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { Card, CardContent } from "@/components/ui/card";
@@ -18,9 +18,10 @@ import { toast } from "sonner";
 interface StreamViewProps {
   streamId: string;
   onFlowSelect: (flowId: string) => void;
+  isCommunity?: boolean; // Made optional with default false
 }
 
-export const StreamView = ({ streamId, onFlowSelect }: StreamViewProps) => {
+export const StreamView = ({ streamId, onFlowSelect, isCommunity = false }: StreamViewProps) => {
   const { getColor, getFont } = useStyles();
   const queryClient = useQueryClient();
   const [isDuplicating, setIsDuplicating] = useState<string | null>(null);

@@ -85,7 +85,7 @@ export const FlowHeader = ({
           <CreateDialog currentView={currentView} viewId={viewId} />
           <Button
             variant="outline"
-            className="h-8 px-[11px] border text-[11px] bg-opacity-0"
+            className="h-8 px-[11px] border text-[11px] bg-red-500 bg-opacity-0"
             style={{
               borderColor: getColor("Brd"),
               color: getColor("Text Secondary (Bd)"),

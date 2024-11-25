@@ -1,13 +1,15 @@
 // app/apps/flow/components/FlowSidebar.tsx
 import { Button } from "@/components/ui/button";
+import { ViewType } from "../types/view";
 
 interface FlowSidebarProps {
-  onViewChange: (view: string) => void;
+  onViewChange: (view: ViewType) => void;
 }
 
 export const FlowSidebar = ({ onViewChange }: FlowSidebarProps) => {
   return (
     <div className="w-[264px] h-full flex flex-col border-r border-white/[0.09]">
+
       {/* Search */}
       <div className="h-[56px] flex items-center px-2 border-b border-white/[0.09]">
         <div className="w-full h-[32px] bg-[#292929]/50 rounded-md pl-[11px] flex items-center gap-[13px]">
@@ -33,39 +35,39 @@ export const FlowSidebar = ({ onViewChange }: FlowSidebarProps) => {
         </div>
 
         <Button
-          variant="ghost"
-          className="w-full h-8 pl-[15px] justify-start gap-[13px] text-[11px] text-[#cccccc]/70 hover:bg-[#292929] hover:text-white"
-          onClick={() => onViewChange("streams")}
-        >
-          <img src="/icns/_all.png" alt="All" className="w-4 h-4" />
-          All Streams
-        </Button>
+        variant="ghost"
+        className="w-full h-8 pl-[15px] justify-start gap-[13px] text-[11px] text-[#cccccc]/70 hover:bg-[#292929] hover:text-white"
+        onClick={() => onViewChange("streams")}
+      >
+        <img src="/icns/_all.png" alt="All" className="w-4 h-4" />
+        All Streams
+      </Button>
 
-        <Button
-          variant="ghost"
-          className="w-full h-8 pl-[15px] justify-start gap-[13px] text-[11px] text-[#cccccc]/70 hover:bg-[#292929] hover:text-white"
-          onClick={() => onViewChange("apps")}
-        >
-          <img src="/icns/_stellar.png" alt="Stellar" className="w-4 h-4" />
-          Apps
-        </Button>
+      <Button
+        variant="ghost"
+        className="w-full h-8 pl-[15px] justify-start gap-[13px] text-[11px] text-[#cccccc]/70 hover:bg-[#292929] hover:text-white"
+        onClick={() => onViewChange("apps")}
+      >
+        <img src="/icns/_stellar.png" alt="Stellar" className="w-4 h-4" />
+        Apps
+      </Button>
 
-        <Button
-          variant="ghost"
-          className="w-full h-8 pl-[15px] justify-start gap-[13px] text-[11px] text-[#cccccc]/70 hover:bg-[#292929] hover:text-white"
-        >
-          <img src="/icns/_archive.png" alt="Archive" className="w-4 h-4" />
-          Archive
-        </Button>
+      <Button
+        variant="ghost"
+        className="w-full h-8 pl-[15px] justify-start gap-[13px] text-[11px] text-[#cccccc]/70 hover:bg-[#292929] hover:text-white"
+      >
+        <img src="/icns/_archive.png" alt="Archive" className="w-4 h-4" />
+        Archive
+      </Button>
 
-        <Button
-          variant="ghost"
-          className="w-full h-8 pl-[15px] justify-start gap-[13px] text-[11px] text-[#cccccc]/70 hover:bg-[#292929] hover:text-white"
-          onClick={() => onViewChange("community")}
-        >
-          <img src="/icns/_community.png" alt="Community" className="w-4 h-4" />
-          Community
-        </Button>
+      <Button
+        variant="ghost"
+        className="w-full h-8 pl-[15px] justify-start gap-[13px] text-[11px] text-[#cccccc]/70 hover:bg-[#292929] hover:text-white"
+        onClick={() => onViewChange("community")}
+      >
+        <img src="/icns/_community.png" alt="Community" className="w-4 h-4" />
+        Community
+      </Button>
       </div>
 
       {/* Favorites */}

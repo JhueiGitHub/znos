@@ -1,3 +1,4 @@
+// app/apps/flow/components/modals/CreateDialog.tsx
 "use client";
 
 import { useState } from "react";
@@ -18,8 +19,7 @@ import { StreamType, FlowType } from "@prisma/client";
 import { useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { useStyles } from "@os/hooks/useStyles";
-
-export type ViewType = "streams" | "apps" | "app" | "stream" | "editor";
+import { ViewType } from "../../types/view";
 
 interface CreateDialogProps {
   currentView: ViewType;
@@ -81,6 +81,22 @@ const VIEW_CONFIGS: Record<ViewType, ViewConfig> = {
     successMessage: "",
     visible: false,
   },
+  community: {
+    buttonText: "",
+    title: "",
+    description: "",
+    placeholder: "",
+    successMessage: "",
+    visible: false,
+  },
+  "community-creator": {
+    buttonText: "",
+    title: "",
+    description: "",
+    placeholder: "",
+    successMessage: "",
+    visible: false,
+  }
 };
 
 export function CreateDialog({ currentView, viewId }: CreateDialogProps) {
@@ -160,9 +176,9 @@ export function CreateDialog({ currentView, viewId }: CreateDialogProps) {
       <DialogTrigger asChild>
         <Button
           variant="default"
-          className="h-8 px-4 text-[11px] hover:opacity-90"
+          className="h-8 px-4 text-[11px] hover:opacity-90 bg-red-500"
           style={{
-            backgroundColor: getColor("Lilac Accent"),
+            backgroundColor: getColor("latte"),
             color: getColor("Text Primary (Hd)"),
             fontFamily: getFont("Text Primary"),
           }}

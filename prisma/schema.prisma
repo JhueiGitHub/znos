@@ -29,6 +29,10 @@ model Profile {
   appConfigs   AppConfig[] // New relation
   mediaItems   MediaItem[]
 
+  // NEW: XP Account fields
+  xpProfile    XPProfile?  // One-to-one relation with XP profile
+
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -240,6 +244,103 @@ model File {
 
   @@index([folderId])
   @@index([profileId])
+}
+
+// NEW: XP Account related enums
+enum CreatorTier {
+  STARTER
+  VERIFIED
+  ELITE
+}
+
+enum CreatorStatus {
+  ACTIVE
+  SUSPENDED
+  BANNED
+}
+
+// NEW: XP Profile model
+model XPProfile {
+  id                     String       @id @default(cuid())
+  profileId             String       @unique  // Foreign key to Profile
+  profile               Profile      @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  
+  // Basic XP Info
+  displayName           String?      // Optional display name different from profile name
+  bio                   String?      @db.Text
+  customImageUrl        String?      // Optional different image from profile
+  
+  // Creator Status
+  creatorTier           CreatorTier  @default(STARTER)
+  creatorStatus         CreatorStatus @default(ACTIVE)
+  isVerified            Boolean      @default(false)
+  
+  // Statistics
+  totalDownloads        Int          @default(0)
+  totalEarned          Float        @default(0)
+  designSystemsPublished Int         @default(0)
+  
+  // Engagement Metrics
+  followersCount        Int          @default(0)
+  followingCount        Int          @default(0)
+  
+  // Social & Contact
+  website              String?
+  twitter              String?
+  github               String?
+  
+  // Published Content
+  publishedDesignSystems DesignSystemPublication[]
+  
+  // Timestamps
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+  lastActiveAt         DateTime     @default(now())
+
+  @@index([profileId])
+}
+
+// NEW: Design System Publication model
+model DesignSystemPublication {
+  id               String    @id @default(cuid())
+  xpProfileId     String    // Foreign key to XPProfile
+  xpProfile       XPProfile @relation(fields: [xpProfileId], references: [id], onDelete: Cascade)
+  
+  // Publication Details
+  name            String
+  description     String?   @db.Text
+  version         String    @default("1.0.0")
+  previewImageUrl String?
+  price           Float     @default(0)
+  
+  // Publication Status
+  isPublished     Boolean   @default(false)
+  publishedAt     DateTime?
+  
+  // Statistics
+  downloads       Int       @default(0)
+  likes          Int       @default(0)
+  
+  // Content Reference
+  designSystemId  String    // Reference to original DesignSystem
+  
+  // Timestamps
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([xpProfileId])
+}
+
+// NEW: Following relationships
+model CreatorFollow {
+  id          String    @id @default(cuid())
+  followerId  String    // XPProfile ID of follower
+  followingId String    // XPProfile ID being followed
+  createdAt   DateTime  @default(now())
+
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
 }
 
 model Server {
