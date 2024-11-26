@@ -7,12 +7,12 @@ import axios from "axios";
 const Wallpaper = () => {
   // PRESERVED: Original style hooks
   const { getColor } = useStyles();
-  
+
   // PRESERVED: Original store access plus new active flow
   const wallpaperConfig = useAppStore((state) => state.orionConfig?.wallpaper);
   const activeOSFlowId = useAppStore((state) => state.activeOSFlowId);
   const updateWallpaper = useAppStore((state) => state.updateWallpaper);
-  
+
   // PRESERVED: Original video ref handling
   const videoRef = useRef<HTMLVideoElement>(null);
   const loadAttempted = useRef(false);
@@ -23,9 +23,9 @@ const Wallpaper = () => {
     queryFn: async () => {
       if (!activeOSFlowId) return null;
       // AFTER (correct):
-const { data } = await axios.get(
-  `/api/flows/${activeOSFlowId}/components`
-);
+      const { data } = await axios.get(
+        `/api/flows/${activeOSFlowId}/components`
+      );
       const wallpaper = data?.components?.find(
         (c: any) => c.type === "WALLPAPER"
       );
@@ -50,53 +50,53 @@ const { data } = await axios.get(
 
   // PRESERVED: Original video handling effect
   // AFTER - Surgical fix:
-useEffect(() => {
-  console.log("Current wallpaper config:", wallpaperConfig);
+  useEffect(() => {
+    console.log("Current wallpaper config:", wallpaperConfig);
 
-  if (!wallpaperConfig?.value) return;
+    if (!wallpaperConfig?.value) return;
 
-  if (
-    videoRef.current &&
-    wallpaperConfig.mode === "media" &&
-    wallpaperConfig.mediaId
-  ) {
-    // Reset load attempted when wallpaper changes
-    loadAttempted.current = false;
-    
-    const videoUrl = getVideoUrl(wallpaperConfig.value);
-    console.log("Loading video with URL:", videoUrl);
-
-    // Cleanup previous video state
-    videoRef.current.pause();
-    videoRef.current.currentTime = 0;
-    
-    videoRef.current.src = videoUrl;
-    videoRef.current.load();
-    videoRef.current.play().catch((error) => {
-      console.error("Video play error:", error);
-      if (videoUrl !== wallpaperConfig.value) {
-        console.log("Falling back to original URL");
-        if (wallpaperConfig.value) {
-          videoRef.current!.src = wallpaperConfig.value;
-          videoRef.current!.load();
-          videoRef.current!.play().catch(console.error);
-        }
-      }
-    });
-
-    loadAttempted.current = true;
-  }
-
-  // Cleanup function
-  return () => {
-    if (videoRef.current) {
-      videoRef.current.pause();
-      videoRef.current.src = '';
-      videoRef.current.load();
+    if (
+      videoRef.current &&
+      wallpaperConfig.mode === "media" &&
+      wallpaperConfig.mediaId
+    ) {
+      // Reset load attempted when wallpaper changes
       loadAttempted.current = false;
+
+      const videoUrl = getVideoUrl(wallpaperConfig.value);
+      console.log("Loading video with URL:", videoUrl);
+
+      // Cleanup previous video state
+      videoRef.current.pause();
+      videoRef.current.currentTime = 0;
+
+      videoRef.current.src = videoUrl;
+      videoRef.current.load();
+      videoRef.current.play().catch((error) => {
+        console.error("Video play error:", error);
+        if (videoUrl !== wallpaperConfig.value) {
+          console.log("Falling back to original URL");
+          if (wallpaperConfig.value) {
+            videoRef.current!.src = wallpaperConfig.value;
+            videoRef.current!.load();
+            videoRef.current!.play().catch(console.error);
+          }
+        }
+      });
+
+      loadAttempted.current = true;
     }
-  };
-}, [wallpaperConfig?.value, wallpaperConfig?.mediaId, wallpaperConfig?.mode]); // Added mode as dependency
+
+    // Cleanup function
+    return () => {
+      if (videoRef.current) {
+        videoRef.current.pause();
+        videoRef.current.src = "";
+        videoRef.current.load();
+        loadAttempted.current = false;
+      }
+    };
+  }, [wallpaperConfig?.value, wallpaperConfig?.mediaId, wallpaperConfig?.mode]); // Added mode as dependency
 
   // PRESERVED: Original color mode rendering
   if (wallpaperConfig?.mode === "color") {

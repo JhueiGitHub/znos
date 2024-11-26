@@ -21,7 +21,11 @@ interface StreamViewProps {
   isCommunity?: boolean; // Made optional with default false
 }
 
-export const StreamView = ({ streamId, onFlowSelect, isCommunity = false }: StreamViewProps) => {
+export const StreamView = ({
+  streamId,
+  onFlowSelect,
+  isCommunity = false,
+}: StreamViewProps) => {
   const { getColor, getFont } = useStyles();
   const queryClient = useQueryClient();
   const [isDuplicating, setIsDuplicating] = useState<string | null>(null);
@@ -55,7 +59,7 @@ export const StreamView = ({ streamId, onFlowSelect, isCommunity = false }: Stre
     mutationFn: async (flowId: string) => {
       setIsPublishing(flowId);
       const response = await axios.post(`/api/xp/publications`, {
-        flowId
+        flowId,
       });
       return response.data;
     },
@@ -69,9 +73,8 @@ export const StreamView = ({ streamId, onFlowSelect, isCommunity = false }: Stre
     },
     onSettled: () => {
       setIsPublishing(null);
-    }
+    },
   });
-
 
   if (isLoading) {
     return (

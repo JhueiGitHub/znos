@@ -2,7 +2,11 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { currentProfile } from "@/lib/current-profile";
-import { FlowComponentWithMedia } from "@/app/types/prisma";
+import { FlowComponent, MediaItem, MediaType } from "@prisma/client";
+
+interface FlowComponentWithMedia extends Omit<FlowComponent, 'mediaItem'> {
+  mediaItem?: MediaItem | null;
+}
 
 export async function POST(
   req: Request,
@@ -14,18 +18,26 @@ export async function POST(
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    // 1. Get the publication
+    // EVOLVED: Get publication with source profile data
     const publication = await db.designSystemPublication.findUnique({
       where: {
         id: params.publicationId,
       },
+      include: {
+        xpProfile: {
+          include: {
+            profile: true
+          }
+        }
+      }
     });
 
     if (!publication) {
       return new NextResponse("Publication not found", { status: 404 });
     }
 
-    // 2. Get the source flow with everything we need
+    // EVOLVED: Get source flow with explicit logging
+    console.log("Fetching source flow:", publication.designSystemId);
     const sourceFlow = await db.flow.findUnique({
       where: {
         id: publication.designSystemId,
@@ -33,17 +45,19 @@ export async function POST(
       include: {
         components: {
           include: {
-            mediaItem: true,
-          },
-        },
-      },
+            mediaItem: true
+          }
+        }
+      }
     });
 
     if (!sourceFlow) {
       return new NextResponse("Source flow not found", { status: 404 });
     }
 
-    // 3. Get/create Orion stream for the importing user
+    console.log("Source flow components:", JSON.stringify(sourceFlow.components, null, 2));
+
+    // PRESERVED: Get/create Orion stream
     let orionStream = await db.stream.findFirst({
       where: {
         profileId: profile.id,
@@ -64,35 +78,42 @@ export async function POST(
       });
     }
 
-    // 4. Create media copies with safe typing
+    // EVOLVED: Enhanced media mapping with explicit error handling
     const mediaMapping = new Map<string, string>();
-    const components =
-      sourceFlow.components as unknown as FlowComponentWithMedia[];
+    const components = sourceFlow.components;
 
+    // EVOLVED: More robust media creation with fallback naming
     for (const component of components) {
-      if (
-        component.mediaItem &&
-        component.mediaItem.name &&
-        component.mediaItem.type &&
-        component.mediaItem.url
-      ) {
-        // Create new media item for the importing user
-        const newMedia = await db.mediaItem.create({
-          data: {
-            name: component.mediaItem.name,
-            type: component.mediaItem.type,
-            url: component.mediaItem.url,
-            profileId: profile.id,
-          },
-        });
+      if (component.mode === "media" && component.value) {
+        console.log("Processing media component:", component);
+        
+        try {
+          // Extract name from URL or use fallback
+          const urlParts = component.value.split("/");
+          const fileName = urlParts[urlParts.length - 1] || "unknown-media";
+          
+          const newMedia = await db.mediaItem.create({
+            data: {
+              name: fileName,
+              type: "IMAGE" as MediaType, // Default to IMAGE type
+              url: component.value,
+              profileId: profile.id,
+            },
+          });
 
-        if (component.mediaId) {
-          mediaMapping.set(component.mediaId, newMedia.id);
+          console.log("Created new media item:", newMedia);
+
+          if (component.mediaId) {
+            mediaMapping.set(component.mediaId, newMedia.id);
+          }
+        } catch (error) {
+          console.error("Failed to create media item:", error);
+          continue; // Skip this media item but continue with others
         }
       }
     }
 
-    // 5. Create the new flow with proper media references
+    // EVOLVED: Create flow with complete component data
     const newFlow = await db.flow.create({
       data: {
         name: sourceFlow.name,
@@ -109,12 +130,15 @@ export async function POST(
               mode: component.mode,
               value: component.value,
               opacity: component.opacity,
+              fontFamily: component.fontFamily,
               strokeWidth: component.strokeWidth,
-              order: component.order,
+              mappedTokenId: component.mappedTokenId,
               mediaUrl: component.mediaUrl,
-            };
+              order: component.order,
+              tokenId: component.tokenId,
+              tokenValue: component.tokenValue,
+            } satisfies Omit<FlowComponent, 'id' | 'flowId' | 'createdAt' | 'updatedAt' | 'mediaId'>;
 
-            // Only add mediaId if we have a mapping for it
             if (component.mediaId && mediaMapping.has(component.mediaId)) {
               return {
                 ...baseComponent,
@@ -135,7 +159,7 @@ export async function POST(
       },
     });
 
-    // 6. Update stats
+    // PRESERVED: Update statistics
     await db.designSystemPublication.update({
       where: { id: params.publicationId },
       data: {
@@ -143,7 +167,6 @@ export async function POST(
       },
     });
 
-    // 7. Update creator stats
     await db.xPProfile.update({
       where: { id: publication.xpProfileId },
       data: {
@@ -153,7 +176,7 @@ export async function POST(
 
     return NextResponse.json(newFlow);
   } catch (error) {
-    console.error("[PUBLICATION_IMPORT]", error);
+    console.error("[PUBLICATION_IMPORT] Detailed error:", error);
     return new NextResponse("Internal Error", { status: 500 });
   }
 }
