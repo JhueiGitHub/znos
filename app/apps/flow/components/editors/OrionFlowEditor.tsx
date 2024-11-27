@@ -283,69 +283,30 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
       setSelectedComponent(null);
     });
 
-    // Handle canvas panning
-    let isPanning = false;
-    let lastClientX = 0;
-    let lastClientY = 0;
-    let isSpacebarPressed = false;
+    // Handle trackpad gestures for pan and zoom
+    canvas.on("mouse:wheel", (opt) => {
+      const e = opt.e as WheelEvent;
+      e.preventDefault();
 
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.code === "Space" || e.key === " ") {
-        isSpacebarPressed = true;
-        if (fabricRef.current) {
-          fabricRef.current.defaultCursor = "grab";
+      if (e.ctrlKey || e.metaKey) {
+        // Handle zooming with Cmd/Ctrl + trackpad gesture
+        const delta = e.deltaY;
+        let zoom = canvas.getZoom();
+        zoom = zoom * 0.999 ** delta;
+        zoom = Math.min(Math.max(0.1, zoom), 20);
+        const point = new fabric.Point(e.offsetX, e.offsetY);
+        canvas.zoomToPoint(point, zoom);
+      } else {
+        // Handle two-finger trackpad panning
+        if (canvas.viewportTransform) {
+          canvas.viewportTransform[4] -= e.deltaX;
+          canvas.viewportTransform[5] -= e.deltaY;
         }
       }
-    };
 
-    const handleKeyUp = (e: KeyboardEvent) => {
-      if (e.code === "Space" || e.key === " ") {
-        isSpacebarPressed = false;
-        isPanning = false;
-        if (fabricRef.current) {
-          fabricRef.current.defaultCursor = "default";
-        }
-      }
-    };
+      canvas.requestRenderAll();
 
-    const handleMouseDown = (e: MouseEvent) => {
-      if (isSpacebarPressed) {
-        isPanning = true;
-        lastClientX = e.clientX;
-        lastClientY = e.clientY;
-        if (fabricRef.current) {
-          fabricRef.current.defaultCursor = "grabbing";
-        }
-      }
-    };
-
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!isPanning) return;
-
-      const deltaX = e.clientX - lastClientX;
-      const deltaY = e.clientY - lastClientY;
-
-      if (fabricRef.current?.viewportTransform) {
-        fabricRef.current.viewportTransform[4] += deltaX;
-        fabricRef.current.viewportTransform[5] += deltaY;
-        fabricRef.current.requestRenderAll();
-      }
-
-      lastClientX = e.clientX;
-      lastClientY = e.clientY;
-    };
-
-    const handleMouseUp = () => {
-      isPanning = false;
-      if (fabricRef.current) {
-        fabricRef.current.defaultCursor = isSpacebarPressed
-          ? "grab"
-          : "default";
-      }
-    };
-
-    // Update view state handler
-    const handleViewChange = () => {
+      // Update view state after transformation
       if (fabricRef.current) {
         setCanvasViewState({
           zoom: fabricRef.current.getZoom(),
@@ -354,13 +315,7 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
             : null,
         });
       }
-    };
-
-    // Add view change handler to relevant events
-    canvas.on("mouse:wheel", handleViewChange);
-    canvas.on("mouse:down", handleViewChange);
-    canvas.on("mouse:move", handleViewChange);
-    canvas.on("mouse:up", handleViewChange);
+    });
 
     // Handle window resize
     const handleResize = () => {
@@ -387,17 +342,7 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
       }
     };
 
-    // Previous event listeners...
-    window.addEventListener("resize", handleResize);
-
     // Add event listeners
-    const canvasElement = canvasRef.current;
-    window.addEventListener("keydown", handleKeyDown);
-    window.addEventListener("keyup", handleKeyUp);
-    canvasElement.addEventListener("mousedown", handleMouseDown);
-    canvasElement.addEventListener("mousemove", handleMouseMove);
-    canvasElement.addEventListener("mouseup", handleMouseUp);
-    canvasElement.addEventListener("mouseleave", handleMouseUp);
     window.addEventListener("resize", handleResize);
 
     // Render initial state
@@ -406,17 +351,7 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
     // Cleanup
     return () => {
       canvas.dispose();
-      window.removeEventListener("keydown", handleKeyDown);
-      window.removeEventListener("keyup", handleKeyUp);
-      canvasElement.removeEventListener("mousedown", handleMouseDown);
-      canvasElement.removeEventListener("mousemove", handleMouseMove);
-      canvasElement.removeEventListener("mouseup", handleMouseUp);
-      canvasElement.removeEventListener("mouseleave", handleMouseUp);
       window.removeEventListener("resize", handleResize);
-      canvas.off("mouse:wheel", handleViewChange);
-      canvas.off("mouse:down", handleViewChange);
-      canvas.off("mouse:move", handleViewChange);
-      canvas.off("mouse:up", handleViewChange);
     };
   }, [canvasRef, flow, designSystem, areSidebarsVisible, canvasViewState]);
 
