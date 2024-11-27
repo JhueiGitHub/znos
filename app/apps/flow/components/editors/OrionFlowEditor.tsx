@@ -4,11 +4,12 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { useOthers } from "@/liveblocks.config";
 import { useDesignSystem } from "@/app/contexts/DesignSystemContext";
-import { OrionFlowComponent } from "./orion-flow-types";
+import { OrionFlowComponent, ComponentUpdate } from "./orion-flow-types";
 import OrionEditorSidebar from "./OrionEditorSidebar";
+import { OrionLeftSidebar } from "./OrionLeftSidebar";
+import { MediaSelector } from "./MediaSelector";
 import { useAppStore } from "@/app/store/appStore";
 import { AnimatePresence, motion } from "framer-motion";
-import * as Portal from "@radix-ui/react-portal";
 import { MediaItem } from "@prisma/client";
 import { useStyles } from "@os/hooks/useStyles";
 import { useAutosave } from "@/app/hooks/useDebounce";
@@ -17,96 +18,6 @@ import SaveStatusIndicator from "@/app/components/SaveStatusIndicator";
 interface OrionFlowEditorProps {
   flowId: string;
 }
-
-interface UpdateResponse {
-  id: string;
-  type: "WALLPAPER" | "DOCK_ICON";
-  mode: "color" | "media";
-  value: string | null;
-  tokenId?: string;
-  mediaId?: string;
-  order?: number;
-}
-
-interface MediaSelectorProps {
-  position: { x: number; y: number };
-  onSelect: (mediaItem: MediaItem) => void;
-  onClose: () => void;
-}
-
-const MediaSelector = ({ position, onSelect, onClose }: MediaSelectorProps) => {
-  const { getColor, getFont } = useStyles();
-  const { data: mediaItems } = useQuery<MediaItem[]>({
-    queryKey: ["media-items"],
-    queryFn: async () => {
-      const response = await axios.get("/api/media");
-      return response.data;
-    },
-  });
-
-  return (
-    <Portal.Root>
-      <motion.div
-        initial={{ scale: 0.95, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.95, opacity: 0 }}
-        className="fixed z-50"
-        style={{
-          left: position.x,
-          top: position.y,
-        }}
-      >
-        <div
-          className="w-[400px] rounded-lg overflow-hidden border shadow-lg"
-          style={{
-            backgroundColor: getColor("Glass"),
-            borderColor: getColor("Brd"),
-          }}
-        >
-          <div
-            className="p-3 border-b flex items-center justify-between"
-            style={{
-              borderColor: getColor("Brd"),
-            }}
-          >
-            <span
-              className="text-sm font-semibold"
-              style={{
-                color: getColor("Text Primary (Hd)"),
-                fontFamily: getFont("Text Primary"),
-              }}
-            >
-              Select Media
-            </span>
-            <button
-              onClick={onClose}
-              className="text-sm hover:opacity-70"
-              style={{
-                color: getColor("Text Secondary (Bd)"),
-                fontFamily: getFont("Text Secondary"),
-              }}
-            >
-              ESC
-            </button>
-          </div>
-          <div className="p-3 grid grid-cols-3 gap-2 max-h-[400px] overflow-y-auto">
-            {mediaItems?.map((item: MediaItem) => (
-              <motion.div
-                key={item.id}
-                whileHover={{ scale: 1.05 }}
-                className="aspect-square rounded-lg overflow-hidden cursor-pointer border"
-                style={{ borderColor: getColor("Brd") }}
-                onClick={() => onSelect(item)}
-              >
-                <img src={item.url} className="w-full h-full object-cover" />
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </motion.div>
-    </Portal.Root>
-  );
-};
 
 const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
   const others = useOthers();
@@ -121,13 +32,25 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
     y: number;
   } | null>(null);
   const updateOrionConfig = useAppStore((state) => state.setOrionConfig);
+  const currentStoreConfig = useAppStore((state) => state.orionConfig);
+  const [areSidebarsVisible, setAreSidebarsVisible] = useState(true);
+
+  // Add state for canvas view
+  const [canvasViewState, setCanvasViewState] = useState<{
+    zoom: number;
+    viewportTransform: number[] | null;
+  }>({
+    zoom: 1,
+    viewportTransform: null,
+  });
 
   const { data: flow } = useQuery({
     queryKey: ["flow", flowId],
     queryFn: async () => {
-      const response = await axios.get<{ components: OrionFlowComponent[] }>(
-        `/api/flows/${flowId}`
-      );
+      const response = await axios.get<{
+        name: string;
+        components: OrionFlowComponent[];
+      }>(`/api/flows/${flowId}`);
       return response.data;
     },
     staleTime: Infinity,
@@ -135,7 +58,7 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
   });
 
   const { handleComponentUpdate, saveStatus } = useAutosave({
-    onSave: async (id: string, updates: Partial<OrionFlowComponent>) => {
+    onSave: async (id: string, updates: ComponentUpdate) => {
       const response = await axios.patch<OrionFlowComponent>(
         `/api/flows/${flowId}/components/${id}`,
         updates
@@ -143,7 +66,6 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
       return response.data;
     },
     onSuccess: (updatedComponent: OrionFlowComponent) => {
-      // Update flow query data
       queryClient.setQueryData(
         ["flow", flowId],
         (oldData: { components: OrionFlowComponent[] } | undefined) => {
@@ -159,35 +81,26 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
         }
       );
 
-      // If it's a dock icon, ensure orion config stays in sync
-      if (updatedComponent.type === "DOCK_ICON") {
-        const currentConfig = queryClient.getQueryData<{
-          wallpaper?: any;
-          dockIcons?: Array<any>;
-        }>(["orion-config"]);
-
-        if (currentConfig) {
-          const updatedConfig = {
-            ...currentConfig,
-            dockIcons: currentConfig.dockIcons?.map((icon) =>
-              icon.id === updatedComponent.id
-                ? {
-                    ...icon,
-                    mode: updatedComponent.mode,
-                    value: updatedComponent.value,
-                    mediaId: updatedComponent.mediaId,
-                    tokenId: updatedComponent.tokenId,
-                  }
-                : icon
-            ),
-          };
-          queryClient.setQueryData(["orion-config"], updatedConfig);
-        }
+      if (updatedComponent.type === "DOCK_ICON" && currentStoreConfig) {
+        const updatedConfig = {
+          ...currentStoreConfig,
+          dockIcons: currentStoreConfig.dockIcons?.map((icon) =>
+            icon.id === updatedComponent.id
+              ? {
+                  ...icon,
+                  mode: updatedComponent.mode,
+                  value: updatedComponent.value,
+                  mediaId: updatedComponent.mediaId,
+                  tokenId: updatedComponent.tokenId,
+                }
+              : icon
+          ),
+        };
+        queryClient.setQueryData(["orion-config"], updatedConfig);
       }
     },
     onError: (error) => {
       console.error("Failed to update component:", error);
-      // On error, invalidate queries to ensure data consistency
       queryClient.invalidateQueries(["flow", flowId]);
       queryClient.invalidateQueries(["orion-config"]);
     },
@@ -196,24 +109,21 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
   const handleMediaSelect = async (mediaItem: MediaItem) => {
     if (!selectedComponent) return;
 
-    const updates = {
-      mode: "media" as const,
+    const updates: ComponentUpdate = {
+      mode: "media",
       value: mediaItem.url,
       mediaId: mediaItem.id,
       tokenId: undefined,
     };
 
-    if (selectedComponent.type === "DOCK_ICON") {
-      // 1. Instant AppStore Update
-      const currentStoreConfig = useAppStore.getState().orionConfig;
-      useAppStore.getState().setOrionConfig({
+    if (selectedComponent.type === "DOCK_ICON" && currentStoreConfig) {
+      updateOrionConfig({
         ...currentStoreConfig,
         dockIcons: currentStoreConfig.dockIcons?.map((icon) =>
           icon.id === selectedComponent.id ? { ...icon, ...updates } : icon
         ),
       });
 
-      // 2. Instant React Query Cache Update
       const currentQueryConfig = queryClient.getQueryData<{
         wallpaper?: any;
         dockIcons?: Array<any>;
@@ -228,7 +138,6 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
         });
       }
 
-      // 3. Force Dock Icons Config Update
       queryClient.setQueryData<Array<any>>(["dock-icons-config"], (oldData) => {
         if (!oldData) return oldData;
         return oldData.map((icon) =>
@@ -236,12 +145,10 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
         );
       });
 
-      // 4. Invalidate queries to ensure sync
       queryClient.invalidateQueries(["dock-icons-config"]);
       queryClient.invalidateQueries(["orion-config"]);
     }
 
-    // 5. Instant Canvas Update
     if (fabricRef.current) {
       const objectToUpdate = fabricRef.current
         .getObjects()
@@ -262,16 +169,43 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
       }
     }
 
-    // 6. Background save
     handleComponentUpdate(selectedComponent.id, updates);
     setMediaSelector(null);
   };
+
+  const handleComponentSelect = (componentId: string) => {
+    const component =
+      flow?.components.find((c) => c.id === componentId) || null;
+    setSelectedComponent(component);
+
+    if (fabricRef.current) {
+      const canvasObject = fabricRef.current
+        .getObjects()
+        .find((obj) => obj.data?.id === componentId);
+
+      if (canvasObject) {
+        fabricRef.current.setActiveObject(canvasObject);
+        fabricRef.current.renderAll();
+      }
+    }
+  };
+
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.key === "§") {
+        setAreSidebarsVisible((prev) => !prev);
+      }
+    };
+
+    window.addEventListener("keypress", handleKeyPress);
+    return () => window.removeEventListener("keypress", handleKeyPress);
+  }, []);
 
   useEffect(() => {
     if (!canvasRef.current || !flow?.components || !designSystem) return;
 
     const canvas = new fabric.Canvas(canvasRef.current, {
-      width: window.innerWidth - 560,
+      width: window.innerWidth - (areSidebarsVisible ? 560 : 0),
       height: window.innerHeight,
       backgroundColor: "#010203",
       selection: false,
@@ -279,6 +213,13 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
 
     fabricRef.current = canvas;
 
+    // Restore previous view state if it exists
+    if (canvasViewState.viewportTransform) {
+      canvas.setViewportTransform(canvasViewState.viewportTransform);
+      canvas.setZoom(canvasViewState.zoom);
+    }
+
+    // Initialize components on canvas
     const getTokenColor = (tokenId: string | null): string => {
       if (!tokenId || !designSystem.colorTokens) return "#000000";
       const token = designSystem.colorTokens.find((t) => t.name === tokenId);
@@ -309,6 +250,7 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
 
       canvas.add(circle);
 
+      // Handle media initialization
       if (component.mode === "media" && component.value) {
         const img = new Image();
         img.crossOrigin = "anonymous";
@@ -324,34 +266,24 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
       }
     };
 
+    // Initialize all components
     flow.components.forEach((component: OrionFlowComponent, index: number) => {
       initializeComponent(component, index);
     });
 
-    if (canvas.getContext()) {
-      canvas.renderAll();
-    }
-
-    // Handle trackpad gestures
-    canvas.on("mouse:wheel", (opt) => {
-      const e = opt.e as WheelEvent;
-
-      if (e.ctrlKey || e.metaKey) {
-        e.preventDefault();
-        const delta = e.deltaY;
-        let zoom = canvas.getZoom();
-        zoom = zoom * 0.999 ** delta;
-        zoom = Math.min(Math.max(0.1, zoom), 20);
-        canvas.zoomToPoint(new fabric.Point(e.offsetX, e.offsetY), zoom);
-      } else {
-        if (canvas.viewportTransform) {
-          canvas.viewportTransform[4] -= e.deltaX;
-          canvas.viewportTransform[5] -= e.deltaY;
-          canvas.requestRenderAll();
-        }
+    // Handle component selection
+    canvas.on("selection:created", (options) => {
+      const selectedObject = options.selected?.[0];
+      if (selectedObject && selectedObject.data) {
+        setSelectedComponent(selectedObject.data as OrionFlowComponent);
       }
     });
 
+    canvas.on("selection:cleared", () => {
+      setSelectedComponent(null);
+    });
+
+    // Handle canvas panning
     let isPanning = false;
     let lastClientX = 0;
     let lastClientY = 0;
@@ -412,19 +344,40 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
       }
     };
 
-    // Handle resize
+    // Update view state handler
+    const handleViewChange = () => {
+      if (fabricRef.current) {
+        setCanvasViewState({
+          zoom: fabricRef.current.getZoom(),
+          viewportTransform: fabricRef.current.viewportTransform
+            ? [...fabricRef.current.viewportTransform]
+            : null,
+        });
+      }
+    };
+
+    // Add view change handler to relevant events
+    canvas.on("mouse:wheel", handleViewChange);
+    canvas.on("mouse:down", handleViewChange);
+    canvas.on("mouse:move", handleViewChange);
+    canvas.on("mouse:up", handleViewChange);
+
+    // Handle window resize
     const handleResize = () => {
       if (fabricRef.current) {
+        // Store current view state
+        const currentZoom = fabricRef.current.getZoom();
         const currentVPT = fabricRef.current.viewportTransform
           ? [...fabricRef.current.viewportTransform]
-          : undefined;
-        const currentZoom = fabricRef.current.getZoom();
+          : null;
 
+        // Update dimensions
         fabricRef.current.setDimensions({
-          width: window.innerWidth - 560,
+          width: window.innerWidth - (areSidebarsVisible ? 560 : 0),
           height: window.innerHeight,
         });
 
+        // Restore view state
         if (currentVPT) {
           fabricRef.current.setViewportTransform(currentVPT);
           fabricRef.current.setZoom(currentZoom);
@@ -434,17 +387,10 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
       }
     };
 
-    canvas.on("selection:created", (options) => {
-      const selectedObject = options.selected?.[0];
-      if (selectedObject && selectedObject.data) {
-        setSelectedComponent(selectedObject.data as OrionFlowComponent);
-      }
-    });
+    // Previous event listeners...
+    window.addEventListener("resize", handleResize);
 
-    canvas.on("selection:cleared", () => {
-      setSelectedComponent(null);
-    });
-
+    // Add event listeners
     const canvasElement = canvasRef.current;
     window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("keyup", handleKeyUp);
@@ -454,6 +400,10 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
     canvasElement.addEventListener("mouseleave", handleMouseUp);
     window.addEventListener("resize", handleResize);
 
+    // Render initial state
+    canvas.renderAll();
+
+    // Cleanup
     return () => {
       canvas.dispose();
       window.removeEventListener("keydown", handleKeyDown);
@@ -463,24 +413,60 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
       canvasElement.removeEventListener("mouseup", handleMouseUp);
       canvasElement.removeEventListener("mouseleave", handleMouseUp);
       window.removeEventListener("resize", handleResize);
+      canvas.off("mouse:wheel", handleViewChange);
+      canvas.off("mouse:down", handleViewChange);
+      canvas.off("mouse:move", handleViewChange);
+      canvas.off("mouse:up", handleViewChange);
     };
-  }, [canvasRef, flow, designSystem]);
+  }, [canvasRef, flow, designSystem, areSidebarsVisible, canvasViewState]);
+
+  // All previous code stays exactly the same until the return statement...
 
   return (
     <div className="h-full w-full bg-[#010203] relative">
-      <canvas ref={canvasRef} />
+      <AnimatePresence>
+        {areSidebarsVisible && (
+          <>
+            <OrionLeftSidebar
+              flowName={flow?.name || ""}
+              isVisible={areSidebarsVisible}
+              components={flow?.components || []}
+              onComponentSelect={handleComponentSelect}
+              selectedComponentId={selectedComponent?.id}
+            />
+            <motion.div
+              initial={{ x: 264 }}
+              animate={{ x: 0 }}
+              exit={{ x: 264 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              className="absolute right-0 top-0 bottom-0 w-[264px] border-l border-white/[0.09] bg-black/30 backdrop-blur-sm z-10"
+            >
+              <OrionEditorSidebar
+                selectedComponent={selectedComponent}
+                designSystem={designSystem}
+                onUpdateComponent={handleComponentUpdate}
+                onMediaSelect={() =>
+                  setMediaSelector({
+                    x: window.innerWidth - 700,
+                    y: 100,
+                  })
+                }
+              />
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
-      <OrionEditorSidebar
-        selectedComponent={selectedComponent}
-        designSystem={designSystem}
-        onUpdateComponent={handleComponentUpdate}
-        onMediaSelect={() =>
-          setMediaSelector({
-            x: window.innerWidth - 700,
-            y: 100,
-          })
-        }
-      />
+      {/* Canvas Container */}
+      <div
+        className="absolute inset-0"
+        style={{
+          marginLeft: areSidebarsVisible ? "264px" : "0",
+          marginRight: areSidebarsVisible ? "264px" : "0",
+        }}
+      >
+        <canvas ref={canvasRef} />
+      </div>
 
       <AnimatePresence>
         {mediaSelector && (
@@ -492,13 +478,18 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
         )}
       </AnimatePresence>
 
-      <div className="fixed top-4 right-4 flex items-center gap-4">
+      <div className="fixed top-4 right-4 flex items-center gap-4 z-20">
         <SaveStatusIndicator status={saveStatus} />
         <div className="text-[#cccccc]/70 text-xs">
           {others.length} other user{others.length === 1 ? "" : "s"} present
         </div>
       </div>
+
+      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-[#cccccc]/50 text-xs">
+        Press § to toggle sidebars
+      </div>
     </div>
   );
 };
+
 export default OrionFlowEditor;

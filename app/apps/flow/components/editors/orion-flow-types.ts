@@ -1,11 +1,15 @@
 // types/orion-flow-types.ts
 export interface OrionFlowComponent {
   id: string;
+  name: string;
   type: "WALLPAPER" | "DOCK_ICON";
   mode: "color" | "media";
   value: string | null;
-  mediaId?: string;
+  order: number;
   tokenId?: string;
+  mediaId?: string;
+  mediaUrl?: string;
+  tokenValue?: string;
 }
 
 export type ComponentUpdate = Partial<
