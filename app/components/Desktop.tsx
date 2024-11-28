@@ -1,3 +1,4 @@
+// components/Desktop.tsx
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -5,25 +6,31 @@ import { useAppStore } from "../store/appStore";
 import Window from "./Window";
 import Dock from "./Dock";
 import Wallpaper from "./Wallpaper";
-import MenuBar from "./MenuBar";
+import { MenuBar } from "./MenuBar";
 import { useStyles } from "../hooks/useStyles";
 import LoadingScreen from "@os/components/LoadingScreen";
+import { SpotlightSearch } from "./SpotlightSearch";
 import axios from "axios";
-import { FlowComponent } from "@/app/types/flow";
+import { FlowComponent } from "@prisma/client";
 
 const Desktop: React.FC = () => {
+  // Preserve existing state
   const {
     openApps,
     activeAppId,
     updateWallpaper,
     updateDockIcons,
     setActiveOSFlowId,
-    setOrionConfig
+    setOrionConfig,
   } = useAppStore();
-  
+
   const { getColor, getFont } = useStyles();
   const [isLoading, setIsLoading] = useState(true);
 
+  // Add spotlight state
+  const [isSpotlightOpen, setIsSpotlightOpen] = useState(false);
+
+  // Preserve existing initialization effect
   useEffect(() => {
     const initializeDesktop = async () => {
       const timer = setTimeout(() => {
@@ -76,6 +83,25 @@ const Desktop: React.FC = () => {
     initializeDesktop();
   }, [updateWallpaper, updateDockIcons, setActiveOSFlowId, setOrionConfig]);
 
+  // Add spotlight keyboard handler
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Only trigger if no input elements are focused
+      if (
+        e.key === " " &&
+        !["INPUT", "TEXTAREA"].includes(
+          (document.activeElement?.tagName || "").toUpperCase()
+        )
+      ) {
+        e.preventDefault();
+        setIsSpotlightOpen(true);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   if (isLoading) {
     return <LoadingScreen />;
   }
@@ -96,6 +122,11 @@ const Desktop: React.FC = () => {
         ))}
         <Dock />
       </div>
+
+      <SpotlightSearch
+        isOpen={isSpotlightOpen}
+        onClose={() => setIsSpotlightOpen(false)}
+      />
     </div>
   );
 };

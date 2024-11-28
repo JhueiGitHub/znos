@@ -8,11 +8,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+
+// Using existing types from orion-flow-types.ts
 const OrionEditorSidebar = ({
   selectedComponent,
   designSystem,
   onUpdateComponent,
   onMediaSelect,
+  onMacOSIconSelect,
 }: OrionSidebarProps) => {
   const { getColor, getFont } = useStyles();
 
@@ -165,6 +168,33 @@ const OrionEditorSidebar = ({
                     className="w-full h-full object-cover"
                   />
                 </div>
+                <div className="flex flex-col gap-2">
+                  <button
+                    onClick={onMediaSelect}
+                    className="w-full h-8 px-3 bg-transparent border border-white/[0.09] rounded text-[11px] hover:bg-white/[0.02]"
+                    style={{
+                      color: getColor("Text Primary (Hd)"),
+                      fontFamily: getFont("Text Primary"),
+                    }}
+                  >
+                    Change media...
+                  </button>
+                  {selectedComponent.type === "DOCK_ICON" && onMacOSIconSelect && (
+                    <button
+                      onClick={onMacOSIconSelect}
+                      className="w-full h-8 px-3 bg-transparent border border-white/[0.09] rounded text-[11px] hover:bg-white/[0.02]"
+                      style={{
+                        color: getColor("Text Primary (Hd)"),
+                        fontFamily: getFont("Text Primary"),
+                      }}
+                    >
+                      Choose macOS icon...
+                    </button>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-2">
                 <button
                   onClick={onMediaSelect}
                   className="w-full h-8 px-3 bg-transparent border border-white/[0.09] rounded text-[11px] hover:bg-white/[0.02]"
@@ -173,20 +203,21 @@ const OrionEditorSidebar = ({
                     fontFamily: getFont("Text Primary"),
                   }}
                 >
-                  Change media...
+                  Choose media...
                 </button>
+                {selectedComponent.type === "DOCK_ICON" && onMacOSIconSelect && (
+                  <button
+                    onClick={onMacOSIconSelect}
+                    className="w-full h-8 px-3 bg-transparent border border-white/[0.09] rounded text-[11px] hover:bg-white/[0.02]"
+                    style={{
+                      color: getColor("Text Primary (Hd)"),
+                      fontFamily: getFont("Text Primary"),
+                    }}
+                  >
+                    Choose macOS icon...
+                  </button>
+                )}
               </div>
-            ) : (
-              <button
-                onClick={onMediaSelect}
-                className="w-full h-8 px-3 bg-transparent border border-white/[0.09] rounded text-[11px] hover:bg-white/[0.02]"
-                style={{
-                  color: getColor("Text Primary (Hd)"),
-                  fontFamily: getFont("Text Primary"),
-                }}
-              >
-                Choose media...
-              </button>
             )}
           </div>
         )}

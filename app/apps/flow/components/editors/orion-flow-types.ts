@@ -1,4 +1,4 @@
-// types/orion-flow-types.ts
+// Explicit component type with all required fields
 export interface OrionFlowComponent {
   id: string;
   name: string;
@@ -12,10 +12,12 @@ export interface OrionFlowComponent {
   tokenValue?: string;
 }
 
+// Type for component updates 
 export type ComponentUpdate = Partial<
   Pick<OrionFlowComponent, "mode" | "value" | "mediaId" | "tokenId">
 >;
 
+// Full sidebar props interface
 export interface OrionSidebarProps {
   selectedComponent: OrionFlowComponent | null;
   designSystem: {
@@ -27,4 +29,5 @@ export interface OrionSidebarProps {
   } | null;
   onUpdateComponent: (id: string, updates: Partial<OrionFlowComponent>) => void;
   onMediaSelect: () => void;
+  onMacOSIconSelect?: () => void;
 }

@@ -14,6 +14,7 @@ import { MediaItem } from "@prisma/client";
 import { useStyles } from "@os/hooks/useStyles";
 import { useAutosave } from "@/app/hooks/useDebounce";
 import SaveStatusIndicator from "@/app/components/SaveStatusIndicator";
+import { MacOSIconsSelector } from "./MacOSIconsSelector";
 
 interface OrionFlowEditorProps {
   flowId: string;
@@ -34,6 +35,71 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
   const updateOrionConfig = useAppStore((state) => state.setOrionConfig);
   const currentStoreConfig = useAppStore((state) => state.orionConfig);
   const [areSidebarsVisible, setAreSidebarsVisible] = useState(true);
+  const [macOSIconSelector, setMacOSIconSelector] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
+  const handleMacOSIconClose = () => setMacOSIconSelector(null);
+  // Add with other handler functions
+  const handleMacOSIconSelect = async (iconUrl: string, metadata: { credit: string; uploadedBy: string }) => {
+    if (!selectedComponent) return;
+
+    const updates: ComponentUpdate = {
+      mode: "media",
+      value: iconUrl,
+      mediaId: undefined,
+      tokenId: undefined,
+    };
+
+    if (selectedComponent.type === "DOCK_ICON" && currentStoreConfig) {
+      updateOrionConfig({
+        ...currentStoreConfig,
+        dockIcons: currentStoreConfig.dockIcons?.map((icon) =>
+          icon.id === selectedComponent.id ? { ...icon, ...updates } : icon
+        ),
+      });
+
+      const currentQueryConfig = queryClient.getQueryData<{
+        wallpaper?: any;
+        dockIcons?: Array<any>;
+      }>(["orion-config"]);
+
+      if (currentQueryConfig) {
+        queryClient.setQueryData(["orion-config"], {
+          ...currentQueryConfig,
+          dockIcons: currentQueryConfig.dockIcons?.map((icon) =>
+            icon.id === selectedComponent.id ? { ...icon, ...updates } : icon
+          ),
+        });
+      }
+
+      queryClient.invalidateQueries(["dock-icons-config"]);
+      queryClient.invalidateQueries(["orion-config"]);
+    }
+
+    if (fabricRef.current) {
+      const objectToUpdate = fabricRef.current
+        .getObjects()
+        .find((obj) => obj.data?.id === selectedComponent.id);
+
+      if (objectToUpdate) {
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.onload = () => {
+          const pattern = new fabric.Pattern({
+            source: img,
+            repeat: "no-repeat",
+          });
+          objectToUpdate.set("fill", pattern);
+          fabricRef.current?.renderAll();
+        };
+        img.src = iconUrl;
+      }
+    }
+
+    handleComponentUpdate(selectedComponent.id, updates);
+    setMacOSIconSelector(null);
+  };
 
   // Add state for canvas view
   const [canvasViewState, setCanvasViewState] = useState<{
@@ -377,16 +443,22 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
               className="absolute right-0 top-0 bottom-0 w-[264px] border-l border-white/[0.09] bg-black/30 backdrop-blur-sm z-10"
             >
               <OrionEditorSidebar
-                selectedComponent={selectedComponent}
-                designSystem={designSystem}
-                onUpdateComponent={handleComponentUpdate}
-                onMediaSelect={() =>
-                  setMediaSelector({
-                    x: window.innerWidth - 700,
-                    y: 100,
-                  })
-                }
-              />
+  selectedComponent={selectedComponent}
+  designSystem={designSystem}
+  onUpdateComponent={handleComponentUpdate}
+  onMediaSelect={() =>
+    setMediaSelector({
+      x: window.innerWidth - 700,
+      y: 100,
+    })
+  }
+  onMacOSIconSelect={() =>
+    setMacOSIconSelector({
+      x: window.innerWidth - 700,
+      y: 100,
+    })
+  }
+/>
             </motion.div>
           </>
         )}
@@ -423,6 +495,15 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
       <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-[#cccccc]/50 text-xs">
         Press § to toggle sidebars
       </div>
+      <AnimatePresence>
+  {macOSIconSelector && (
+    <MacOSIconsSelector
+      position={macOSIconSelector}
+      onSelect={handleMacOSIconSelect}
+      onClose={handleMacOSIconClose}
+    />
+  )}
+</AnimatePresence>
     </div>
   );
 };

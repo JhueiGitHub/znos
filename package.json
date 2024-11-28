@@ -47,7 +47,7 @@
     "axios": "^1.4.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
-    "cmdk": "^0.2.0",
+    "cmdk": "^1.0.4",
     "date-fns": "^2.30.0",
     "dotenv": "^16.4.5",
     "drizzle-orm": "^0.33.0",

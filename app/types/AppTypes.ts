@@ -5,6 +5,7 @@ export interface AppDefinition {
   icon: string;
   dockPosition: number;
   animationType: "magnify" | "grow";
+  isMinimized?: boolean;
 }
 
 export const appDefinitions: AppDefinition[] = [
