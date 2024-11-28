@@ -1,4 +1,3 @@
-// /app/apps/flow/components/canvas/OrionEditorView.tsx
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import OrionFlowEditor from "./OrionFlowEditor";
@@ -49,3 +48,5 @@ export const OrionEditorView = ({ flowId, onClose }: OrionEditorViewProps) => {
     </div>
   );
 };
+
+export default OrionEditorView;

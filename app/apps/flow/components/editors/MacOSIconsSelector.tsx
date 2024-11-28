@@ -1,4 +1,4 @@
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import * as Portal from "@radix-ui/react-portal";
@@ -8,28 +8,31 @@ import { debounce } from "lodash";
 
 interface MacOSIcon {
   appName: string;
+  timestamp: number;
   icnsUrl: string;
+  i0SUrl: string;
   lowResPngUrl: string;
+  category: string;
+  downloads: number;
   credit: string;
   uploadedBy: string;
   userName: string;
 }
 
+interface SearchResponse {
+  hits: MacOSIcon[];
+  page: number;
+  totalPages: number;
+  totalHits: number;
+}
+
 interface MacOSIconsSelectorProps {
   position: { x: number; y: number };
-  onSelect: (url: string, metadata: { credit: string; uploadedBy: string }) => Promise<void>;
+  onSelect: (url: string) => void;
   onClose: () => void;
 }
 
-// Create axios instance with default config
-const macOSIconsApi = axios.create({
-  baseURL: 'https://api.macosicons.com/api',
-  headers: {
-    'Content-Type': 'application/json',
-    'x-api-key': 'ec7a2a6c2497225fa802fd0615b7ca3d57276c200f68f2536dd1c03e764baa62'
-  }
-});
-
+// Create basic query implementation exactly as in working App.tsx
 export const MacOSIconsSelector = ({
   position,
   onSelect,
@@ -38,20 +41,27 @@ export const MacOSIconsSelector = ({
   const { getColor, getFont } = useStyles();
   const [query, setQuery] = useState("");
 
-  // Using our proven working implementation
-  const { data, isLoading, error } = useQuery({
-    queryKey: ["macos-icons", query],
+  const { data, isLoading, error } = useQuery<SearchResponse>({
+    queryKey: ["macos-icons-basic", query],
     queryFn: async () => {
-      const response = await macOSIconsApi.post('/search', {
-        query: query || "",
-        searchOptions: {
-          hitsPerPage: 20,
-          page: 1,
-          sort: ["downloads:desc"]
+      const response = await axios.post(
+        "https://api.macosicons.com/api/search",
+        {
+          query,
+          searchOptions: {
+            hitsPerPage: 20,
+            page: 1,
+          },
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-key": process.env.NEXT_PUBLIC_MACOSICONS_API_KEY || "",
+          },
         }
-      });
-      return response.data.hits as MacOSIcon[];
-    }
+      );
+      return response.data;
+    },
   });
 
   const debouncedSearch = useCallback(
@@ -59,7 +69,6 @@ export const MacOSIconsSelector = ({
     []
   );
 
-  // Preserve exact same UI implementation but with proper error display
   return (
     <Portal.Root>
       <motion.div
@@ -79,7 +88,6 @@ export const MacOSIconsSelector = ({
             borderColor: getColor("Brd"),
           }}
         >
-          {/* Header */}
           <div
             className="p-3 border-b flex items-center justify-between"
             style={{
@@ -107,83 +115,50 @@ export const MacOSIconsSelector = ({
             </button>
           </div>
 
-          {/* Search */}
-          <div className="p-3 border-b" style={{ borderColor: getColor("Brd") }}>
+          <div
+            className="p-3 border-b"
+            style={{ borderColor: getColor("Brd") }}
+          >
             <input
               type="text"
               placeholder="Search icons..."
               onChange={(e) => debouncedSearch(e.target.value)}
-              className="w-full p-2 rounded-md text-sm"
-              style={{
-                backgroundColor: getColor("Overlaying BG"),
-                color: getColor("Text Primary (Hd)"),
-                border: `1px solid ${getColor("Brd")}`,
-              }}
+              className="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-2"
             />
           </div>
 
-          {/* Grid */}
           <div className="p-3 grid grid-cols-3 gap-2 max-h-[400px] overflow-y-auto">
             {isLoading ? (
-              <div 
-                className="col-span-3 py-8 text-center"
+              <div
+                className="col-span-3 text-center py-8"
                 style={{ color: getColor("Text Secondary (Bd)") }}
               >
                 Loading...
               </div>
             ) : error ? (
-              <div 
-                className="col-span-3 py-8 text-center text-red-500"
-              >
-                {(error as any)?.message || 'Error loading icons'}
-                <pre className="mt-2 text-xs opacity-50">
-                  {(error as any)?.response?.status} {(error as any)?.response?.statusText}
-                </pre>
+              <div className="col-span-3 text-center py-8 text-red-500">
+                {(error as any)?.message || "Error loading icons"}
               </div>
-            ) : !data?.length ? (
-              <div 
-                className="col-span-3 py-8 text-center"
+            ) : !data?.hits?.length ? (
+              <div
+                className="col-span-3 text-center py-8"
                 style={{ color: getColor("Text Secondary (Bd)") }}
               >
                 No icons found
               </div>
             ) : (
-              data.map((icon) => (
-                <motion.div
-                  key={`${icon.appName}-${icon.userName}`}
-                  whileHover={{ scale: 1.05 }}
-                  className="aspect-square rounded-lg overflow-hidden cursor-pointer border group relative"
-                  style={{ borderColor: getColor("Brd") }}
-                  onClick={() => onSelect(icon.icnsUrl, {
-                    credit: icon.credit,
-                    uploadedBy: icon.uploadedBy
-                  })}
+              data.hits.map((icon, idx) => (
+                <div
+                  key={`${icon.appName}-${idx}`}
+                  onClick={() => onSelect(icon.icnsUrl)}
+                  className="aspect-square bg-white/5 rounded-lg p-4 hover:bg-white/10 transition-colors cursor-pointer"
                 >
-                  {/* Icon Preview */}
-                  <div className="w-full h-full p-2 flex items-center justify-center bg-white/5">
-                    <img
-                      src={icon.lowResPngUrl}
-                      alt={icon.appName}
-                      className="w-full h-full object-contain"
-                    />
-                  </div>
-
-                  {/* Hover Info */}
-                  <div 
-                    className="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity p-2 flex flex-col items-center justify-end text-center"
-                    style={{ color: getColor("Text Primary (Hd)") }}
-                  >
-                    <p className="text-xs font-medium truncate w-full">
-                      {icon.appName}
-                    </p>
-                    <p 
-                      className="text-[10px] truncate w-full mt-0.5"
-                      style={{ color: getColor("Text Secondary (Bd)") }}
-                    >
-                      by {icon.userName}
-                    </p>
-                  </div>
-                </motion.div>
+                  <img
+                    src={icon.lowResPngUrl}
+                    alt={icon.appName}
+                    className="w-full h-full object-contain"
+                  />
+                </div>
               ))
             )}
           </div>

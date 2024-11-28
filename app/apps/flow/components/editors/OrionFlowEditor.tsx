@@ -40,8 +40,9 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
     y: number;
   } | null>(null);
   const handleMacOSIconClose = () => setMacOSIconSelector(null);
-  // Add with other handler functions
-  const handleMacOSIconSelect = async (iconUrl: string, metadata: { credit: string; uploadedBy: string }) => {
+
+  // Simplified handler to match MacOSIconsSelector's onSelect type
+  const handleMacOSIconSelect = async (iconUrl: string) => {
     if (!selectedComponent) return;
 
     const updates: ComponentUpdate = {
@@ -58,20 +59,6 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
           icon.id === selectedComponent.id ? { ...icon, ...updates } : icon
         ),
       });
-
-      const currentQueryConfig = queryClient.getQueryData<{
-        wallpaper?: any;
-        dockIcons?: Array<any>;
-      }>(["orion-config"]);
-
-      if (currentQueryConfig) {
-        queryClient.setQueryData(["orion-config"], {
-          ...currentQueryConfig,
-          dockIcons: currentQueryConfig.dockIcons?.map((icon) =>
-            icon.id === selectedComponent.id ? { ...icon, ...updates } : icon
-          ),
-        });
-      }
 
       queryClient.invalidateQueries(["dock-icons-config"]);
       queryClient.invalidateQueries(["orion-config"]);
@@ -421,8 +408,7 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
     };
   }, [canvasRef, flow, designSystem, areSidebarsVisible, canvasViewState]);
 
-  // All previous code stays exactly the same until the return statement...
-
+  // Rest of the component remains unchanged
   return (
     <div className="h-full w-full bg-[#010203] relative">
       <AnimatePresence>
@@ -443,22 +429,22 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
               className="absolute right-0 top-0 bottom-0 w-[264px] border-l border-white/[0.09] bg-black/30 backdrop-blur-sm z-10"
             >
               <OrionEditorSidebar
-  selectedComponent={selectedComponent}
-  designSystem={designSystem}
-  onUpdateComponent={handleComponentUpdate}
-  onMediaSelect={() =>
-    setMediaSelector({
-      x: window.innerWidth - 700,
-      y: 100,
-    })
-  }
-  onMacOSIconSelect={() =>
-    setMacOSIconSelector({
-      x: window.innerWidth - 700,
-      y: 100,
-    })
-  }
-/>
+                selectedComponent={selectedComponent}
+                designSystem={designSystem}
+                onUpdateComponent={handleComponentUpdate}
+                onMediaSelect={() =>
+                  setMediaSelector({
+                    x: window.innerWidth - 700,
+                    y: 100,
+                  })
+                }
+                onMacOSIconSelect={() =>
+                  setMacOSIconSelector({
+                    x: window.innerWidth - 700,
+                    y: 100,
+                  })
+                }
+              />
             </motion.div>
           </>
         )}
@@ -495,15 +481,16 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
       <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-[#cccccc]/50 text-xs">
         Press § to toggle sidebars
       </div>
+
       <AnimatePresence>
-  {macOSIconSelector && (
-    <MacOSIconsSelector
-      position={macOSIconSelector}
-      onSelect={handleMacOSIconSelect}
-      onClose={handleMacOSIconClose}
-    />
-  )}
-</AnimatePresence>
+        {macOSIconSelector && (
+          <MacOSIconsSelector
+            position={macOSIconSelector}
+            onSelect={handleMacOSIconSelect}
+            onClose={handleMacOSIconClose}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };
