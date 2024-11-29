@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useRef, useState } from "react";
 import { fabric } from "fabric";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -39,73 +41,7 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
     x: number;
     y: number;
   } | null>(null);
-  const handleMacOSIconClose = () => setMacOSIconSelector(null);
 
-  // Simplified handler to match MacOSIconsSelector's onSelect type
-  const handleMacOSIconSelect = async (iconUrl: string) => {
-    if (!selectedComponent) return;
-
-    // Create component update
-    const updates: ComponentUpdate = {
-      mode: "media" as const,
-      value: iconUrl,
-      mediaId: undefined,
-      tokenId: undefined,
-    };
-
-    // Update local state immediately for UI feedback
-    const updatedComponent = {
-      ...selectedComponent,
-      ...updates,
-    };
-
-    // Update dock icons if it's a dock icon
-    if (
-      selectedComponent.type === "DOCK_ICON" &&
-      currentStoreConfig?.dockIcons
-    ) {
-      const updatedDockIcons = currentStoreConfig.dockIcons.map((icon) =>
-        icon.id === selectedComponent.id ? updatedComponent : icon
-      );
-
-      // Update orion config
-      updateOrionConfig({
-        ...currentStoreConfig,
-        dockIcons: updatedDockIcons,
-      });
-    }
-
-    // Update canvas with direct image loading
-    if (fabricRef.current) {
-      const obj = fabricRef.current
-        .getObjects()
-        .find((obj) => obj.data?.id === selectedComponent.id);
-      if (obj) {
-        const img = new Image();
-        img.crossOrigin = "anonymous";
-        img.src = iconUrl;
-        img.onload = () => {
-          const pattern = new fabric.Pattern({
-            source: img,
-            repeat: "no-repeat",
-          });
-          obj.set("fill", pattern);
-          fabricRef.current?.renderAll();
-        };
-      }
-    }
-
-    // Update component
-    await handleComponentUpdate(selectedComponent.id, updates);
-
-    // Clean up
-    setMacOSIconSelector(null);
-
-    // Force UI updates
-    queryClient.invalidateQueries(["orion-config"]);
-  };
-
-  // Add state for canvas view
   const [canvasViewState, setCanvasViewState] = useState<{
     zoom: number;
     viewportTransform: number[] | null;
@@ -127,98 +63,66 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
     cacheTime: 30 * 60 * 1000,
   });
 
-  const { handleComponentUpdate, saveStatus } = useAutosave({
-    onSave: async (id: string, updates: ComponentUpdate) => {
-      const response = await axios.patch<OrionFlowComponent>(
-        `/api/flows/${flowId}/components/${id}`,
-        updates
-      );
-      return response.data;
-    },
-    onSuccess: (updatedComponent: OrionFlowComponent) => {
-      queryClient.setQueryData(
-        ["flow", flowId],
-        (oldData: { components: OrionFlowComponent[] } | undefined) => {
-          if (!oldData?.components) return oldData;
-          return {
-            ...oldData,
-            components: oldData.components.map((component) =>
-              component.id === updatedComponent.id
-                ? { ...component, ...updatedComponent }
-                : component
-            ),
-          };
-        }
+  const handleMacOSIconSelect = async (iconUrl: string) => {
+    if (!selectedComponent) return;
+
+    // Update canvas immediately
+    if (fabricRef.current) {
+      const obj = fabricRef.current
+        .getObjects()
+        .find((obj) => obj.data?.id === selectedComponent.id);
+      if (obj) {
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.src = iconUrl;
+        img.onload = () => {
+          const pattern = new fabric.Pattern({
+            source: img,
+            repeat: "no-repeat",
+          });
+          obj.set("fill", pattern);
+          fabricRef.current?.renderAll();
+        };
+      }
+    }
+
+    const updates: ComponentUpdate = {
+      mode: "media" as const,
+      value: iconUrl,
+      mediaId: undefined,
+      tokenId: undefined,
+    };
+
+    // Update local state and cache
+    if (
+      selectedComponent.type === "DOCK_ICON" &&
+      currentStoreConfig?.dockIcons
+    ) {
+      const updatedDockIcons = currentStoreConfig.dockIcons.map((icon) =>
+        icon.id === selectedComponent.id ? { ...icon, ...updates } : icon
       );
 
-      if (updatedComponent.type === "DOCK_ICON" && currentStoreConfig) {
-        const updatedConfig = {
-          ...currentStoreConfig,
-          dockIcons: currentStoreConfig.dockIcons?.map((icon) =>
-            icon.id === updatedComponent.id
-              ? {
-                  ...icon,
-                  mode: updatedComponent.mode,
-                  value: updatedComponent.value,
-                  mediaId: updatedComponent.mediaId,
-                  tokenId: updatedComponent.tokenId,
-                }
-              : icon
-          ),
-        };
-        queryClient.setQueryData(["orion-config"], updatedConfig);
-      }
-    },
-    onError: (error) => {
-      console.error("Failed to update component:", error);
-      queryClient.invalidateQueries(["flow", flowId]);
-      queryClient.invalidateQueries(["orion-config"]);
-    },
-  });
+      const updatedConfig = {
+        ...currentStoreConfig,
+        dockIcons: updatedDockIcons,
+      };
+
+      // Update cache directly
+      queryClient.setQueryData(["orion-config"], updatedConfig);
+
+      // Update store
+      updateOrionConfig(updatedConfig);
+    }
+
+    // Update component in backend
+    await handleComponentUpdate(selectedComponent.id, updates);
+    setMacOSIconSelector(null);
+  };
 
   const handleMediaSelect = async (mediaItem: MediaItem) => {
     if (!selectedComponent) return;
 
-    const updates: ComponentUpdate = {
-      mode: "media",
-      value: mediaItem.url,
-      mediaId: mediaItem.id,
-      tokenId: undefined,
-    };
-
-    if (selectedComponent.type === "DOCK_ICON" && currentStoreConfig) {
-      updateOrionConfig({
-        ...currentStoreConfig,
-        dockIcons: currentStoreConfig.dockIcons?.map((icon) =>
-          icon.id === selectedComponent.id ? { ...icon, ...updates } : icon
-        ),
-      });
-
-      const currentQueryConfig = queryClient.getQueryData<{
-        wallpaper?: any;
-        dockIcons?: Array<any>;
-      }>(["orion-config"]);
-
-      if (currentQueryConfig) {
-        queryClient.setQueryData(["orion-config"], {
-          ...currentQueryConfig,
-          dockIcons: currentQueryConfig.dockIcons?.map((icon) =>
-            icon.id === selectedComponent.id ? { ...icon, ...updates } : icon
-          ),
-        });
-      }
-
-      queryClient.setQueryData<Array<any>>(["dock-icons-config"], (oldData) => {
-        if (!oldData) return oldData;
-        return oldData.map((icon) =>
-          icon.id === selectedComponent.id ? { ...icon, ...updates } : icon
-        );
-      });
-
-      queryClient.invalidateQueries(["dock-icons-config"]);
-      queryClient.invalidateQueries(["orion-config"]);
-    }
-
+    // Update canvas immediately
     if (fabricRef.current) {
       const objectToUpdate = fabricRef.current
         .getObjects()
@@ -239,9 +143,89 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
       }
     }
 
-    handleComponentUpdate(selectedComponent.id, updates);
+    const updates: ComponentUpdate = {
+      mode: "media",
+      value: mediaItem.url,
+      mediaId: mediaItem.id,
+      tokenId: undefined,
+    };
+
+    // Update local state and cache
+    if (selectedComponent.type === "DOCK_ICON" && currentStoreConfig) {
+      const updatedDockIcons = currentStoreConfig.dockIcons?.map((icon) =>
+        icon.id === selectedComponent.id ? { ...icon, ...updates } : icon
+      );
+
+      const updatedConfig = {
+        ...currentStoreConfig,
+        dockIcons: updatedDockIcons,
+      };
+
+      // Update cache directly
+      queryClient.setQueryData(["orion-config"], updatedConfig);
+      queryClient.setQueryData(["dock-icons-config"], updatedDockIcons);
+
+      // Update store
+      updateOrionConfig(updatedConfig);
+    }
+
+    // Update component in backend
+    await handleComponentUpdate(selectedComponent.id, updates);
     setMediaSelector(null);
   };
+
+  const { handleComponentUpdate, saveStatus } = useAutosave({
+    onSave: async (id: string, updates: ComponentUpdate) => {
+      const response = await axios.patch<OrionFlowComponent>(
+        `/api/flows/${flowId}/components/${id}`,
+        updates
+      );
+      return response.data;
+    },
+    onSuccess: (updatedComponent: OrionFlowComponent) => {
+      // Update flow cache directly
+      queryClient.setQueryData(
+        ["flow", flowId],
+        (oldData: { components: OrionFlowComponent[] } | undefined) => {
+          if (!oldData?.components) return oldData;
+          return {
+            ...oldData,
+            components: oldData.components.map((component) =>
+              component.id === updatedComponent.id
+                ? { ...component, ...updatedComponent }
+                : component
+            ),
+          };
+        }
+      );
+
+      // Update orion config if needed
+      if (updatedComponent.type === "DOCK_ICON" && currentStoreConfig) {
+        const updatedDockIcons = currentStoreConfig.dockIcons?.map((icon) =>
+          icon.id === updatedComponent.id
+            ? {
+                ...icon,
+                mode: updatedComponent.mode,
+                value: updatedComponent.value,
+                mediaId: updatedComponent.mediaId,
+                tokenId: updatedComponent.tokenId,
+              }
+            : icon
+        );
+
+        const updatedConfig = {
+          ...currentStoreConfig,
+          dockIcons: updatedDockIcons,
+        };
+
+        // Update cache directly
+        queryClient.setQueryData(["orion-config"], updatedConfig);
+      }
+    },
+    onError: (error) => {
+      console.error("Failed to update component:", error);
+    },
+  });
 
   const handleComponentSelect = (componentId: string) => {
     const component =
@@ -289,7 +273,6 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
       canvas.setZoom(canvasViewState.zoom);
     }
 
-    // Initialize components on canvas
     const getTokenColor = (tokenId: string | null): string => {
       if (!tokenId || !designSystem.colorTokens) return "#000000";
       const token = designSystem.colorTokens.find((t) => t.name === tokenId);
@@ -320,7 +303,6 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
 
       canvas.add(circle);
 
-      // Handle media initialization
       if (component.mode === "media" && component.value) {
         const img = new Image();
         img.crossOrigin = "anonymous";
@@ -336,12 +318,10 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
       }
     };
 
-    // Initialize all components
     flow.components.forEach((component: OrionFlowComponent, index: number) => {
       initializeComponent(component, index);
     });
 
-    // Handle component selection
     canvas.on("selection:created", (options) => {
       const selectedObject = options.selected?.[0];
       if (selectedObject && selectedObject.data) {
@@ -353,13 +333,11 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
       setSelectedComponent(null);
     });
 
-    // Handle trackpad gestures for pan and zoom
     canvas.on("mouse:wheel", (opt) => {
       const e = opt.e as WheelEvent;
       e.preventDefault();
 
       if (e.ctrlKey || e.metaKey) {
-        // Handle zooming with Cmd/Ctrl + trackpad gesture
         const delta = e.deltaY;
         let zoom = canvas.getZoom();
         zoom = zoom * 0.999 ** delta;
@@ -367,16 +345,15 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
         const point = new fabric.Point(e.offsetX, e.offsetY);
         canvas.zoomToPoint(point, zoom);
       } else {
-        // Handle two-finger trackpad panning
         if (canvas.viewportTransform) {
           canvas.viewportTransform[4] -= e.deltaX;
           canvas.viewportTransform[5] -= e.deltaY;
         }
+        ``;
       }
 
       canvas.requestRenderAll();
 
-      // Update view state after transformation
       if (fabricRef.current) {
         setCanvasViewState({
           zoom: fabricRef.current.getZoom(),
@@ -387,22 +364,18 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
       }
     });
 
-    // Handle window resize
     const handleResize = () => {
       if (fabricRef.current) {
-        // Store current view state
         const currentZoom = fabricRef.current.getZoom();
         const currentVPT = fabricRef.current.viewportTransform
           ? [...fabricRef.current.viewportTransform]
           : null;
 
-        // Update dimensions
         fabricRef.current.setDimensions({
           width: window.innerWidth - (areSidebarsVisible ? 560 : 0),
           height: window.innerHeight,
         });
 
-        // Restore view state
         if (currentVPT) {
           fabricRef.current.setViewportTransform(currentVPT);
           fabricRef.current.setZoom(currentZoom);
@@ -412,20 +385,15 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
       }
     };
 
-    // Add event listeners
     window.addEventListener("resize", handleResize);
-
-    // Render initial state
     canvas.renderAll();
 
-    // Cleanup
     return () => {
       canvas.dispose();
       window.removeEventListener("resize", handleResize);
     };
   }, [canvasRef, flow, designSystem, areSidebarsVisible, canvasViewState]);
 
-  // Rest of the component remains unchanged
   return (
     <div className="h-full w-full bg-[#010203] relative">
       <AnimatePresence>
@@ -467,7 +435,6 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
         )}
       </AnimatePresence>
 
-      {/* Canvas Container */}
       <div
         className="absolute inset-0"
         style={{
