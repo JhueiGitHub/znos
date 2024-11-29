@@ -128,7 +128,7 @@ export const PublicationView = ({
           disabled={isImporting}
           className="px-6"
           style={{
-            backgroundColor: getColor("Lilac Accent"),
+            backgroundColor: getColor("latte"),
             color: getColor("Text Primary (Hd)"),
             fontFamily: getFont("Text Primary"),
           }}

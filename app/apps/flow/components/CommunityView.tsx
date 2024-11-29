@@ -84,7 +84,7 @@ export const CommunityView = ({ isFullscreen = false }: CommunityViewProps) => {
             disabled={isCreating}
             className="px-6 py-3 text-sm"
             style={{
-              backgroundColor: getColor("Lilac Accent"),
+              backgroundColor: getColor("latte"),
               color: getColor("Text Primary (Hd)"),
               fontFamily: getFont("Text Primary"),
             }}
