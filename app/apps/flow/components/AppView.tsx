@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { useStyles } from "@os/hooks/useStyles";
 import { StreamWithFlows } from "@/app/types/flow";
-import { useEffect } from "react";
+import { useAppStore } from "@/app/store/appStore";
 import { AppSkeletonGrid } from "@/app/components/skeletons/AppSkeletons";
 
 interface AppViewProps {
@@ -16,63 +16,98 @@ interface AppViewProps {
 export const AppView = ({ appId, onStreamSelect }: AppViewProps) => {
   const { getColor, getFont } = useStyles();
 
+  // EVOLVED: Direct access to global dock state
+  const { orionConfig, activeOSFlowId } = useAppStore();
+
   const { data: streams = [], isLoading } = useQuery<StreamWithFlows[]>({
     queryKey: ["app-streams", appId],
     queryFn: async () => {
-      console.log("[AppView] Fetching streams for appId:", appId);
       const response = await axios.get(`/api/apps/${appId}/streams`);
-      console.log("[AppView] Received streams:", response.data);
       return response.data;
     },
   });
-
-  useEffect(() => {
-    console.log("[AppView] Current streams:", streams);
-  }, [streams]);
 
   const renderStreamPreview = (stream: StreamWithFlows) => {
     const latestFlow = stream.flows[0];
     if (!latestFlow?.components) return null;
 
-    const componentsByType = latestFlow.components.reduce(
-      (acc, component) => {
-        if (!acc[component.type]) {
-          acc[component.type] = [];
-        }
-        acc[component.type].push(component);
-        return acc;
-      },
-      {} as Record<string, typeof latestFlow.components>
-    );
+    // EVOLVED: Simple wallpaper check
+    const wallpaper =
+      latestFlow.id === activeOSFlowId && orionConfig?.wallpaper
+        ? orionConfig.wallpaper
+        : latestFlow.components.find((c) => c.type === "WALLPAPER");
+
+    // EVOLVED: Simple dock icon source selection
+    const dockIcons =
+      latestFlow.id === activeOSFlowId && orionConfig?.dockIcons
+        ? orionConfig.dockIcons
+        : latestFlow.components
+            .filter((c) => c.type === "DOCK_ICON")
+            .sort((a, b) => (a.order || 0) - (b.order || 0));
 
     return (
       <div className="grid grid-cols-2 gap-3 mb-6">
-        {componentsByType["WALLPAPER"]?.[0] && (
-          <div className="col-span-2 w-full h-24 rounded-[9px] overflow-hidden border border-white/[0.09]">
-            <div
-              className="w-full h-full"
-              style={{
-                backgroundImage: `url(${componentsByType["WALLPAPER"][0].value})`,
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-                opacity: 0.7,
-              }}
-            />
-          </div>
-        )}
+        {/* Wallpaper with clean conditional */}
+        <div className="col-span-2 w-full h-24 rounded-[9px] overflow-hidden border border-white/[0.09]">
+          <div
+            className="w-full h-full"
+            style={{
+              backgroundColor:
+                wallpaper?.mode === "color"
+                  ? getColor(wallpaper.tokenId || "Black")
+                  : undefined,
+              backgroundImage:
+                wallpaper?.mode === "media" && wallpaper.value
+                  ? `url(${wallpaper.value})`
+                  : undefined,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              opacity: 0.7,
+            }}
+          />
+        </div>
 
-        {componentsByType["DOCK_ICON"]?.map((icon) => (
+        {/* Clean dock icon rendering */}
+        {dockIcons.slice(0, 4).map((icon) => (
           <div
             key={icon.id}
+            className="aspect-square rounded-[9px] border border-white/[0.09] flex items-center justify-center overflow-hidden"
+            style={{
+              backgroundColor: getColor("Overlaying BG"),
+            }}
+          >
+            {icon.mode === "color" ? (
+              <div
+                className="w-8 h-8 rounded-md"
+                style={{
+                  backgroundColor: getColor(icon.tokenId || "Graphite"),
+                }}
+              />
+            ) : (
+              <img
+                src={icon.value || "/icns/_dock.png"}
+                alt="Dock icon"
+                className="w-8 h-8 object-contain opacity-70"
+              />
+            )}
+          </div>
+        ))}
+
+        {/* Fill remaining slots */}
+        {[...Array(Math.max(0, 4 - dockIcons.length))].map((_, i) => (
+          <div
+            key={`empty-${i}`}
             className="aspect-square rounded-[9px] border border-white/[0.09] flex items-center justify-center"
             style={{
               backgroundColor: getColor("Overlaying BG"),
             }}
           >
-            <img
-              src={icon.value || ""}
-              alt={icon.name}
-              className="w-8 h-8 object-contain opacity-70"
+            <div
+              className="w-8 h-8 rounded-md"
+              style={{
+                backgroundColor: getColor("Graphite"),
+                opacity: 0.3,
+              }}
             />
           </div>
         ))}
