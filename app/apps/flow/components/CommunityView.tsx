@@ -7,8 +7,9 @@ import { Button } from "@/components/ui/button";
 import { XPProfileView } from "@/app/components/xp/XPProfileView";
 import { toast } from "sonner";
 import { XPProfile } from "@/app/types/xp";
-import { useState } from 'react';
+import { useState } from "react";
 import { UploadedFlowsGrid } from "./UploadedFlowsGrid";
+import { FlowSkeletonGrid } from "@/app/components/skeletons/FlowSkeletons";
 import { PublicationView } from "./PublicationView";
 import { User } from "lucide-react";
 import { FlowHeader } from "./FlowHeader";
@@ -28,28 +29,28 @@ export const CommunityView = ({ isFullscreen = false }: CommunityViewProps) => {
   const { getColor, getFont } = useStyles();
   const queryClient = useQueryClient();
   const [viewState, setViewState] = useState<ViewStateData>({ type: "flows" });
-  
+
   const { data: profile, isLoading } = useQuery<XPProfile>({
     queryKey: ["xp-profile"],
     queryFn: async () => {
       const response = await axios.get("/api/xp/profile");
       return response.data;
-    }
+    },
   });
 
   const { mutate: createXPProfile, isLoading: isCreating } = useMutation({
     mutationFn: async () => {
       const xpProfileData = {
         name: "New XP Creator",
-        imageUrl: "/media/default-avatar.png", 
+        imageUrl: "/media/default-avatar.png",
         description: "A new creator on XP",
         stats: {
           totalDownloads: 0,
           totalEarned: 0,
-          designSystemsPublished: 0
-        }
+          designSystemsPublished: 0,
+        },
       };
-      
+
       const response = await axios.post("/api/xp/profile", xpProfileData);
       return response.data;
     },
@@ -59,7 +60,7 @@ export const CommunityView = ({ isFullscreen = false }: CommunityViewProps) => {
     },
     onError: () => {
       toast.error("Failed to create XP profile");
-    }
+    },
   });
 
   const handlePublicationSelect = (publicationId: string) => {
@@ -67,18 +68,7 @@ export const CommunityView = ({ isFullscreen = false }: CommunityViewProps) => {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex-1 min-w-0 px-[33px] py-5 flex items-center justify-center">
-        <span
-          style={{
-            color: getColor("Text Secondary (Bd)"),
-            fontFamily: getFont("Text Secondary"),
-          }}
-        >
-          Loading...
-        </span>
-      </div>
-    );
+    return <FlowSkeletonGrid count={9} />; // Show more items for community view
   }
 
   if (!profile) {
@@ -109,8 +99,8 @@ export const CommunityView = ({ isFullscreen = false }: CommunityViewProps) => {
   // Handle publication view
   if (viewState.type === "publication" && viewState.publicationId) {
     return (
-      <PublicationView 
-        publicationId={viewState.publicationId} 
+      <PublicationView
+        publicationId={viewState.publicationId}
         onBack={() => setViewState({ type: "flows" })}
       />
     );
@@ -137,12 +127,16 @@ export const CommunityView = ({ isFullscreen = false }: CommunityViewProps) => {
               fontFamily: getFont("Text Primary"),
             }}
           >
-            {viewState.type === "flows" ? "Published Design Systems" : "Creator Profile"}
+            {viewState.type === "flows"
+              ? "Published Design Systems"
+              : "Creator Profile"}
           </h1>
           <Button
-            onClick={() => setViewState({ 
-              type: viewState.type === "flows" ? "profile" : "flows" 
-            })}
+            onClick={() =>
+              setViewState({
+                type: viewState.type === "flows" ? "profile" : "flows",
+              })
+            }
             className="gap-2 border-solid border-[0.6px] border-[#4C4F69]/70 hover:border-[#4C4F69] bg-red-500 bg-opacity-0 hover:bg-red-500 hover:bg-opacity-0"
             style={{
               color: getColor("Text Primary (Hd)"),
@@ -156,7 +150,11 @@ export const CommunityView = ({ isFullscreen = false }: CommunityViewProps) => {
               </>
             ) : (
               <>
-                <img src="/icns/_community.png" alt="Flows" className="w-4 h-4" />
+                <img
+                  src="/icns/_community.png"
+                  alt="Flows"
+                  className="w-4 h-4"
+                />
                 View Flows
               </>
             )}
@@ -173,9 +171,9 @@ export const CommunityView = ({ isFullscreen = false }: CommunityViewProps) => {
             transition={{ type: "spring", duration: 0.5 }}
           >
             {viewState.type === "flows" ? (
-              <UploadedFlowsGrid 
-                profile={profile} 
-                onPublicationSelect={handlePublicationSelect} 
+              <UploadedFlowsGrid
+                profile={profile}
+                onPublicationSelect={handlePublicationSelect}
               />
             ) : (
               <XPProfileView profile={profile} />

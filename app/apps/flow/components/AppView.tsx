@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useStyles } from "@os/hooks/useStyles";
 import { StreamWithFlows } from "@/app/types/flow";
 import { useEffect } from "react";
+import { AppSkeletonGrid } from "@/app/components/skeletons/AppSkeletons";
 
 interface AppViewProps {
   appId: string;
@@ -80,17 +81,7 @@ export const AppView = ({ appId, onStreamSelect }: AppViewProps) => {
   };
 
   if (isLoading) {
-    return (
-      <div
-        className="p-8 text-[11px]"
-        style={{
-          color: getColor("Text Secondary (Bd)"),
-          fontFamily: getFont("Text Primary"),
-        }}
-      >
-        Loading streams...
-      </div>
-    );
+    return <AppSkeletonGrid count={3} />;
   }
 
   return (

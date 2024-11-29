@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import OrionFlowEditor from "./OrionFlowEditor";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useStyles } from "@/app/hooks/useStyles";
 
 interface OrionEditorViewProps {
   flowId: string;
@@ -9,6 +11,52 @@ interface OrionEditorViewProps {
 
 export const OrionEditorView = ({ flowId, onClose }: OrionEditorViewProps) => {
   const [areSidebarsVisible, setAreSidebarsVisible] = useState(true);
+  const { getColor } = useStyles();
+  const [isLoading, setIsLoading] = useState(true);
+
+  const EditorSkeleton = () => (
+    <div className="absolute inset-0 bg-black/80 backdrop-blur-sm">
+      {/* Left Sidebar Skeleton */}
+      <div className="absolute left-0 top-0 bottom-0 w-[264px] border-r border-white/[0.09]">
+        <Skeleton className="h-[57px] w-full bg-white/5" />
+        <div className="p-4 space-y-4">
+          {[...Array(8)].map((_, i) => (
+            <Skeleton key={i} className="h-8 w-full bg-white/5" />
+          ))}
+        </div>
+      </div>
+
+      {/* Canvas Area Skeleton */}
+      <div className="absolute left-[264px] right-[264px] top-0 bottom-0">
+        {[...Array(4)].map((_, i) => (
+          <Skeleton
+            key={i}
+            className="absolute rounded-full bg-white/5"
+            style={{
+              width: "80px",
+              height: "80px",
+              left: `${25 + i * 15}%`,
+              top: "40%",
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Right Sidebar Skeleton */}
+      <div className="absolute right-0 top-0 bottom-0 w-[264px] border-l border-white/[0.09]">
+        <Skeleton className="h-10 w-full bg-white/5" />
+        <div className="p-4 space-y-4">
+          {[...Array(6)].map((_, i) => (
+            <Skeleton key={i} className="h-10 w-full bg-white/5" />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  if (isLoading) {
+    return <EditorSkeleton />;
+  }
 
   useEffect(() => {
     document.body.style.overflow = "hidden";

@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Download, Star, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useAppStore } from "@/app/store/appStore";
+import { useRouter } from "next/navigation";
 
 interface PublicationViewProps {
   publicationId: string;
@@ -35,6 +37,7 @@ export const PublicationView = ({
   onBack,
 }: PublicationViewProps) => {
   const { getColor, getFont } = useStyles();
+  const openApp = useAppStore((state) => state.openApp);
 
   const { data: publication, isLoading } = useQuery<Publication>({
     queryKey: ["publication", publicationId],
@@ -51,11 +54,32 @@ export const PublicationView = ({
       );
       return response.data;
     },
-    onSuccess: () => {
-      toast.success("Design system imported successfully!");
+    onSuccess: (data) => {
+      toast.success("Design system imported successfully!", {
+        duration: 5000,
+        className: "bg-[#010203]/80 backdrop-blur-md border border-white/10",
+        descriptionClassName: "text-sm text-white/70",
+        action: {
+          label: "View Flow",
+          onClick: () => {
+            openApp({
+              id: "flow",
+              name: "Flow",
+              icon: "flow-icon",
+              dockPosition: 1,
+              animationType: "magnify",
+              isMinimized: false,
+            });
+          },
+        },
+      });
     },
     onError: () => {
-      toast.error("Failed to import design system");
+      toast.error("Failed to import design system", {
+        duration: 5000,
+        className: "bg-[#010203]/80 backdrop-blur-md border border-white/10",
+        descriptionClassName: "text-sm text-white/70",
+      });
     },
   });
 

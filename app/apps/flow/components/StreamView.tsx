@@ -4,6 +4,7 @@ import axios from "axios";
 import { Card, CardContent } from "@/components/ui/card";
 import { StreamWithFlows } from "@/app/types/flow";
 import { useStyles } from "@os/hooks/useStyles";
+import { FlowSkeletonGrid } from "@/app/components/skeletons/FlowSkeletons";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import {
@@ -77,17 +78,8 @@ export const StreamView = ({
   });
 
   if (isLoading) {
-    return (
-      <div
-        className="p-8 text-[11px]"
-        style={{
-          color: getColor("Text Secondary (Bd)"),
-          fontFamily: getFont("Text Secondary"),
-        }}
-      >
-        Loading streams...
-      </div>
-    );
+    // Return skeleton grid with count based on typical number of items
+    return <FlowSkeletonGrid count={6} />;
   }
 
   if (!stream?.flows?.length) {

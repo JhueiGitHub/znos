@@ -5,6 +5,7 @@ import * as Portal from "@radix-ui/react-portal";
 import { useStyles } from "@os/hooks/useStyles";
 import React, { useState, useCallback } from "react";
 import { debounce } from "lodash";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface MacOSIcon {
   appName: string;
@@ -69,6 +70,14 @@ export const MacOSIconsSelector = ({
     []
   );
 
+  const IconGridSkeleton = () => (
+    <div className="grid grid-cols-3 gap-2">
+      {[...Array(9)].map((_, i) => (
+        <Skeleton key={i} className="aspect-square rounded-lg bg-white/5" />
+      ))}
+    </div>
+  );
+
   return (
     <Portal.Root>
       <motion.div
@@ -129,24 +138,15 @@ export const MacOSIconsSelector = ({
 
           <div className="p-3 grid grid-cols-3 gap-2 max-h-[400px] overflow-y-auto">
             {isLoading ? (
-              <div
-                className="col-span-3 text-center py-8"
-                style={{ color: getColor("Text Secondary (Bd)") }}
-              >
-                Loading...
-              </div>
+              <IconGridSkeleton />
             ) : error ? (
               <div className="col-span-3 text-center py-8 text-red-500">
                 {(error as any)?.message || "Error loading icons"}
               </div>
             ) : !data?.hits?.length ? (
-              <div
-                className="col-span-3 text-center py-8"
-                style={{ color: getColor("Text Secondary (Bd)") }}
-              >
-                No icons found
-              </div>
+              <div className="col-span-3 text-center py-8">No icons found</div>
             ) : (
+              // Existing icon grid render
               data.hits.map((icon, idx) => (
                 <div
                   key={`${icon.appName}-${idx}`}

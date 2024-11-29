@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { Card, CardContent } from "@/components/ui/card";
+import { FlowSkeletonGrid } from "@/app/components/skeletons/FlowSkeletons";
 
 interface Stream {
   id: string;
@@ -52,7 +53,7 @@ export const FlowGrid = ({
   }, []);
 
   if (isLoading) {
-    return <div className="p-8 text-[#cccccc]/70">Loading streams...</div>;
+    return <FlowSkeletonGrid count={6} />;
   }
 
   return (

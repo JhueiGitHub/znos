@@ -1,4 +1,7 @@
+// app/layout.tsx
 import "./globals.css";
+import React from "react";
+import { Toaster } from "sonner";
 import OTPWrapper from "@/app/components/custom-otp-input";
 import { ClerkProvider } from "@clerk/nextjs";
 import { DesignSystemProvider } from "./contexts/DesignSystemContext";
@@ -21,6 +24,24 @@ export default function RootLayout({
           <DesignSystemProvider>
             <body className="h-screen w-screen bg-black">
               <OTPWrapper>{children}</OTPWrapper>
+              <Toaster
+                position="bottom-right"
+                theme="dark"
+                className="!bg-transparent"
+                toastOptions={{
+                  unstyled: true,
+                  classNames: {
+                    toast:
+                      "bg-[#010203]/80 backdrop-blur-md border border-white/10 text-white rounded-lg p-4 shadow-lg",
+                    title: "font-medium text-sm",
+                    description: "text-sm text-white/70",
+                    actionButton:
+                      "bg-white/10 text-white text-sm px-3 py-1 rounded-md hover:bg-white/20 transition-colors",
+                    cancelButton:
+                      "text-white/50 text-sm px-3 py-1 rounded-md hover:bg-white/10 transition-colors",
+                  },
+                }}
+              />
             </body>
           </DesignSystemProvider>
         </QueryProvider>

@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { motion } from "framer-motion";
 import { useStyles } from "@os/hooks/useStyles";
 import { StreamWithFlows } from "@/app/types/flow";
+import { AppSkeletonGrid } from "@/app/components/skeletons/AppSkeletons";
 
 interface AppsGridProps {
   onAppSelect: (streamId: string) => void;
@@ -81,17 +82,7 @@ export const AppsGrid = ({ onAppSelect }: AppsGridProps) => {
   );
 
   if (isLoading) {
-    return (
-      <div
-        className="p-8 text-[11px]"
-        style={{
-          color: getColor("Text Secondary (Bd)"),
-          fontFamily: getFont("Text Primary"),
-        }}
-      >
-        Loading apps...
-      </div>
-    );
+    return <AppSkeletonGrid count={3} />;
   }
 
   return (

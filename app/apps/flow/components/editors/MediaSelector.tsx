@@ -4,7 +4,8 @@ import axios from "axios";
 import * as Portal from "@radix-ui/react-portal";
 import { MediaItem } from "@prisma/client";
 import { useStyles } from "@os/hooks/useStyles";
-import React from "react";
+import React, { useState } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface MediaSelectorProps {
   position: { x: number; y: number };
@@ -25,6 +26,16 @@ export const MediaSelector = ({
       return response.data;
     },
   });
+
+  const [isLoading, setIsLoading] = useState(true);
+
+  const MediaGridSkeleton = () => (
+    <div className="grid grid-cols-3 gap-2">
+      {[...Array(9)].map((_, i) => (
+        <Skeleton key={i} className="aspect-square rounded-lg bg-white/5" />
+      ))}
+    </div>
+  );
 
   return (
     <Portal.Root>
@@ -72,17 +83,21 @@ export const MediaSelector = ({
             </button>
           </div>
           <div className="p-3 grid grid-cols-3 gap-2 max-h-[400px] overflow-y-auto">
-            {mediaItems?.map((item: MediaItem) => (
-              <motion.div
-                key={item.id}
-                whileHover={{ scale: 1.05 }}
-                className="aspect-square rounded-lg overflow-hidden cursor-pointer border"
-                style={{ borderColor: getColor("Brd") }}
-                onClick={() => onSelect(item)}
-              >
-                <img src={item.url} className="w-full h-full object-cover" />
-              </motion.div>
-            ))}
+            {isLoading ? (
+              <MediaGridSkeleton />
+            ) : (
+              mediaItems?.map((item: MediaItem) => (
+                <motion.div
+                  key={item.id}
+                  whileHover={{ scale: 1.05 }}
+                  className="aspect-square rounded-lg overflow-hidden cursor-pointer border"
+                  style={{ borderColor: getColor("Brd") }}
+                  onClick={() => onSelect(item)}
+                >
+                  <img src={item.url} className="w-full h-full object-cover" />
+                </motion.div>
+              ))
+            )}
           </div>
         </div>
       </motion.div>
