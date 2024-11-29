@@ -45,47 +45,64 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
   const handleMacOSIconSelect = async (iconUrl: string) => {
     if (!selectedComponent) return;
 
+    // Create component update
     const updates: ComponentUpdate = {
-      mode: "media",
+      mode: "media" as const,
       value: iconUrl,
       mediaId: undefined,
       tokenId: undefined,
     };
 
-    if (selectedComponent.type === "DOCK_ICON" && currentStoreConfig) {
+    // Update local state immediately for UI feedback
+    const updatedComponent = {
+      ...selectedComponent,
+      ...updates,
+    };
+
+    // Update dock icons if it's a dock icon
+    if (
+      selectedComponent.type === "DOCK_ICON" &&
+      currentStoreConfig?.dockIcons
+    ) {
+      const updatedDockIcons = currentStoreConfig.dockIcons.map((icon) =>
+        icon.id === selectedComponent.id ? updatedComponent : icon
+      );
+
+      // Update orion config
       updateOrionConfig({
         ...currentStoreConfig,
-        dockIcons: currentStoreConfig.dockIcons?.map((icon) =>
-          icon.id === selectedComponent.id ? { ...icon, ...updates } : icon
-        ),
+        dockIcons: updatedDockIcons,
       });
-
-      queryClient.invalidateQueries(["dock-icons-config"]);
-      queryClient.invalidateQueries(["orion-config"]);
     }
 
+    // Update canvas with direct image loading
     if (fabricRef.current) {
-      const objectToUpdate = fabricRef.current
+      const obj = fabricRef.current
         .getObjects()
         .find((obj) => obj.data?.id === selectedComponent.id);
-
-      if (objectToUpdate) {
+      if (obj) {
         const img = new Image();
         img.crossOrigin = "anonymous";
+        img.src = iconUrl;
         img.onload = () => {
           const pattern = new fabric.Pattern({
             source: img,
             repeat: "no-repeat",
           });
-          objectToUpdate.set("fill", pattern);
+          obj.set("fill", pattern);
           fabricRef.current?.renderAll();
         };
-        img.src = iconUrl;
       }
     }
 
-    handleComponentUpdate(selectedComponent.id, updates);
+    // Update component
+    await handleComponentUpdate(selectedComponent.id, updates);
+
+    // Clean up
     setMacOSIconSelector(null);
+
+    // Force UI updates
+    queryClient.invalidateQueries(["orion-config"]);
   };
 
   // Add state for canvas view
@@ -487,7 +504,7 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
           <MacOSIconsSelector
             position={macOSIconSelector}
             onSelect={handleMacOSIconSelect}
-            onClose={handleMacOSIconClose}
+            onClose={() => setMacOSIconSelector(null)}
           />
         )}
       </AnimatePresence>
