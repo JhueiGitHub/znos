@@ -1,4 +1,4 @@
-// components/FlowGrid.tsx
+// app/apps/flow/components/FlowGrid.tsx
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { Card, CardContent } from "@/components/ui/card";
@@ -64,41 +64,40 @@ export const FlowGrid = ({
 
   // EVOLVED: Preview rendering for stream contents
   const renderStreamPreview = (stream: Stream) => {
-    // Get up to 4 components from the first flow for preview
-    const previewComponents = stream.flows[0]?.components.slice(0, 4) || [];
-    const emptySlots = 4 - previewComponents.length;
+    // Get up to 4 flows from the stream for preview
+    const previewFlows = stream.flows.slice(0, 4);
+    const emptySlots = 4 - previewFlows.length;
 
     return (
       <div className="grid grid-cols-2 gap-3 mb-6">
-        {previewComponents.map((component) => (
+        {/* EVOLVED: Show actual flow names in preview boxes */}
+        {previewFlows.map((flow) => (
           <div
-            key={component.id}
-            className="w-[115px] h-16 rounded-[9px] border border-white/[0.09] flex items-center justify-center overflow-hidden"
-            style={{ backgroundColor: getColor("Overlaying BG") }}
+            key={flow.id}
+            className="w-[115px] h-16 rounded-[9px] border flex items-center justify-center overflow-hidden"
+            style={{
+              backgroundColor: getColor("Overlaying BG"),
+              borderColor: getColor("Brd"),
+            }}
           >
-            {component.value ? (
-              <img
-                src={component.value}
-                alt={component.name}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <span
-                className="text-xs"
-                style={{ color: getColor("Text Secondary (Bd)") }}
-              >
-                {component.name}
-              </span>
-            )}
+            <span
+              className="text-xs px-2 text-center"
+              style={{ color: getColor("Text Secondary (Bd)") }}
+            >
+              {flow.name}
+            </span>
           </div>
         ))}
 
-        {/* PRESERVED: Empty slot rendering */}
+        {/* PRESERVED: Empty slot rendering for grid consistency */}
         {Array.from({ length: emptySlots }).map((_, i) => (
           <div
             key={`empty-${i}`}
-            className="w-[115px] h-16 rounded-[9px] border border-white/[0.09] flex items-center justify-center"
-            style={{ backgroundColor: getColor("Overlaying BG") }}
+            className="w-[115px] h-16 rounded-[9px] border flex items-center justify-center"
+            style={{
+              backgroundColor: getColor("Overlaying BG"),
+              borderColor: getColor("Brd"),
+            }}
           />
         ))}
       </div>

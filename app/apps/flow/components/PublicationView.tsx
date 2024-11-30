@@ -109,12 +109,12 @@ export const PublicationView = ({
 
   return (
     <motion.div
-      className="flex-1 min-w-0 flex flex-col h-screen overflow-hidden"
+      className="flex-1 min-w-0 flex flex-col h-full overflow-hidden scrollbar scrollbar-thumb-rose-500"
       {...containerAnimation}
     >
       {/* Fixed Header */}
       <motion.div
-        className="flex items-center justify-between px-[33px] h-[70px] border-b"
+        className="flex items-center justify-between px-[33px] h-[70px] border-b scrollbar scrollbar-thumb-rose-500"
         style={{ borderColor: getColor("Brd") }}
         {...itemAnimation}
       >
@@ -138,10 +138,14 @@ export const PublicationView = ({
       </motion.div>
 
       {/* Scrollable Content */}
-      <ScrollArea className="flex-1">
-        <div className="px-[33px] py-8 space-y-8">
+      <ScrollArea className="flex-1 scrollbar scrollbar-thumb-rose-500">
+        <div className="px-[33px] py-8 space-y-8 scrollbar scrollbar-thumb-rose-500">
           {/* Title Section */}
-          <motion.div {...itemAnimation} transition={{ delay: 0.1 }}>
+          <motion.div
+            {...itemAnimation}
+            transition={{ delay: 0.1 }}
+            className="scrollbar scrollbar-thumb-rose-500"
+          >
             <h1
               className="text-3xl font-semibold mb-2"
               style={{

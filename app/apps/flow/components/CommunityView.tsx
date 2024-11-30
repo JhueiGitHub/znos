@@ -13,6 +13,7 @@ import { FlowSkeletonGrid } from "@/app/components/skeletons/FlowSkeletons";
 import { PublicationView } from "./PublicationView";
 import { User } from "lucide-react";
 import { FlowHeader } from "./FlowHeader";
+import "../../../globals.css";
 
 interface CommunityViewProps {
   isFullscreen?: boolean;
@@ -108,7 +109,7 @@ export const CommunityView = ({ isFullscreen = false }: CommunityViewProps) => {
 
   // Regular community view with header
   return (
-    <>
+    <div className="scrollbar-hide">
       {!isFullscreen && (
         <FlowHeader
           title="Community"
@@ -181,7 +182,7 @@ export const CommunityView = ({ isFullscreen = false }: CommunityViewProps) => {
           </motion.div>
         </AnimatePresence>
       </div>
-    </>
+    </div>
   );
 };
 
