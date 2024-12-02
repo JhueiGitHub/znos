@@ -1,6 +1,6 @@
 import { createClient, LiveMap, LiveObject } from "@liveblocks/client";
 import { createRoomContext } from "@liveblocks/react";
-import { Presence } from "@fig/types/type";
+import { Presence } from "@/app/types/lb";
 
 const client = createClient({
   throttle: 16,

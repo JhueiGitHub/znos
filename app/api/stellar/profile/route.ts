@@ -47,6 +47,12 @@ export async function POST(req: Request) {
   }
 }
 
+// PRESERVED: Existing imports and POST handler
+
+// EVOLVED: Add custom BigInt serializer
+const bigIntReplacer = (_key: string, value: any) =>
+  typeof value === "bigint" ? value.toString() : value;
+
 export async function GET(req: Request) {
   try {
     const profile = await currentProfile();
@@ -64,7 +70,14 @@ export async function GET(req: Request) {
       },
     });
 
-    return NextResponse.json(stellarProfile);
+    // EVOLVED: Manually stringify the response with the custom replacer
+    const stellarProfileJson = JSON.stringify(stellarProfile, bigIntReplacer);
+
+    // EVOLVED: Return a new NextResponse with the serialized JSON
+    return new NextResponse(stellarProfileJson, {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
   } catch (error) {
     console.error("[STELLAR_PROFILE_GET]", error);
     return new NextResponse("Internal Error", { status: 500 });

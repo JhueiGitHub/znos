@@ -1,108 +1,85 @@
-import { useCallback } from "react";
+"use client";
+
+import React from "react";
 import { useStyles } from "@/app/hooks/useStyles";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { cn } from "@/lib/utils";
+import { Tree, File } from "@/components/ui/file-tree";
 
 export function StellarSidebar() {
-  const { getColor, getFont } = useStyles();
-
-  const handleSelect = useCallback((id: string) => {
-    console.log("Selected:", id);
-  }, []);
+  const { getColor } = useStyles();
 
   return (
-    <div
-      className="w-64 border-r"
-      style={{
-        backgroundColor: getColor("Glass"),
-        borderColor: getColor("Brd"),
-      }}
-    >
+    <div className="w-52 bg-black border-r border-white/10">
       <ScrollArea className="h-full">
-        <div className="p-4">
-          <div className="space-y-4">
-            {/* Favorites Section */}
-            <div>
-              <h2
-                className="text-xs font-semibold mb-2 px-2"
-                style={{
-                  color: getColor("Text Secondary (Bd)"),
-                  fontFamily: getFont("Text Secondary"),
-                }}
+        <div className="py-4 space-y-6">
+          {/* Favourites Section */}
+          <div className="px-4 space-y-2">
+            <span className="text-[#636464] text-xs font-medium">
+              Favourites
+            </span>
+            <Tree className="[&_[data-state=selected]]:bg-[#292929]/30">
+              <File
+                value="panther"
+                className="text-[#cccccc]/[0.81]"
+                fileIcon={
+                  <img
+                    src="/apps/stellar/icns/system/_sidebar_folder.png"
+                    className="w-4 h-4"
+                    alt=""
+                  />
+                }
               >
-                FAVORITES
-              </h2>
-              <div className="space-y-1">
-                <div
-                  className={cn(
-                    "flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[state=open]:bg-accent data-[state=open]:text-accent-foreground"
-                  )}
-                  style={{
-                    color: getColor("Text Primary (Hd)"),
-                  }}
-                >
-                  <span>Recent</span>
-                  <div className="ml-auto">Documents</div>
-                </div>
-                <div className="ml-4 space-y-1">
-                  <div
-                    className="flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
-                    style={{
-                      color: getColor("Text Primary (Hd)"),
-                    }}
-                  >
-                    All Files
-                  </div>
-                  <div
-                    className="flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
-                    style={{
-                      color: getColor("Text Primary (Hd)"),
-                    }}
-                  >
-                    Images
-                  </div>
-                </div>
-              </div>
-            </div>
+                Panther
+              </File>
+              <File
+                value="desktop"
+                className="text-[#cccccc]/[0.81]"
+                fileIcon={
+                  <img
+                    src="/apps/stellar/icns/system/_sidebar_folder.png"
+                    className="w-4 h-4"
+                    alt=""
+                  />
+                }
+              >
+                Desktop
+              </File>
+            </Tree>
+          </div>
 
-            {/* Locations Section */}
-            <div>
-              <h2
-                className="text-xs font-semibold mb-2 px-2"
-                style={{
-                  color: getColor("Text Secondary (Bd)"),
-                  fontFamily: getFont("Text Secondary"),
-                }}
+          {/* Locations Section */}
+          <div className="px-4 space-y-2">
+            <span className="text-[#636464] text-xs font-medium">
+              Locations
+            </span>
+            <Tree className="[&_[data-state=selected]]:bg-[#292929]/30">
+              <File
+                value="desktop-location"
+                className="text-[#cccccc]/[0.81]"
+                fileIcon={
+                  <img
+                    src="/apps/stellar/icns/system/_sidebar_folder.png"
+                    className="w-4 h-4"
+                    alt=""
+                  />
+                }
               >
-                LOCATIONS
-              </h2>
-              <div className="space-y-1">
-                <div
-                  className="flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
-                  style={{
-                    color: getColor("Text Primary (Hd)"),
-                  }}
-                >
-                  Desktop
-                </div>
-                <div
-                  className="flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
-                  style={{
-                    color: getColor("Text Primary (Hd)"),
-                  }}
-                >
-                  Documents
-                </div>
-                <div
-                  className="flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
-                  style={{
-                    color: getColor("Text Primary (Hd)"),
-                  }}
-                >
-                  Downloads
-                </div>
-              </div>
-            </div>
+                Desktop
+              </File>
+              <File
+                value="documents"
+                className="text-[#cccccc]/[0.81]"
+                fileIcon={
+                  <img
+                    src="/apps/stellar/icns/system/_sidebar_folder.png"
+                    className="w-4 h-4"
+                    alt=""
+                  />
+                }
+              >
+                Documents
+              </File>
+            </Tree>
           </div>
         </div>
       </ScrollArea>
