@@ -11,4 +11,14 @@ export type DiscordStyleId =
   | "container-bg"
   | "tooltip-bg"
   | "hover-bg"
-  | "active-bg";
+  | "active-bg"
+  | "server-header-bg"
+  | "server-header-hover"
+  | "server-header-border"
+  | "dropdown-bg"
+  | "dropdown-item-hover"
+  | "dropdown-text"
+  | "invite-text"
+  | "danger-text"
+  | "icon-moderator"
+  | "icon-admin";
