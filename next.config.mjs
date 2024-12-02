@@ -11,7 +11,12 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   images: {
-    domains: ["uploadthing.com", "utfs.io"],
+    domains: [
+      "uploadthing.com",
+      "utfs.io",
+      "img.clerk.com", // EVOLVED: Added Clerk's image domain
+      "images.clerk.dev",
+    ],
     remotePatterns: [
       {
         protocol: "https",

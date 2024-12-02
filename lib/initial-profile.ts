@@ -1,5 +1,7 @@
 import { currentUser, redirectToSignIn } from "@clerk/nextjs";
 import { db } from "@/lib/db";
+import { v4 as uuidv4 } from "uuid";
+import { MemberRole } from "@prisma/client";
 
 export const initialProfile = async () => {
   const user = await currentUser();
@@ -311,6 +313,22 @@ export const initialProfile = async () => {
         content: "Welcome to StellarOS!",
         folderId: rootFolder.id,
         profileId: profile.id,
+      },
+    });
+
+    // EVOLVED: Discord server creation within the same transaction
+    await tx.server.create({
+      data: {
+        profileId: profile.id,
+        name: "Core",
+        imageUrl: user.imageUrl,
+        inviteCode: uuidv4(),
+        channels: {
+          create: [{ name: "general", profileId: profile.id }],
+        },
+        members: {
+          create: [{ profileId: profile.id, role: MemberRole.ADMIN }],
+        },
       },
     });
 

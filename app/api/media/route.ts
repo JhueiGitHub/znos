@@ -6,7 +6,7 @@ import { MediaType } from "@prisma/client";
 
 // Type guard for MediaType
 function isValidMediaType(type: string): type is MediaType {
-  return ["IMAGE", "VIDEO", "FONT"].includes(type);
+  return ["IMAGE", "VIDEO", "FONT", "UNKNOWN"].includes(type);
 }
 
 export async function POST(req: Request) {
@@ -48,21 +48,29 @@ export async function POST(req: Request) {
   }
 }
 
+// EVOLVED: Explicitly map type field to enum
 export async function GET(req: Request) {
   try {
-    // 1. Get current profile
     const profile = await currentProfile();
     if (!profile) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    // 2. Get all media items for profile
     const mediaItems = await db.mediaItem.findMany({
       where: {
-        profileId: profile.id, // Using profileId as per schema
+        profileId: profile.id,
       },
       orderBy: {
         createdAt: "desc",
+      },
+      // EVOLVED: Map type to enum
+      select: {
+        id: true,
+        name: true,
+        type: true,
+        url: true,
+        createdAt: true,
+        updatedAt: true,
       },
     });
 

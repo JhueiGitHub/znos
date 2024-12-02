@@ -57,6 +57,7 @@ const FloatingDockMobile = ({
   borderColor: string;
 }) => {
   const [open, setOpen] = useState(false);
+
   return (
     <div className={cn("relative block md:hidden", className)}>
       <AnimatePresence>
@@ -69,26 +70,21 @@ const FloatingDockMobile = ({
               <motion.div
                 key={item.title}
                 initial={{ opacity: 0, y: 10 }}
-                animate={{
-                  opacity: 1,
-                  y: 0,
-                }}
+                animate={{ opacity: 1, y: 0 }}
                 exit={{
                   opacity: 0,
                   y: 10,
-                  transition: {
-                    delay: idx * 0.05,
-                  },
+                  transition: { delay: idx * 0.05 },
                 }}
                 transition={{ delay: (items.length - 1 - idx) * 0.05 }}
               >
                 <Link
                   href={item.href}
                   key={item.title}
-                  className="h-10 w-10 rounded-full flex items-center justify-center"
+                  className="h-10 w-10 rounded-[19px] flex items-center justify-center"
                   style={{
                     backgroundColor,
-                    border: `1px solid ${borderColor}`,
+                    border: `0.6px solid rgba(255, 255, 255, 0.09)`,
                   }}
                 >
                   <div className="h-4 w-4">{item.icon}</div>
@@ -100,8 +96,11 @@ const FloatingDockMobile = ({
       </AnimatePresence>
       <button
         onClick={() => setOpen(!open)}
-        className="h-10 w-10 rounded-full flex items-center justify-center"
-        style={{ backgroundColor, border: `1px solid ${borderColor}` }}
+        className="h-10 w-10 rounded-[19px] flex items-center justify-center"
+        style={{
+          backgroundColor,
+          border: `0.6px solid rgba(255, 255, 255, 0.09)`,
+        }}
       >
         <IconLayoutNavbarCollapse
           className="h-5 w-5"
@@ -124,15 +123,19 @@ const FloatingDockDesktop = ({
   borderColor: string;
 }) => {
   let mouseX = useMotionValue(Infinity);
+
   return (
     <motion.div
       onMouseMove={(e) => mouseX.set(e.pageX)}
       onMouseLeave={() => mouseX.set(Infinity)}
       className={cn(
-        "mx-auto hidden md:flex h-16 gap-4 items-end rounded-2xl px-4 pb-3",
+        "mx-auto hidden md:flex h-16 items-end rounded-[19px] px-4 pb-3",
         className
       )}
-      style={{ backgroundColor, border: `1px solid ${borderColor}` }}
+      style={{
+        backgroundColor,
+        border: `0.6px solid rgba(255, 255, 255, 0.09)`,
+      }}
     >
       {items.map((item) => (
         <IconContainer
@@ -166,7 +169,6 @@ function IconContainer({
 
   let distance = useTransform(mouseX, (val) => {
     let bounds = ref.current?.getBoundingClientRect() ?? { x: 0, width: 0 };
-
     return val - bounds.x - bounds.width / 2;
   });
 
@@ -212,11 +214,11 @@ function IconContainer({
           width,
           height,
           backgroundColor,
-          border: `1px solid ${borderColor}`,
+          border: `0.6px solid rgba(255, 255, 255, 0.09)`,
         }}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
-        className="aspect-square rounded-full flex items-center justify-center relative"
+        className="rounded-[19px] flex items-center justify-center relative"
       >
         <AnimatePresence>
           {hovered && (
@@ -224,10 +226,10 @@ function IconContainer({
               initial={{ opacity: 0, y: 10, x: "-50%" }}
               animate={{ opacity: 1, y: 0, x: "-50%" }}
               exit={{ opacity: 0, y: 2, x: "-50%" }}
-              className="px-2 py-0.5 whitespace-pre rounded-md absolute left-1/2 -translate-x-1/2 -top-8 w-fit text-xs"
+              className="px-2 py-0.5 whitespace-pre rounded-[19px] absolute left-1/2 -translate-x-1/2 -top-8 w-fit text-xs"
               style={{
                 backgroundColor,
-                border: `1px solid ${borderColor}`,
+                border: `0.6px solid rgba(255, 255, 255, 0.09)`,
                 color: borderColor,
               }}
             >
