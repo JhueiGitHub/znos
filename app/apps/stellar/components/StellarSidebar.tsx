@@ -3,13 +3,13 @@
 import React from "react";
 import { useStyles } from "@/app/hooks/useStyles";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Tree, File } from "@/components/ui/file-tree";
+import { Tree, File } from "./ui/file-tree";
 
 export function StellarSidebar() {
   const { getColor } = useStyles();
 
   return (
-    <div className="w-52 bg-black border-r border-white/10">
+    <div className="h-full w-52 bg-black">
       <ScrollArea className="h-full">
         <div className="py-4 space-y-6">
           {/* Favourites Section */}

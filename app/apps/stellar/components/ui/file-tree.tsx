@@ -317,9 +317,9 @@ const File = forwardRef<
           disabled={!isSelectable}
           aria-label="File"
           className={cn(
-            "flex items-center gap-1 cursor-pointer text-sm pr-1 rtl:pl-1 rtl:pr-0 rounded-md  duration-200 ease-in-out",
+            "flex items-center gap-1 cursor-pointer text-sm pr-[81px] pl-[6px] pt-[3px] pb-[3px] rtl:pl-6 rtl:pr-6 rounded-md duration-200 ease-in-out",
             {
-              "bg-muted": isSelected && isSelectable,
+              "bg-[#29292981]": isSelected && isSelectable,
             },
             isSelectable ? "cursor-pointer" : "opacity-50 cursor-not-allowed",
             className

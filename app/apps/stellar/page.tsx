@@ -10,12 +10,14 @@ const queryClient = new QueryClient();
 
 export default function StellarApp() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <StellarProvider>
-        <div className="h-full w-full">
-          <StellarLayout />
-        </div>
-      </StellarProvider>
-    </QueryClientProvider>
+    <div className="relative h-full w-full">
+      <QueryClientProvider client={queryClient}>
+        <StellarProvider>
+          <div className="h-full w-full">
+            <StellarLayout />
+          </div>
+        </StellarProvider>
+      </QueryClientProvider>
+    </div>
   );
 }

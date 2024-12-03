@@ -16,18 +16,20 @@ export function StellarContent() {
       </div>
 
       {/* Files grid */}
-      <ScrollArea className="w-full h-full flex-1">
-        <div className="w-full h-full grid grid-cols-6 gap-4 p-6">
-          {[...Array(10)].map((_, i) => (
-            <div
-              key={i}
-              className="aspect-square rounded bg-white/5 flex items-center justify-center text-[#cccccc]/90 text-sm"
-            >
-              File {i + 1}
-            </div>
-          ))}
-        </div>
-      </ScrollArea>
+      <div className="relative h-full w-full">
+        <ScrollArea className="w-full h-full flex-1">
+          <div className="w-full h-full grid grid-cols-6 gap-4 p-6">
+            {[...Array(10)].map((_, i) => (
+              <div
+                key={i}
+                className="aspect-square rounded bg-white/5 flex items-center justify-center text-[#cccccc]/90 text-sm"
+              >
+                File {i + 1}
+              </div>
+            ))}
+          </div>
+        </ScrollArea>
+      </div>
 
       {/* Status bar */}
       <div className="h-5 border-t border-[#292929]/80" />

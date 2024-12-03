@@ -13,12 +13,14 @@ export function StellarLayout() {
   const { files } = useStellarStore();
 
   return (
-    <SidebarProvider>
-      {/* EVOLVED: Pure app layout with no window chrome */}
-      <div className="relative h-full flex w-full bg-black">
-        <StellarSidebar />
-        <StellarContent />
-      </div>
-    </SidebarProvider>
+    <div className="relative h-full w-full">
+      <SidebarProvider>
+        {/* EVOLVED: Pure app layout with no window chrome */}
+        <div className="relative h-full w-full flex">
+          <StellarSidebar />
+          <StellarContent />
+        </div>
+      </SidebarProvider>
+    </div>
   );
 }
