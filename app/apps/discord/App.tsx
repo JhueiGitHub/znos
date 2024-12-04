@@ -11,7 +11,9 @@ interface SetupPageProps {
 
 const SetupPage = () => {
   const [isLoading, setIsLoading] = useState(true);
-  const [currentView, setCurrentView] = useState<'initial' | 'server'>('initial');
+  const [currentView, setCurrentView] = useState<"initial" | "server">(
+    "initial"
+  );
   const [serverId, setServerId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -21,7 +23,7 @@ const SetupPage = () => {
 
       if (data.server) {
         setServerId(data.server.id);
-        setCurrentView('server');
+        setCurrentView("server");
       }
       setIsLoading(false);
     };
@@ -33,19 +35,23 @@ const SetupPage = () => {
     return <div>Loading...</div>;
   }
 
-  if (currentView === 'initial') {
-    return <InitialModal onServerCreated={(id) => {
-      setServerId(id);
-      setCurrentView('server');
-    }} />;
+  if (currentView === "initial") {
+    return (
+      <InitialModal
+        onServerCreated={(id) => {
+          setServerId(id);
+          setCurrentView("server");
+        }}
+      />
+    );
   }
 
-  if (currentView === 'server' && serverId) {
+  if (currentView === "server" && serverId) {
     return (
-    <MainLayout>
-      <ServerPage serverId={serverId} />
+      <MainLayout>
+        <ServerPage serverId={serverId} />
       </MainLayout>
-      )
+    );
   }
 
   return null;

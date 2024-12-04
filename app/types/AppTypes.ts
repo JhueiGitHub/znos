@@ -10,7 +10,7 @@ export interface AppDefinition {
 
 export const appDefinitions: AppDefinition[] = [
   {
-    id: "finder",
+    id: "media",
     name: "Finder",
     icon: "/media/finder.png",
     dockPosition: 0,
@@ -31,7 +31,7 @@ export const appDefinitions: AppDefinition[] = [
     animationType: "magnify",
   },
   {
-    id: "figma",
+    id: "discord",
     name: "Figma",
     icon: "/media/mila.png",
     dockPosition: 3,

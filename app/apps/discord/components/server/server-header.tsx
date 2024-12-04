@@ -22,7 +22,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@dis/components/ui/dropdown-menu";
-import { useModal } from "@os/hooks/use-modal-store";
+import { useModal } from "@dis/hooks/use-modal-store";
 import { useDiscordStyles } from "../../hooks/useDiscordStyles";
 
 interface ServerHeaderProps {
@@ -91,8 +91,9 @@ export const ServerHeader = ({ server, role }: ServerHeaderProps) => {
           </DropdownMenuItem>
         )}
         {isModerator && (
+          // EVOLVED: Ensure server context is passed correctly
           <DropdownMenuItem
-            onClick={() => onOpen("createChannel")}
+            onClick={() => onOpen("createChannel", { server })}
             className="px-3 py-2 text-sm cursor-pointer hover:bg-black/30"
             style={{ color: getDiscordStyle("dropdown-text") }}
           >
