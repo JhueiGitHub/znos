@@ -47,12 +47,7 @@ const NavigationSidebar = ({ onServerSelect }: NavigationSidebarProps) => {
       }}
     >
       <NavigationAction />
-      <Separator
-        className="h-[2px] rounded-md w-10 mx-auto"
-        style={{
-          backgroundColor: getDiscordStyle("separator"),
-        }}
-      />
+      <Separator className="h-[2px] bg-[#FFFFFF15] rounded-md w-10 mx-auto" />
       <ScrollArea className="flex-1 w-full">
         {servers.map((server) => (
           <div key={server.id} className="mb-4">

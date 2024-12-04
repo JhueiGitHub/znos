@@ -200,7 +200,7 @@ export const ServerSidebar = ({ serverId }: ServerSidebarProps) => {
             ]}
           />
         </div>
-        <Separator className="bg-zinc-200 dark:bg-zinc-700 rounded-md my-2" />
+        <Separator className="bg-[#ffffff15] dark:bg-zinc-700 rounded-md my-2" />
         {!!textChannels?.length && (
           <div className="mb-2">
             <ServerSection
