@@ -1,3 +1,4 @@
+// app/apps/discord/servers/[serverId]/layout.tsx
 "use client";
 
 import { useState } from "react";
@@ -9,7 +10,7 @@ import ChannelIdPage from "@dis/servers/[serverId]/channels/[channelId]/page";
 
 interface MainLayoutProps {
   children: React.ReactNode;
-  onChannelSelect: (channelId: string | null) => void; // EVOLVED: Allow null
+  onChannelSelect: (channelId: string | null) => void;
   activeChannelId: string | null;
 }
 
@@ -20,17 +21,20 @@ const MainLayout = ({
 }: MainLayoutProps) => {
   const [currentServerId, setCurrentServerId] = useState<string | null>(null);
 
-  // EVOLVED: Handle back to server view
   const handleChannelBack = () => {
     onChannelSelect(null);
   };
 
   return (
-    <div className="h-full">
+    // EVOLVED: Add relative positioning for proper modal containment
+    <div className="h-full relative">
       <div className="hidden md:flex h-full w-[72px] z-30 flex-col fixed">
         <NavigationSidebar onServerSelect={setCurrentServerId} />
       </div>
-      <ModalProvider />
+      {/* EVOLVED: Position modals relative to main app container */}
+      <div className="relative flex-1 h-full">
+        <ModalProvider />
+      </div>
       <main className="md:pl-[72px] h-full">
         {currentServerId ? (
           <div className="h-full flex">
@@ -42,7 +46,6 @@ const MainLayout = ({
               />
             </div>
             <div className="h-full md:pl-60 flex-1">
-              {/* EVOLVED: Conditional rendering based on activeChannelId */}
               {activeChannelId ? (
                 <ChannelIdPage
                   params={{
