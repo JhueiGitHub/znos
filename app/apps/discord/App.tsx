@@ -22,27 +22,27 @@ const SetupPage = () => {
 
   const { onOpen } = useModal();
 
-  // EVOLVED: Enhanced initial profile fetching with server + channel logic
+  // EVOLVED: Fixed server detection and state management
   useEffect(() => {
     const fetchInitialProfile = async () => {
       try {
-        // PRESERVED: Original profile fetch
         const response = await fetch("/api/initial-profile");
         const data = await response.json();
 
-        // EVOLVED: Intelligent initial state loading
-        if (data.servers?.length > 0) {
-          // Get first server by default
-          const initialServer = data.servers[0];
+        // EVOLVED: Properly check for existing server
+        const servers = await fetch("/api/servers").then((res) => res.json());
+
+        if (servers?.length > 0) {
+          const initialServer = servers[0];
           setServerId(initialServer.id);
 
-          // EVOLVED: Auto-select first available channel
           if (initialServer.channels?.length > 0) {
             const generalChannel = initialServer.channels.find(
               (c: any) => c.name === "general"
             );
-            const firstChannel = initialServer.channels[0];
-            setActiveChannelId(generalChannel?.id || firstChannel.id);
+            setActiveChannelId(
+              generalChannel?.id || initialServer.channels[0].id
+            );
           }
 
           setCurrentView("server");
@@ -66,13 +66,12 @@ const SetupPage = () => {
     }
   };
 
-  // EVOLVED: Loading state with proper skeleton
   if (isLoading) {
     return <AppSkeleton />;
   }
 
-  // PRESERVED: Initial setup modal logic
-  if (currentView === "initial") {
+  // EVOLVED: Only show InitialModal if genuinely no server exists
+  if (currentView === "initial" && !serverId) {
     return (
       <InitialModal
         onServerCreated={(id) => {
@@ -83,7 +82,6 @@ const SetupPage = () => {
     );
   }
 
-  // EVOLVED: Guaranteed server + channel state
   if (currentView === "server" && serverId) {
     return (
       <MainLayout
