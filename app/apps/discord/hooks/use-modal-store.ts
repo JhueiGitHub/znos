@@ -1,3 +1,4 @@
+// app/apps/discord/hooks/use-modal-store.ts
 import { Channel, ChannelType, Server } from "@prisma/client";
 import { create } from "zustand";
 
@@ -12,7 +13,8 @@ export type ModalType =
   | "deleteChannel"
   | "editChannel"
   | "messageFile"
-  | "deleteMessage";
+  | "deleteMessage"
+  | "channel";
 
 interface ModalData {
   server?: Server;
@@ -20,6 +22,8 @@ interface ModalData {
   channelType?: ChannelType;
   apiUrl?: string;
   query?: Record<string, any>;
+  // EVOLVED: Added channelId for channel modal
+  channelId?: string;
 }
 
 interface ModalStore {

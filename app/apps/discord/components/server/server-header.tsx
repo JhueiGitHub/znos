@@ -46,6 +46,7 @@ export const ServerHeader = ({ server, role }: ServerHeaderProps) => {
             backgroundColor: getDiscordStyle("server-header-bg"),
             color: getDiscordStyle("text-default"),
             fontFamily: getFont("Text Primary"),
+            borderBottom: "0.6px solid rgba(255, 255, 255, 0.09)",
           }}
         >
           {server.name}
@@ -53,10 +54,9 @@ export const ServerHeader = ({ server, role }: ServerHeaderProps) => {
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
-        className="w-56 text-xs font-medium space-y-[2px]"
+        className="w-56 text-xs font-medium space-y-[2px] bg-black/80"
         style={{
-          backgroundColor: getDiscordStyle("dropdown-bg"),
-          border: `1px solid [${getDiscordStyle("separator")}]`,
+          border: "0.6px solid rgba(255, 255, 255, 0.09)",
         }}
       >
         {isModerator && (

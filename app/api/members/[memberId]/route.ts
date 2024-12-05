@@ -3,6 +3,35 @@ import { NextResponse } from "next/server";
 import { currentProfile } from "@/lib/current-profile";
 import { db } from "@/lib/db";
 
+export async function GET(req: Request) {
+  try {
+    const profile = await currentProfile();
+    const { searchParams } = new URL(req.url);
+
+    const serverId = searchParams.get("serverId");
+
+    if (!profile) {
+      return new NextResponse("Unauthorized", { status: 401 });
+    }
+
+    if (!serverId) {
+      return new NextResponse("Server ID missing", { status: 400 });
+    }
+
+    const member = await db.member.findFirst({
+      where: {
+        serverId,
+        profileId: profile.id,
+      },
+    });
+
+    return NextResponse.json(member);
+  } catch (error) {
+    console.log("[MEMBER_ME_GET]", error);
+    return new NextResponse("Internal Error", { status: 500 });
+  }
+}
+
 export async function DELETE(
   req: Request,
   { params }: { params: { memberId: string } }
@@ -14,7 +43,7 @@ export async function DELETE(
     const serverId = searchParams.get("serverId");
 
     if (!profile) {
-      return new NextResponse("Unauthorized" ,{ status: 401 });
+      return new NextResponse("Unauthorized", { status: 401 });
     }
 
     if (!serverId) {
@@ -35,10 +64,10 @@ export async function DELETE(
           deleteMany: {
             id: params.memberId,
             profileId: {
-              not: profile.id
-            }
-          }
-        }
+              not: profile.id,
+            },
+          },
+        },
       },
       include: {
         members: {
@@ -47,7 +76,7 @@ export async function DELETE(
           },
           orderBy: {
             role: "asc",
-          }
+          },
         },
       },
     });
@@ -93,14 +122,14 @@ export async function PATCH(
             where: {
               id: params.memberId,
               profileId: {
-                not: profile.id
-              }
+                not: profile.id,
+              },
             },
             data: {
-              role
-            }
-          }
-        }
+              role,
+            },
+          },
+        },
       },
       include: {
         members: {
@@ -108,10 +137,10 @@ export async function PATCH(
             profile: true,
           },
           orderBy: {
-            role: "asc"
-          }
-        }
-      }
+            role: "asc",
+          },
+        },
+      },
     });
 
     return NextResponse.json(server);

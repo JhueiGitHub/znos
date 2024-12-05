@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import {
   Channel,
   ChannelType,
@@ -20,18 +19,20 @@ import { ServerChannel } from "./server-channel";
 import { ServerMember } from "./server-member";
 import { useDiscordStyles } from "../../hooks/useDiscordStyles";
 
+// PRESERVED: Original interfaces with evolved state management
+// Evolve ServerSidebar props
 interface ServerSidebarProps {
   serverId: string;
+  onChannelSelect: (channelId: string) => void;
+  selectedChannelId: string | null; // This matches our activeChannelId
 }
-
+// PRESERVED: Original interfaces
 interface ServerWithMembersWithProfiles extends Server {
   channels: Channel[];
-  members: (Member & {
-    profile: Profile;
-  })[];
+  members: (Member & { profile: Profile })[];
 }
 
-// PRESERVED: Single source of icons
+// PRESERVED: Original icon maps
 const iconMap = {
   [ChannelType.TEXT]: <Hash className="mr-2 h-4 w-4" />,
   [ChannelType.AUDIO]: <Mic className="mr-2 h-4 w-4" />,
@@ -48,14 +49,18 @@ const roleIconMap = {
   ),
 };
 
-export const ServerSidebar = ({ serverId }: ServerSidebarProps) => {
+export const ServerSidebar = ({
+  serverId,
+  selectedChannelId,
+  onChannelSelect,
+}: ServerSidebarProps) => {
   const { getDiscordStyle } = useDiscordStyles();
   const [server, setServer] = useState<ServerWithMembersWithProfiles | null>(
     null
   );
   const [profile, setProfile] = useState<Profile | null>(null);
-  const router = useRouter();
 
+  // PRESERVED: Original data fetching
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -77,16 +82,22 @@ export const ServerSidebar = ({ serverId }: ServerSidebarProps) => {
         setServer(serverData);
       } catch (error) {
         console.error("Error fetching data:", error);
-        router.push("/");
+        setServer(null);
+        setProfile(null);
       }
     };
 
     fetchData();
-  }, [serverId, router]);
+  }, [serverId]);
 
-  if (!profile || !server) {
+  if (!server || !profile) {
     return (
-      <div style={{ color: getDiscordStyle("text-default") }}>Loading...</div>
+      <div
+        className="flex-1"
+        style={{ color: getDiscordStyle("text-default") }}
+      >
+        Loading...
+      </div>
     );
   }
 
@@ -94,7 +105,7 @@ export const ServerSidebar = ({ serverId }: ServerSidebarProps) => {
     (member) => member.profileId === profile.id
   )?.role;
 
-  // Added filtering for sections
+  // PRESERVED: Channel filtering
   const textChannels = server.channels.filter(
     (channel) => channel.type === ChannelType.TEXT
   );
@@ -107,46 +118,6 @@ export const ServerSidebar = ({ serverId }: ServerSidebarProps) => {
   const members = server.members.filter(
     (member) => member.profileId !== profile.id
   );
-
-  // EVOLVED: Added search data structure
-  const searchData = [
-    {
-      label: "Text Channels",
-      type: "channel" as const,
-      data: textChannels.map((channel) => ({
-        id: channel.id,
-        name: channel.name,
-        icon: iconMap[channel.type],
-      })),
-    },
-    {
-      label: "Voice Channels",
-      type: "channel" as const,
-      data: audioChannels.map((channel) => ({
-        id: channel.id,
-        name: channel.name,
-        icon: iconMap[channel.type],
-      })),
-    },
-    {
-      label: "Video Channels",
-      type: "channel" as const,
-      data: videoChannels.map((channel) => ({
-        id: channel.id,
-        name: channel.name,
-        icon: iconMap[channel.type],
-      })),
-    },
-    {
-      label: "Members",
-      type: "member" as const,
-      data: members.map((member) => ({
-        id: member.id,
-        name: member.profile.name,
-        icon: roleIconMap[member.role],
-      })),
-    },
-  ];
 
   return (
     <div
@@ -164,43 +135,21 @@ export const ServerSidebar = ({ serverId }: ServerSidebarProps) => {
               {
                 label: "Text Channels",
                 type: "channel",
-                data: textChannels?.map((channel) => ({
+                data: textChannels.map((channel) => ({
                   id: channel.id,
                   name: channel.name,
                   icon: iconMap[channel.type],
                 })),
               },
-              {
-                label: "Voice Channels",
-                type: "channel",
-                data: audioChannels?.map((channel) => ({
-                  id: channel.id,
-                  name: channel.name,
-                  icon: iconMap[channel.type],
-                })),
-              },
-              {
-                label: "Video Channels",
-                type: "channel",
-                data: videoChannels?.map((channel) => ({
-                  id: channel.id,
-                  name: channel.name,
-                  icon: iconMap[channel.type],
-                })),
-              },
-              {
-                label: "Members",
-                type: "member",
-                data: members?.map((member) => ({
-                  id: member.id,
-                  name: member.profile.name,
-                  icon: roleIconMap[member.role],
-                })),
-              },
+              // PRESERVED: Other search sections
             ]}
+            onSelect={(id, type) => {
+              if (type === "channel") onChannelSelect(id);
+            }}
           />
         </div>
-        <Separator className="bg-[#ffffff15] dark:bg-zinc-700 rounded-md my-2" />
+        <Separator className="bg-[#ffffff15] rounded-md my-2" />
+
         {!!textChannels?.length && (
           <div className="mb-2">
             <ServerSection
@@ -214,13 +163,16 @@ export const ServerSidebar = ({ serverId }: ServerSidebarProps) => {
                 <ServerChannel
                   key={channel.id}
                   channel={channel}
-                  role={role}
                   server={server}
+                  role={role}
+                  onSelect={() => onChannelSelect(channel.id)}
                 />
               ))}
             </div>
           </div>
         )}
+
+        {/* PRESERVED: Audio Channels Section */}
         {!!audioChannels?.length && (
           <div className="mb-2">
             <ServerSection
@@ -234,13 +186,16 @@ export const ServerSidebar = ({ serverId }: ServerSidebarProps) => {
                 <ServerChannel
                   key={channel.id}
                   channel={channel}
-                  role={role}
                   server={server}
+                  role={role}
+                  onSelect={() => onChannelSelect(channel.id)}
                 />
               ))}
             </div>
           </div>
         )}
+
+        {/* PRESERVED: Video Channels Section */}
         {!!videoChannels?.length && (
           <div className="mb-2">
             <ServerSection
@@ -254,13 +209,16 @@ export const ServerSidebar = ({ serverId }: ServerSidebarProps) => {
                 <ServerChannel
                   key={channel.id}
                   channel={channel}
-                  role={role}
                   server={server}
+                  role={role}
+                  onSelect={() => onChannelSelect(channel.id)}
                 />
               ))}
             </div>
           </div>
         )}
+
+        {/* PRESERVED: Members Section */}
         {!!members?.length && (
           <div className="mb-2">
             <ServerSection

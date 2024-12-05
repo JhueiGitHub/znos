@@ -21,4 +21,9 @@ export type DiscordStyleId =
   | "invite-text"
   | "danger-text"
   | "icon-moderator"
-  | "icon-admin";
+  | "icon-admin"
+  | "channel-item-active"
+  | "channel-item-bg"
+  | "icon-default"
+  | "text-active"
+  | "icon-muted";

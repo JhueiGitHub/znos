@@ -13,18 +13,18 @@ import {
   CommandList,
 } from "@dis/components/ui/command";
 
+// components/server/server-search.tsx
 interface ServerSearchProps {
   data: {
     label: string;
     type: "channel" | "member";
-    data:
-      | {
-          icon: React.ReactNode;
-          name: string;
-          id: string;
-        }[]
-      | undefined;
+    data: {
+      id: string;
+      name: string;
+      icon: React.ReactNode;
+    }[];
   }[];
+  onSelect: (id: string, type: "channel" | "member") => void;
 }
 
 export const ServerSearch = ({ data }: ServerSearchProps) => {

@@ -14,6 +14,7 @@ export type NextApiResponseServerIo = NextApiResponse & {
     };
   };
 };
+
 export interface StellarProfile {
   id: string;
   profileId: string;
