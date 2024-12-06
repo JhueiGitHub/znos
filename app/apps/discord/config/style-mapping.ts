@@ -12,7 +12,7 @@ export const defaultDiscordMapping: Record<DiscordStyleId, string> = {
   "tooltip-bg": "black-glass",
   "hover-bg": "graphite-thin",
   "active-bg": "graphite-med",
-  // New server-specific mappings
+  // Server-specific mappings
   "server-header-bg": "black-glass",
   "server-header-hover": "graphite-thin",
   "server-header-border": "Brd",
@@ -23,4 +23,17 @@ export const defaultDiscordMapping: Record<DiscordStyleId, string> = {
   "danger-text": "latte-thick",
   "icon-moderator": "latte-med",
   "icon-admin": "latte-thick",
+  "channel-item-active": "graphite-med",
+  "channel-item-bg": "black-glass",
+  "icon-default": "smoke-thick",
+  "text-active": "smoke-thick",
+  "icon-muted": "smoke-thin",
+  // EVOLVED: Modal-specific style mappings
+  "modal-overlay": "black-glass",
+  "modal-bg": "black-glass",
+  "modal-border": "Brd",
+  "modal-text": "smoke-thick",
+  "modal-close": "smoke-thick",
+  "modal-title": "smoke-thick",
+  "modal-description": "smoke-med",
 };

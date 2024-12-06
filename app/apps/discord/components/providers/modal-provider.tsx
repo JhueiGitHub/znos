@@ -1,10 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
-import { EditServerModal } from "@dis/components/modals/edit-server-modal";
-import { InviteModal } from "@dis/components/modals/invite-modal";
+import { DialogContainerProvider } from "@dis/components/ui/dialog";
 import { CreateServerModal } from "@dis/components/modals/create-server-modal";
+import { InviteModal } from "@dis/components/modals/invite-modal";
 import { MembersModal } from "@dis/components/modals/members-modal";
 import { CreateChannelModal } from "@dis/components/modals/create-channel-modal";
 import { LeaveServerModal } from "@dis/components/modals/leave-server-modal";
@@ -14,7 +13,11 @@ import { EditChannelModal } from "@dis/components/modals/edit-channel-modal";
 import { MessageFileModal } from "@dis/components/modals/message-file-modal";
 import { DeleteMessageModal } from "@dis/components/modals/delete-message-modal";
 
-export const ModalProvider = () => {
+interface ModalProviderProps {
+  container: HTMLElement | null;
+}
+
+export const ModalProvider = ({ container }: ModalProviderProps) => {
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -26,16 +29,13 @@ export const ModalProvider = () => {
   }
 
   return (
-    <>
+    <DialogContainerProvider container={container}>
       <CreateServerModal
         onServerCreated={(id) => {
-          // Handle server creation here
           console.log("Server created with ID:", id);
-          // You might want to update some global state or trigger a re-fetch of servers
         }}
       />
       <InviteModal />
-      <EditServerModal />
       <MembersModal />
       <CreateChannelModal />
       <LeaveServerModal />
@@ -44,6 +44,6 @@ export const ModalProvider = () => {
       <EditChannelModal />
       <MessageFileModal />
       <DeleteMessageModal />
-    </>
+    </DialogContainerProvider>
   );
 };

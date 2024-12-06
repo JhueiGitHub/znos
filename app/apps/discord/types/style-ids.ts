@@ -1,5 +1,4 @@
 // /app/apps/discord/types/style-ids.ts
-// First, let's define our valid style IDs as a const enum or union type
 export type DiscordStyleId =
   | "action-default"
   | "action-hover"
@@ -26,4 +25,12 @@ export type DiscordStyleId =
   | "channel-item-bg"
   | "icon-default"
   | "text-active"
-  | "icon-muted";
+  | "icon-muted"
+  // EVOLVED: Modal-specific style IDs
+  | "modal-overlay"
+  | "modal-bg"
+  | "modal-border"
+  | "modal-text"
+  | "modal-close"
+  | "modal-title"
+  | "modal-description";
