@@ -19,15 +19,20 @@ export function MediaCard({ item }: MediaCardProps) {
   const truncatedName =
     item.name.length > 20 ? item.name.substring(0, 20) + "..." : item.name;
 
-  // EVOLVED: Type-specific preview rendering
+  // EVOLVED: Type-specific preview rendering with proper URL handling
   const renderPreview = () => {
+    // Ensure URL is properly formatted before passing to previews
+    const secureUrl = item.url.startsWith("https://")
+      ? item.url
+      : `https://${item.url.replace(/^https?:\/\//, "")}`;
+
     switch (item.type) {
       case "VIDEO":
-        return <VideoPreview url={item.url} />;
+        return <VideoPreview url={secureUrl} />;
       case "IMAGE":
-        return <ImagePreview url={item.url} alt={item.name} />;
+        return <ImagePreview url={secureUrl} alt={item.name} />;
       case "FONT":
-        return <FontPreview url={item.url} name={item.name} />;
+        return <FontPreview url={secureUrl} name={item.name} />;
       default:
         return null;
     }
