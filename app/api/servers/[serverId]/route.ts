@@ -20,9 +20,9 @@ export async function GET(
         id: params.serverId,
         members: {
           some: {
-            profileId: profile.id
-          }
-        }
+            profileId: profile.id,
+          },
+        },
       },
       include: {
         channels: {
@@ -36,9 +36,9 @@ export async function GET(
           },
           orderBy: {
             role: "asc",
-          }
-        }
-      }
+          },
+        },
+      },
     });
 
     if (!server) {
@@ -68,7 +68,7 @@ export async function DELETE(
       where: {
         id: params.serverId,
         profileId: profile.id,
-      }
+      },
     });
 
     return NextResponse.json(server);
@@ -99,7 +99,7 @@ export async function PATCH(
       data: {
         name,
         imageUrl,
-      }
+      },
     });
 
     return NextResponse.json(server);

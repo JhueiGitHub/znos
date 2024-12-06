@@ -22,24 +22,26 @@ const SetupPage = () => {
 
   const { onOpen } = useModal();
 
-  // PRESERVED: Simple initial profile fetch with server data
+  // EVOLVED: Fixed server detection and state management
   useEffect(() => {
     const fetchInitialProfile = async () => {
       try {
         const response = await fetch("/api/initial-profile");
         const data = await response.json();
 
-        // RESTORED: Original simple server check
-        if (data.server) {
-          setServerId(data.server.id);
+        // EVOLVED: Properly check for existing server
+        const servers = await fetch("/api/servers").then((res) => res.json());
 
-          // PRESERVED: Channel selection if server exists
-          if (data.server.channels?.length > 0) {
-            const generalChannel = data.server.channels.find(
+        if (servers?.length > 0) {
+          const initialServer = servers[0];
+          setServerId(initialServer.id);
+
+          if (initialServer.channels?.length > 0) {
+            const generalChannel = initialServer.channels.find(
               (c: any) => c.name === "general"
             );
             setActiveChannelId(
-              generalChannel?.id || data.server.channels[0].id
+              generalChannel?.id || initialServer.channels[0].id
             );
           }
 
@@ -56,6 +58,7 @@ const SetupPage = () => {
     fetchInitialProfile();
   }, []);
 
+  // PRESERVED: Original channel selection handler
   const handleChannelSelect = (channelId: string | null) => {
     setActiveChannelId(channelId);
     if (channelId) {
@@ -67,7 +70,8 @@ const SetupPage = () => {
     return <AppSkeleton />;
   }
 
-  if (currentView === "initial") {
+  // EVOLVED: Only show InitialModal if genuinely no server exists
+  if (currentView === "initial" && !serverId) {
     return (
       <InitialModal
         onServerCreated={(id) => {
