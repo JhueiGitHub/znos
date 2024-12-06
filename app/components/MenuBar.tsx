@@ -18,7 +18,7 @@ import { useAppStore } from "@/app/store/appStore";
 import { StreamWithFlows, FlowWithComponents } from "@/app/types/flow";
 import { FlowComponent } from "@prisma/client";
 
-// Constants for menu behavior
+// PRESERVED: Original constants
 const MENU_HEIGHT = 32;
 const TRIGGER_AREA_HEIGHT = 20;
 
@@ -27,6 +27,7 @@ interface SystemIconProps {
   children: React.ReactNode;
 }
 
+// EVOLVED: SystemIcon to support proper dropdown alignment
 const SystemIcon: React.FC<SystemIconProps> = ({ src, children }) => {
   const { getColor } = useStyles();
 
@@ -48,12 +49,17 @@ const SystemIcon: React.FC<SystemIconProps> = ({ src, children }) => {
           />
         </motion.button>
       </DropdownMenuTrigger>
-      {children}
+      {React.cloneElement(children as React.ReactElement, {
+        align: "start",
+        alignOffset: -10,
+        sideOffset: 4,
+      })}
     </DropdownMenu>
   );
 };
 
 export const MenuBar = () => {
+  // PRESERVED: Original hooks and state
   const { getColor } = useStyles();
   const menuRef = useRef<HTMLDivElement>(null);
   const [isMenuVisible, setIsMenuVisible] = useState(false);
@@ -61,19 +67,19 @@ export const MenuBar = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const { activeOSFlowId, setActiveOSFlowId, setOrionConfig } = useAppStore();
 
-  // Update date every minute
+  // PRESERVED: Original date update effect
   useEffect(() => {
     const timer = setInterval(() => setCurrentDate(new Date()), 60000);
     return () => clearInterval(timer);
   }, []);
 
+  // PRESERVED: Original mouse move handler
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       const { clientY } = e;
       const menuRect = menuRef.current?.getBoundingClientRect();
       const inTriggerZone = clientY <= MENU_HEIGHT + TRIGGER_AREA_HEIGHT;
 
-      // Check if cursor is within the menu or its dropdown
       const inMenuBounds =
         menuRect &&
         ((clientY >= menuRect.top && clientY <= menuRect.bottom) ||
@@ -90,6 +96,7 @@ export const MenuBar = () => {
     return () => document.removeEventListener("mousemove", handleMouseMove);
   }, [dropdownOpen]);
 
+  // PRESERVED: Original queries
   const { data: orionConfig } = useQuery({
     queryKey: ["orion-config"],
     queryFn: async () => {
@@ -111,6 +118,7 @@ export const MenuBar = () => {
 
   const flows = streamData?.flows || [];
 
+  // PRESERVED: Original flow selection handler
   const handleFlowSelect = async (flow: FlowWithComponents) => {
     setActiveOSFlowId(flow.id);
 
@@ -147,6 +155,7 @@ export const MenuBar = () => {
     });
   };
 
+  // PRESERVED: Original date formatting
   const formattedDate = useMemo(() => {
     const options: Intl.DateTimeFormatOptions = {
       weekday: "short",
@@ -189,7 +198,7 @@ export const MenuBar = () => {
                 <DropdownMenuContent
                   className="min-w-[280px] p-4"
                   style={{
-                    backgroundColor: getColor("Glass"),
+                    backgroundColor: getColor("black-thick"),
                     borderColor: getColor("Brd"),
                   }}
                 >
@@ -203,7 +212,7 @@ export const MenuBar = () => {
                 <DropdownMenuContent
                   className="min-w-[280px] p-4"
                   style={{
-                    backgroundColor: getColor("Glass"),
+                    backgroundColor: getColor("black-thick"),
                     borderColor: getColor("Brd"),
                   }}
                 >
@@ -233,8 +242,11 @@ export const MenuBar = () => {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent
                     className="min-w-[280px] p-1"
+                    align="start"
+                    alignOffset={-10}
+                    sideOffset={4}
                     style={{
-                      backgroundColor: getColor("Glass"),
+                      backgroundColor: getColor("black-med"),
                       borderColor: getColor("Brd"),
                     }}
                   >

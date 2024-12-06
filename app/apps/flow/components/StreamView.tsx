@@ -1,4 +1,3 @@
-// app/apps/flow/components/StreamView.tsx
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { Card, CardContent } from "@/components/ui/card";
@@ -15,6 +14,7 @@ import {
 } from "@/components/ui/context-menu";
 import { toast } from "sonner";
 
+// PRESERVED: Original interfaces with enhanced ColorComponent
 interface ColorComponent {
   id: string;
   name: string;
@@ -24,6 +24,7 @@ interface ColorComponent {
   order: number;
 }
 
+// PRESERVED: Rest of interfaces
 interface Flow {
   id: string;
   name: string;
@@ -50,16 +51,21 @@ export const StreamView = ({ streamId, onFlowSelect }: StreamViewProps) => {
   const [isDuplicating, setIsDuplicating] = useState<string | null>(null);
   const [isPublishing, setIsPublishing] = useState<string | null>(null);
 
+  // PRESERVED: Original query
   const { data: stream, isLoading } = useQuery<Stream>({
     queryKey: ["stream", streamId],
     queryFn: async () => {
       const response = await axios.get(`/api/streams/${streamId}`);
-      console.log("Stream response:", response.data);
+      console.log("Stream API response:", response.data);
+      console.log(
+        "First flow components:",
+        response.data?.flows[0]?.components
+      );
       return response.data;
     },
   });
 
-  // PRESERVED: Original flow duplication
+  // PRESERVED: Original handlers
   const handleDuplicateFlow = async (flowId: string, flowName: string) => {
     setIsDuplicating(flowId);
     try {
@@ -74,7 +80,7 @@ export const StreamView = ({ streamId, onFlowSelect }: StreamViewProps) => {
     }
   };
 
-  // PRESERVED: XP publishing functionality
+  // PRESERVED: XP mutation
   const { mutate: publishToXP } = useMutation({
     mutationFn: async (flowId: string) => {
       setIsPublishing(flowId);
@@ -100,36 +106,46 @@ export const StreamView = ({ streamId, onFlowSelect }: StreamViewProps) => {
     return <FlowSkeletonGrid count={6} />;
   }
 
-  // EVOLVED: Fixed component preview rendering
+  // EVOLVED: Component preview rendering with logging
   const renderFlowPreview = (flow: Flow) => {
-    const components = flow.components
+    console.log("Flow being rendered:", flow);
+    console.log("Flow components:", flow.components);
+
+    const colorComponents = flow.components
       .filter((c) => c.type === "COLOR")
       .sort((a, b) => (a.order || 0) - (b.order || 0))
-      .slice(0, 4); // FIXED: Only take first 4
+      .slice(0, 4);
+
+    console.log("Filtered color components:", colorComponents);
 
     return (
       <div className="grid grid-cols-2 gap-3 mb-6">
-        {components.map((component) => (
-          <div
-            key={component.id}
-            className="w-[115px] h-16 rounded-[9px] border flex items-center justify-center"
-            style={{
-              backgroundColor: getColor("Overlaying BG"),
-              borderColor: getColor("Brd"),
-            }}
-          >
-            {/* EVOLVED: Clean circular preview with working color pattern */}
-            <div
-              className="w-10 h-10 rounded-full"
-              style={{
-                backgroundColor: getColor(component.tokenId),
-                border: `1px solid ${getColor("Brd")}`,
-              }}
-            />
-          </div>
-        ))}
+        {colorComponents.map((component) => {
+          console.log("Rendering component:", component);
+          console.log("Using color token:", component.tokenId);
 
-        {[...Array(4 - components.length)].map((_, i) => (
+          return (
+            <div
+              key={component.id}
+              className="w-[115px] h-16 rounded-[9px] border flex items-center justify-center"
+              style={{
+                backgroundColor: getColor("Overlaying BG"),
+                borderColor: getColor("Brd"),
+              }}
+            >
+              <div
+                className="w-10 h-10 rounded-full"
+                style={{
+                  backgroundColor: getColor(component.tokenId),
+                  border: `1px solid ${getColor("Brd")}`,
+                  opacity: 1, // Making sure it's visible
+                }}
+              />
+            </div>
+          );
+        })}
+
+        {[...Array(4 - colorComponents.length)].map((_, i) => (
           <div
             key={`empty-${i}`}
             className="w-[115px] h-16 rounded-[9px] border flex items-center justify-center"
@@ -145,6 +161,7 @@ export const StreamView = ({ streamId, onFlowSelect }: StreamViewProps) => {
 
   if (!stream) return null;
 
+  // PRESERVED: Original render
   return (
     <div className="flex-1 min-w-0 px-[33px] py-5">
       <div className="flex flex-wrap gap-8">

@@ -1,4 +1,3 @@
-// /app/apps/flow/components/AppView.tsx
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { motion } from "framer-motion";
@@ -15,8 +14,6 @@ interface AppViewProps {
 
 export const AppView = ({ appId, onStreamSelect }: AppViewProps) => {
   const { getColor, getFont } = useStyles();
-
-  // EVOLVED: Direct access to global dock state
   const { orionConfig, activeOSFlowId } = useAppStore();
 
   const { data: streams = [], isLoading } = useQuery<StreamWithFlows[]>({
@@ -27,89 +24,44 @@ export const AppView = ({ appId, onStreamSelect }: AppViewProps) => {
     },
   });
 
+  // EVOLVED: Match StreamView's preview rendering exactly
   const renderStreamPreview = (stream: StreamWithFlows) => {
-    const latestFlow = stream.flows[0];
-    if (!latestFlow?.components) return null;
-
-    // EVOLVED: Simple wallpaper check
-    const wallpaper =
-      latestFlow.id === activeOSFlowId && orionConfig?.wallpaper
-        ? orionConfig.wallpaper
-        : latestFlow.components.find((c) => c.type === "WALLPAPER");
-
-    // EVOLVED: Simple dock icon source selection
-    const dockIcons =
-      latestFlow.id === activeOSFlowId && orionConfig?.dockIcons
-        ? orionConfig.dockIcons
-        : latestFlow.components
-            .filter((c) => c.type === "DOCK_ICON")
-            .sort((a, b) => (a.order || 0) - (b.order || 0));
+    // EVOLVED: Take first 4 flows only
+    const previewFlows = stream.flows.slice(0, 4);
 
     return (
       <div className="grid grid-cols-2 gap-3 mb-6">
-        {/* Wallpaper with clean conditional */}
-        <div className="col-span-2 w-full h-24 rounded-[9px] overflow-hidden border border-white/[0.09]">
+        {previewFlows.map((flow) => (
           <div
-            className="w-full h-full"
-            style={{
-              backgroundColor:
-                wallpaper?.mode === "color"
-                  ? getColor(wallpaper.tokenId || "Black")
-                  : undefined,
-              backgroundImage:
-                wallpaper?.mode === "media" && wallpaper.value
-                  ? `url(${wallpaper.value})`
-                  : undefined,
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-              opacity: 0.7,
-            }}
-          />
-        </div>
-
-        {/* Clean dock icon rendering */}
-        {dockIcons.slice(0, 4).map((icon) => (
-          <div
-            key={icon.id}
-            className="aspect-square rounded-[9px] border border-white/[0.09] flex items-center justify-center overflow-hidden"
+            key={flow.id}
+            className="w-[115px] h-16 rounded-[9px] border flex items-center justify-center px-3"
             style={{
               backgroundColor: getColor("Overlaying BG"),
+              borderColor: getColor("Brd"),
             }}
           >
-            {icon.mode === "color" ? (
-              <div
-                className="w-8 h-8 rounded-md"
-                style={{
-                  backgroundColor: getColor(icon.tokenId || "Graphite"),
-                }}
-              />
-            ) : (
-              <img
-                src={icon.value || "/icns/_dock.png"}
-                alt="Dock icon"
-                className="w-8 h-8 object-contain opacity-70"
-              />
-            )}
+            <span
+              className="text-xs text-center line-clamp-2"
+              style={{
+                color: getColor("Text Primary (Hd)"),
+                fontFamily: getFont("Text Primary"),
+              }}
+            >
+              {flow.name}
+            </span>
           </div>
         ))}
 
-        {/* Fill remaining slots */}
-        {[...Array(Math.max(0, 4 - dockIcons.length))].map((_, i) => (
+        {/* Fill remaining slots to match StreamView pattern */}
+        {[...Array(4 - previewFlows.length)].map((_, i) => (
           <div
             key={`empty-${i}`}
-            className="aspect-square rounded-[9px] border border-white/[0.09] flex items-center justify-center"
+            className="w-[115px] h-16 rounded-[9px] border"
             style={{
               backgroundColor: getColor("Overlaying BG"),
+              borderColor: getColor("Brd"),
             }}
-          >
-            <div
-              className="w-8 h-8 rounded-md"
-              style={{
-                backgroundColor: getColor("Graphite"),
-                opacity: 0.3,
-              }}
-            />
-          </div>
+          />
         ))}
       </div>
     );
@@ -131,9 +83,10 @@ export const AppView = ({ appId, onStreamSelect }: AppViewProps) => {
           >
             <Card
               onClick={() => onStreamSelect(stream.id)}
-              className="w-[291px] h-[247px] flex-shrink-0 border border-white/[0.09] rounded-[15px] transition-all hover:border-white/20 cursor-pointer"
+              className="w-[291px] h-[247px] flex-shrink-0 border rounded-[15px] transition-all hover:border-white/20 cursor-pointer"
               style={{
                 backgroundColor: getColor("Glass"),
+                borderColor: getColor("Brd"),
               }}
             >
               <CardContent className="p-6">

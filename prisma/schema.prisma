@@ -213,21 +213,22 @@ model AppConfig {
 }
 
 model StellarProfile {
-  id           String   @id @default(cuid())
-  profileId    String   @unique
-  profile      Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
-  name         String  
+  id            String  @id @default(cuid())
+  profileId     String  @unique
+  profile       Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  name          String
   driveCapacity BigInt // Updated type to BigInt
   currentUsage  Int
-  
-  settings     StellarSettings?
-  rootFolder   StellarFolder?
-  
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  
+
+  settings   StellarSettings?
+  rootFolder StellarFolder?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@index([profileId])
 }
+
 model StellarSettings {
   id               String         @id @default(cuid())
   stellarProfile   StellarProfile @relation(fields: [stellarProfileId], references: [id])
