@@ -32,7 +32,7 @@ const MainLayout = ({
       </div>
       {/* EVOLVED: Move ref to relative container */}
       <main className="md:pl-[72px] h-full">
-        <div className="relative" ref={containerRef}>
+        <div className="relative h-full" ref={containerRef}>
           <ModalProvider container={containerRef.current} />
           {currentServerId ? (
             <div className="h-full flex relative">

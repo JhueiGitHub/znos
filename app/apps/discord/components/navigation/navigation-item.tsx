@@ -24,11 +24,7 @@ export const NavigationItem = ({
   const { getDiscordStyle } = useDiscordStyles();
 
   return (
-    <ActionTooltip 
-      side="right" 
-      align="center" 
-      label={name}
-    >
+    <ActionTooltip side="right" align="center" label={name}>
       <button onClick={onSelect} className="group relative flex items-center">
         <div
           className={cn(
@@ -37,7 +33,7 @@ export const NavigationItem = ({
             params?.serverId === id ? "h-[36px]" : "h-[8px]"
           )}
           style={{
-            backgroundColor: getDiscordStyle('nav-indicator')
+            backgroundColor: getDiscordStyle("nav-indicator"),
           }}
         />
         <div
@@ -46,9 +42,10 @@ export const NavigationItem = ({
             params?.serverId === id && "rounded-[16px]"
           )}
           style={{
-            backgroundColor: params?.serverId === id 
-              ? getDiscordStyle('nav-item-active')
-              : getDiscordStyle('nav-item-bg')
+            backgroundColor:
+              params?.serverId === id
+                ? getDiscordStyle("nav-item-active")
+                : getDiscordStyle("nav-item-bg"),
           }}
         >
           <Image fill src={imageUrl} alt="Channel" />

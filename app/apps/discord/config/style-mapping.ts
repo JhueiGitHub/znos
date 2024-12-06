@@ -5,7 +5,7 @@ export const defaultDiscordMapping: Record<DiscordStyleId, string> = {
   "action-hover": "latte-thick",
   "nav-item-bg": "black-glass",
   "nav-item-active": "latte-thin",
-  "nav-indicator": "smoke-thick",
+  "nav-indicator": "latte",
   separator: "Brd",
   "text-default": "smoke-thick",
   "container-bg": "black-glass",

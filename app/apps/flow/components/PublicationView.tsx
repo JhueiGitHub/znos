@@ -8,18 +8,36 @@ import { ArrowLeft, Download, Star, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAppStore } from "@/app/store/appStore";
+import { VideoPreview } from "@/app/components/media/previews/VideoPreview";
 import { useRouter } from "next/navigation";
 
+// PRESERVED: Existing interfaces
 interface PublicationViewProps {
   publicationId: string;
   onBack: () => void;
+}
+
+interface WallpaperData {
+  mode?: "color" | "media";
+  value?: string | null;
+  tokenId?: string;
+}
+
+interface PreviewMediaProps {
+  wallpaper?: {
+    mode?: "color" | "media";
+    value?: string | null;
+    mediaItem?: any; // Type this properly based on your schema
+  };
 }
 
 interface Publication {
   id: string;
   name: string;
   description: string;
-  previewImageUrl?: string;
+  previewData?: {
+    wallpaper?: WallpaperData;
+  };
   downloads: number;
   price: number;
   createdAt: string;
@@ -32,10 +50,40 @@ interface Publication {
   };
 }
 
+// EVOLVED: Fixed typing for PreviewMedia
+const PreviewMedia: React.FC<PreviewMediaProps> = ({ wallpaper }) => {
+  if (!wallpaper?.value || wallpaper.mode !== "media") {
+    return (
+      <img
+        src="/media/system/_empty_image.png"
+        alt="Empty preview"
+        className="w-full h-full object-cover"
+      />
+    );
+  }
+
+  // EVOLVED: Use proper URL from mediaItem if available
+  const mediaUrl = wallpaper.mediaItem?.url || wallpaper.value;
+
+  // EVOLVED: Better video detection using mediaItem type or URL pattern
+  const isVideo =
+    wallpaper.mediaItem?.type === "VIDEO" ||
+    mediaUrl.match(/\.(mp4|webm|mov)$/i);
+
+  if (isVideo) {
+    return <VideoPreview url={mediaUrl} />;
+  }
+
+  return (
+    <img src={mediaUrl} alt="Preview" className="w-full h-full object-cover" />
+  );
+};
+
 export const PublicationView = ({
   publicationId,
   onBack,
 }: PublicationViewProps) => {
+  // PRESERVED: Existing hooks and setup
   const { getColor, getFont } = useStyles();
   const openApp = useAppStore((state) => state.openApp);
 
@@ -110,7 +158,10 @@ export const PublicationView = ({
   return (
     <motion.div
       className="flex-1 min-w-0 flex flex-col h-full overflow-hidden scrollbar scrollbar-thumb-rose-500"
-      {...containerAnimation}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.3 }}
     >
       {/* Fixed Header */}
       <motion.div
@@ -166,18 +217,28 @@ export const PublicationView = ({
             </p>
           </motion.div>
 
-          {/* Preview Image */}
           <motion.div
             className="w-full aspect-[16/9] rounded-xl overflow-hidden border relative group"
             style={{ borderColor: getColor("Brd") }}
-            {...itemAnimation}
-            transition={{ delay: 0.2 }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{
+              type: "spring",
+              stiffness: 300,
+              damping: 30,
+              delay: 0.2,
+            }}
           >
-            <img
-              src={publication.previewImageUrl || "/media/_emptyimage.png"}
-              alt={publication.name}
-              className="w-full h-full object-cover"
-            />
+            {publication.previewData?.wallpaper?.mode === "media" &&
+            publication.previewData.wallpaper.value ? (
+              <VideoPreview url={publication.previewData.wallpaper.value} />
+            ) : (
+              <img
+                src="/media/system/_empty_image.png"
+                alt="Empty preview"
+                className="w-full h-full object-cover"
+              />
+            )}
             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
           </motion.div>
 

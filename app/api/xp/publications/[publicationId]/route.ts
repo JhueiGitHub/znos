@@ -1,4 +1,4 @@
-// app/api/xp/publications/[publicationId]/stats/route.ts
+// app/api/xp/publications/[publicationId]/route.ts
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { currentProfile } from "@/lib/current-profile";
@@ -13,6 +13,7 @@ export async function GET(
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
+    // EVOLVED: Include flow and its components
     const publication = await db.designSystemPublication.findUnique({
       where: {
         id: params.publicationId,
@@ -33,28 +34,36 @@ export async function GET(
       return new NextResponse("Publication not found", { status: 404 });
     }
 
-    // Get preview data from original flow
+    // EVOLVED: Get complete flow data including all components
     const flow = await db.flow.findUnique({
       where: {
         id: publication.designSystemId,
       },
       include: {
-        components: true,
+        components: {
+          include: {
+            mediaItem: true, // Include media information
+          },
+        },
       },
     });
 
+    // EVOLVED: Find wallpaper component and extract proper video URL
+    const wallpaperComponent = flow?.components.find(
+      (c) => c.type === "WALLPAPER" && c.mode === "media"
+    );
+
+    // EVOLVED: Enhance publication with proper wallpaper data
     const enhancedPublication = {
       ...publication,
       previewData: {
-        wallpaper: flow?.components.find((c) => c.type === "WALLPAPER")?.value,
-        dockIcons: flow?.components
-          .filter((c) => c.type === "DOCK_ICON")
-          .sort((a, b) => (a.order || 0) - (b.order || 0))
-          .map((c) => ({
-            id: c.id,
-            value: c.value,
-            mode: c.mode,
-          })),
+        wallpaper: wallpaperComponent
+          ? {
+              mode: wallpaperComponent.mode,
+              value: wallpaperComponent.value,
+              mediaItem: wallpaperComponent.mediaItem,
+            }
+          : undefined,
       },
     };
 

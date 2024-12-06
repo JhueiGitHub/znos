@@ -49,11 +49,11 @@ export const ServerChannel = ({
         params?.channelId === channel.id && "bg-black/30"
       )}
     >
-      <Icon className="flex-shrink-0 w-5 h-5" />
+      <Icon className="flex-shrink-0 w-5 h-5 text-[#4C4F69]" />
       <p
         className={cn(
-          "line-clamp-1 font-semibold text-sm text-zinc-400 group-hover:text-zinc-300 transition",
-          params?.channelId === channel.id && "text-white"
+          "line-clamp-1 font-semibold text-sm text-[#CCCCCC]/80 group-hover:text-[#CCCCCC]/80 transition",
+          params?.channelId === channel.id && "text-red-500"
         )}
       >
         {channel.name}
