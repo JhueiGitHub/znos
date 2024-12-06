@@ -1,4 +1,3 @@
-// app/apps/discord/App.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -8,11 +7,8 @@ import MainLayout from "./servers/[serverId]/layout";
 import { useModal } from "@dis/hooks/use-modal-store";
 import { AppSkeleton } from "./components/skeletons/AppSkeleton";
 
-interface ChannelSelectHandler {
-  (channelId: string | null): void;
-}
-
 const SetupPage = () => {
+  // PRESERVED: Core state
   const [isLoading, setIsLoading] = useState(true);
   const [currentView, setCurrentView] = useState<"initial" | "server">(
     "initial"
@@ -22,25 +18,37 @@ const SetupPage = () => {
 
   const { onOpen } = useModal();
 
-  // PRESERVED: Simple initial profile fetch with server data
+  // EVOLVED: Enhanced initialization flow
   useEffect(() => {
-    const fetchInitialProfile = async () => {
+    const initializeDiscordState = async () => {
       try {
-        const response = await fetch("/api/initial-profile");
-        const data = await response.json();
+        // Step 1: Get initial profile and available servers
+        const [profileRes, sidebarRes] = await Promise.all([
+          fetch("/api/initial-profile"),
+          fetch("/api/sidebar-data"),
+        ]);
 
-        // RESTORED: Original simple server check
-        if (data.server) {
-          setServerId(data.server.id);
+        const [profileData, sidebarData] = await Promise.all([
+          profileRes.json(),
+          sidebarRes.json(),
+        ]);
 
-          // PRESERVED: Channel selection if server exists
-          if (data.server.channels?.length > 0) {
-            const generalChannel = data.server.channels.find(
+        // Step 2: Select initial server (prioritize profile.server if exists)
+        const initialServer = profileData.server || sidebarData.servers?.[0];
+
+        if (initialServer?.id) {
+          setServerId(initialServer.id);
+
+          // Step 3: Get full server details
+          const serverRes = await fetch(`/api/servers/${initialServer.id}`);
+          const serverData = await serverRes.json();
+
+          // Step 4: Select initial channel
+          if (serverData.channels?.length) {
+            const generalChannel = serverData.channels.find(
               (c: any) => c.name === "general"
             );
-            setActiveChannelId(
-              generalChannel?.id || data.server.channels[0].id
-            );
+            setActiveChannelId(generalChannel?.id || serverData.channels[0].id);
           }
 
           setCurrentView("server");
@@ -48,14 +56,15 @@ const SetupPage = () => {
 
         setIsLoading(false);
       } catch (error) {
-        console.error("Failed to load initial discord state:", error);
+        console.error("Failed to initialize Discord state:", error);
         setIsLoading(false);
       }
     };
 
-    fetchInitialProfile();
+    initializeDiscordState();
   }, []);
 
+  // PRESERVED: Channel selection handler
   const handleChannelSelect = (channelId: string | null) => {
     setActiveChannelId(channelId);
     if (channelId) {
@@ -63,9 +72,7 @@ const SetupPage = () => {
     }
   };
 
-  if (isLoading) {
-    return <AppSkeleton />;
-  }
+  if (isLoading) return <AppSkeleton />;
 
   if (currentView === "initial") {
     return (
@@ -78,9 +85,11 @@ const SetupPage = () => {
     );
   }
 
+  // EVOLVED: Pass serverId explicitly to force synchronization
   if (currentView === "server" && serverId) {
     return (
       <MainLayout
+        initialServerId={serverId}
         onChannelSelect={handleChannelSelect}
         activeChannelId={activeChannelId}
       >

@@ -12,13 +12,14 @@ interface NavigationItemProps {
   imageUrl: string;
   name: string;
   onSelect: () => void;
+  initialServerId: string;
 }
-
 export const NavigationItem = ({
   id,
   imageUrl,
   name,
   onSelect,
+  initialServerId,
 }: NavigationItemProps) => {
   const params = useParams();
   const { getDiscordStyle } = useDiscordStyles();
