@@ -295,6 +295,45 @@ export const initialProfile = async () => {
       },
     });
 
+    // Add to the transaction in initial-profile.ts
+    // In initial-profile.ts within the transaction
+    const stellarProfile = await tx.stellarProfile.create({
+      data: {
+        profileId: profile.id,
+        name: `${user.firstName}'s Drive`,
+        driveCapacity: BigInt(1000000000), // 1GB default
+        currentUsage: 0,
+        settings: {
+          create: {
+            defaultView: "grid",
+            sortBy: "name",
+            showHidden: false,
+          },
+        },
+        rootFolder: {
+          create: {
+            name: "Root",
+            children: {
+              create: [
+                {
+                  name: "Documents",
+                  stellarProfileId: profile.id, // EVOLVED: Add required field
+                },
+                {
+                  name: "Downloads",
+                  stellarProfileId: profile.id, // EVOLVED: Add required field
+                },
+                {
+                  name: "Pictures",
+                  stellarProfileId: profile.id, // EVOLVED: Add required field
+                },
+              ],
+            },
+          },
+        },
+      },
+    });
+
     // Root folder creation stays the same...
     const rootFolder = await tx.folder.create({
       data: {

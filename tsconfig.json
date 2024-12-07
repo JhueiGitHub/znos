@@ -29,7 +29,9 @@
       "@flow/*": ["./app/apps/flow/*"],
       "@flowc/*": ["./app/apps/flow/components/*"],
       "@an/*": ["./app/apps/anki/*"],
-      "@anc/*": ["./app/apps/anki/components/*"]
+      "@anc/*": ["./app/apps/anki/components/*"],
+      "@stl/*": ["./app/apps/stellar/*"],
+      "@stlc/*": ["./app/apps/stellar/components/*"]
     },
     "target": "es2018",
     "types": ["@uploadcare/blocks/types/jsx"]
