@@ -6,6 +6,12 @@ import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Folder as FolderIcon } from "lucide-react";
 import { useStyles } from "@/app/hooks/useStyles";
+import localFont from "next/font/local";
+
+// Original functionality: Load ExemplarPro font
+const exemplarPro = localFont({
+  src: "../../../../public/fonts/SFProTextSemibold.ttf",
+});
 
 interface StellarFile {
   id: string;
@@ -71,7 +77,7 @@ export const FoldersArea = () => {
   // EVOLVED: Safely access folder.children and folder.files properties
   return (
     <div className="relative h-full flex-1 overflow-auto bg-[#010203]/30 p-4">
-      <div className="grid grid-cols-4 gap-4">
+      <div className="flex gap-[1px]">
         {rootFolder.children.map((folder) => (
           <motion.div
             key={folder.id}
@@ -80,32 +86,27 @@ export const FoldersArea = () => {
             transition={{ type: "spring", duration: 0.5 }}
           >
             <Card
-              className="aspect-square border border-white/[0.09] rounded-xl transition-all hover:border-white/20 cursor-pointer"
+              className="w-[128px] h-[128px] border border-white/[0.00] rounded-[19px] transition-all hover:border-white/[0.15] cursor-pointer"
               style={{ backgroundColor: getColor("Glass") }}
             >
-              <CardContent className="p-6 flex flex-col items-center justify-center gap-4">
-                <div
-                  className="w-16 h-16 rounded-xl flex items-center justify-center"
-                  style={{ backgroundColor: getColor("Underlying BG") }}
-                >
-                  <FolderIcon
-                    size={32}
-                    style={{ color: getColor("Text Primary (Hd)") }}
+              <CardContent className="p-6 flex flex-col items-center justify-center gap-[6px]">
+                <div className="w-16 h-16 rounded-xl flex items-center justify-center">
+                  <img
+                    src="/apps/stellar/icns/system/_folder.png"
+                    alt="Community"
+                    className="w-[128px] h-[128px] object-contain"
                   />
                 </div>
 
                 <div className="text-center">
                   <h3
-                    className="text-sm font-semibold truncate max-w-[150px]"
-                    style={{
-                      color: getColor("Text Primary (Hd)"),
-                      fontFamily: getFont("Text Primary"),
-                    }}
+                    className="text-[13px] font-semibold truncate max-w-[150px] text-[#626581ca]"
+                    style={exemplarPro.style}
                   >
                     {folder.name}
                   </h3>
                   <p
-                    className="text-xs mt-1"
+                    className="text-xs mt-1 hidden"
                     style={{
                       color: getColor("Text Secondary (Bd)"),
                       fontFamily: getFont("Text Secondary"),
