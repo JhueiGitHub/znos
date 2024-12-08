@@ -212,21 +212,50 @@ model AppConfig {
   @@index([flowId])
 }
 
+// In your schema.prisma
+
 model StellarProfile {
-  id            String  @id @default(cuid())
-  profileId     String  @unique
-  profile       Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  id            String          @id @default(cuid())
+  profileId     String          @unique
+  profile       Profile         @relation(fields: [profileId], references: [id], onDelete: Cascade)
   name          String
-  driveCapacity BigInt // Updated type to BigInt
+  driveCapacity BigInt
   currentUsage  Int
+  settings      StellarSettings?
 
-  settings   StellarSettings?
-  rootFolder StellarFolder?
+  // For 1:1 root folder relation
+  rootFolder    StellarFolder?  @relation("RootFolder", fields: [rootFolderId], references: [id])
+  rootFolderId  String?         @unique  // This ensures 1:1 for root folder
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  // For 1:many regular folders - no unique constraint
+  allFolders   StellarFolder[]  // This allows many folders per profile
+
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
 
   @@index([profileId])
+}
+
+model StellarFolder {
+  id               String          @id @default(cuid())
+  name             String
+  
+  // For folder hierarchy
+  parentId         String?
+  parent           StellarFolder?  @relation("FolderToFolder", fields: [parentId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  children         StellarFolder[] @relation("FolderToFolder")
+  
+  files            StellarFile[]
+
+  // For the 1:1 root folder relation
+  rootForProfile   StellarProfile? @relation("RootFolder")
+
+  // For the regular 1:many folder relation - REMOVED unique constraint
+  stellarProfileId String
+  stellarProfile   StellarProfile  @relation(fields: [stellarProfileId], references: [id], onUpdate: Restrict)
+
+  @@index([parentId])
+  @@index([stellarProfileId])
 }
 
 model StellarSettings {
@@ -238,19 +267,6 @@ model StellarSettings {
   showHidden       Boolean
 
   @@index([stellarProfileId])
-}
-
-model StellarFolder {
-  id               String          @id @default(cuid())
-  name             String
-  parentId         String?
-  parent           StellarFolder?  @relation("FolderToFolder", fields: [parentId], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  children         StellarFolder[] @relation("FolderToFolder")
-  files            StellarFile[]
-  stellarProfileId String          @unique
-  stellarProfile   StellarProfile  @relation(fields: [stellarProfileId], references: [id])
-
-  @@index([parentId])
 }
 
 model StellarFile {

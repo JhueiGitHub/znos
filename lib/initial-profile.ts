@@ -295,13 +295,12 @@ export const initialProfile = async () => {
       },
     });
 
-    // Add to the transaction in initial-profile.ts
-    // In initial-profile.ts within the transaction
+    // EVOLVED: Create stellar profile first
     const stellarProfile = await tx.stellarProfile.create({
       data: {
         profileId: profile.id,
         name: `${user.firstName}'s Drive`,
-        driveCapacity: BigInt(1000000000), // 1GB default
+        driveCapacity: BigInt(1000000000),
         currentUsage: 0,
         settings: {
           create: {
@@ -310,32 +309,43 @@ export const initialProfile = async () => {
             showHidden: false,
           },
         },
+      },
+    });
+
+    // EVOLVED: Create root folder with proper relation syntax
+    const rootFolder = await tx.stellarFolder.create({
+      data: {
+        name: "Root",
+        stellarProfileId: stellarProfile.id, // Direct ID reference
+      },
+    });
+
+    // EVOLVED: Update profile with root relation using proper syntax
+    await tx.stellarProfile.update({
+      where: { id: stellarProfile.id },
+      data: {
         rootFolder: {
-          create: {
-            name: "Root",
-            children: {
-              create: [
-                {
-                  name: "Documents",
-                  stellarProfileId: profile.id, // EVOLVED: Add required field
-                },
-                {
-                  name: "Downloads",
-                  stellarProfileId: profile.id, // EVOLVED: Add required field
-                },
-                {
-                  name: "Pictures",
-                  stellarProfileId: profile.id, // EVOLVED: Add required field
-                },
-              ],
-            },
-          },
+          connect: { id: rootFolder.id },
         },
       },
     });
 
-    // Root folder creation stays the same...
-    const rootFolder = await tx.folder.create({
+    // EVOLVED: Create child folders with proper syntax
+    const folders = ["Documents", "Downloads", "Pictures"];
+    await Promise.all(
+      folders.map((folderName) =>
+        tx.stellarFolder.create({
+          data: {
+            name: folderName,
+            parentId: rootFolder.id,
+            stellarProfileId: stellarProfile.id, // Direct ID reference
+          },
+        })
+      )
+    );
+
+    // PRESERVED: Rest of the transaction remains the same...
+    const osRootFolder = await tx.folder.create({
       data: {
         name: "Root",
         isRoot: true,
@@ -343,19 +353,17 @@ export const initialProfile = async () => {
       },
     });
 
-    // Welcome file creation stays the same...
     await tx.file.create({
       data: {
         name: "Welcome.txt",
         type: "text/plain",
         size: 23,
         content: "Welcome to StellarOS!",
-        folderId: rootFolder.id,
+        folderId: osRootFolder.id,
         profileId: profile.id,
       },
     });
 
-    // EVOLVED: Discord server creation within the same transaction
     await tx.server.create({
       data: {
         profileId: profile.id,
