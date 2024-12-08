@@ -38,7 +38,7 @@ export const appDefinitions: AppDefinition[] = [
     animationType: "magnify",
   },
   {
-    id: "discord",
+    id: "studio",
     name: "Discord",
     icon: "/media/figma.png",
     dockPosition: 4,
