@@ -253,6 +253,10 @@ model StellarFolder {
   // For the regular 1:many folder relation - REMOVED unique constraint
   stellarProfileId String
   stellarProfile   StellarProfile  @relation(fields: [stellarProfileId], references: [id], onUpdate: Restrict)
+  
+  // EVOLVED: Added sidebar tracking
+  inSidebar        Boolean         @default(false)
+  sidebarOrder     Int?            // null means not in sidebar
 
   @@index([parentId])
   @@index([stellarProfileId])

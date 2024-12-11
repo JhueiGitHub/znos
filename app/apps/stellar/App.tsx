@@ -6,12 +6,14 @@ import { SidebarInset, SidebarProvider } from "./components/ui/sidebar";
 import { NavBar } from "./components/nav-bar";
 import { FoldersArea } from "./components/folders-area";
 import { StatusBar } from "./components/status-bar";
+import { StellarKeyboardEvents } from "./components/ui/keyboard-listener";
 
 const Home = () => {
   return (
     <div className="flex flex-col overflow-hidden">
       <SidebarProvider>
         <div className="flex-1 flex overflow-hidden">
+          <StellarKeyboardEvents />
           <div className="flex">
             <AppSidebar />
           </div>

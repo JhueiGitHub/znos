@@ -330,15 +330,22 @@ export const initialProfile = async () => {
       },
     });
 
-    // EVOLVED: Create child folders with proper syntax
-    const folders = ["Documents", "Downloads", "Pictures"];
+    // In initial-profile.ts within the transaction
+    const folders = [
+      { name: "Documents", inSidebar: true, sidebarOrder: 0 },
+      { name: "Downloads", inSidebar: true, sidebarOrder: 1 },
+      { name: "Pictures", inSidebar: true, sidebarOrder: 2 },
+    ];
+
     await Promise.all(
-      folders.map((folderName) =>
+      folders.map((folder) =>
         tx.stellarFolder.create({
           data: {
-            name: folderName,
+            name: folder.name,
             parentId: rootFolder.id,
-            stellarProfileId: stellarProfile.id, // Direct ID reference
+            stellarProfileId: stellarProfile.id,
+            inSidebar: folder.inSidebar,
+            sidebarOrder: folder.sidebarOrder,
           },
         })
       )

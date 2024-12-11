@@ -1,5 +1,7 @@
 import * as React from "react";
 import { GalleryVerticalEnd } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import axios from "axios";
 
 import { SearchForm } from "./search-form";
 import {
@@ -13,160 +15,65 @@ import {
   SidebarGroup,
   SidebarHeader,
   SidebarMenu,
-  SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuButton,
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
   SidebarRail,
 } from "./ui/sidebar";
-import { MinusIcon, PlusIcon } from "@radix-ui/react-icons";
 
-// This is sample data.
-const data = {
-  navMain: [
-    {
-      title: "Getting Started",
-      url: "#",
-      items: [
-        {
-          title: "Installation",
-          url: "#",
-        },
-        {
-          title: "Project Structure",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Building Your Application",
-      url: "#",
-      items: [
-        {
-          title: "Routing",
-          url: "#",
-        },
-        {
-          title: "Data Fetching",
-          url: "#",
-          isActive: true,
-        },
-        {
-          title: "Rendering",
-          url: "#",
-        },
-        {
-          title: "Caching",
-          url: "#",
-        },
-        {
-          title: "Styling",
-          url: "#",
-        },
-        {
-          title: "Optimizing",
-          url: "#",
-        },
-        {
-          title: "Configuring",
-          url: "#",
-        },
-        {
-          title: "Testing",
-          url: "#",
-        },
-        {
-          title: "Authentication",
-          url: "#",
-        },
-        {
-          title: "Deploying",
-          url: "#",
-        },
-        {
-          title: "Upgrading",
-          url: "#",
-        },
-        {
-          title: "Examples",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "API Reference",
-      url: "#",
-      items: [
-        {
-          title: "Components",
-          url: "#",
-        },
-        {
-          title: "File Conventions",
-          url: "#",
-        },
-        {
-          title: "Functions",
-          url: "#",
-        },
-        {
-          title: "next.config.js Options",
-          url: "#",
-        },
-        {
-          title: "CLI",
-          url: "#",
-        },
-        {
-          title: "Edge Runtime",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Architecture",
-      url: "#",
-      items: [
-        {
-          title: "Accessibility",
-          url: "#",
-        },
-        {
-          title: "Fast Refresh",
-          url: "#",
-        },
-        {
-          title: "Next.js Compiler",
-          url: "#",
-        },
-        {
-          title: "Supported Browsers",
-          url: "#",
-        },
-        {
-          title: "Turbopack",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Community",
-      url: "#",
-      items: [
-        {
-          title: "Contribution Guide",
-          url: "#",
-        },
-      ],
-    },
-  ],
-};
+// EVOLVED: Type definitions
+interface StellarFolder {
+  id: string;
+  name: string;
+  inSidebar: boolean;
+  sidebarOrder: number | null;
+  children: StellarFolder[];
+  files: any[]; // Preserved for future file handling
+}
+
+interface StellarProfile {
+  rootFolder: {
+    children: StellarFolder[];
+  };
+  driveCapacity: string;
+}
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  // EVOLVED: Data fetching
+  const { data: profile, isLoading } = useQuery<StellarProfile>({
+    queryKey: ["stellar-folders"],
+    queryFn: async () => {
+      const response = await axios.get("/api/stellar/folders?sidebar=true");
+      return response.data;
+    },
+  });
+
+  // EVOLVED: Drag and drop handlers
+  const handleDragStart = (e: React.DragEvent, folderId: string) => {
+    e.dataTransfer.setData("text/plain", folderId);
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    const folderId = e.dataTransfer.getData("text/plain");
+
+    try {
+      await axios.patch("/api/stellar/folders", {
+        folderId,
+        inSidebar: true,
+        sidebarOrder: profile?.rootFolder.children.length || 0,
+      });
+    } catch (error) {
+      console.error("Failed to update sidebar status:", error);
+    }
+  };
+
   return (
     <Sidebar {...props}>
-      <SidebarHeader>
+      {/* PRESERVED: Header section */}
+      {/* <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
@@ -175,55 +82,78 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   <GalleryVerticalEnd className="size-4" />
                 </div>
                 <div className="flex flex-col gap-0.5 leading-none">
-                  <span className="font-semibold">Documentation</span>
-                  <span className="">v1.0.0</span>
+                  <span className="font-semibold">Documents</span>
+                  <span className="text-xs text-muted-foreground">
+                    {profile?.driveCapacity} GB
+                  </span>
                 </div>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
         <SearchForm />
-      </SidebarHeader>
-      <SidebarContent>
+      </SidebarHeader> */}
+
+      {/* EVOLVED: Dynamic content section */}
+      <SidebarContent
+        onDrop={handleDrop}
+        onDragOver={(e) => e.preventDefault()}
+      >
         <SidebarGroup>
           <SidebarMenu>
-            {data.navMain.map((item, index) => (
+            {profile?.rootFolder.children.map((folder) => (
               <Collapsible
-                key={item.title}
-                defaultOpen={index === 1}
+                key={folder.id}
+                defaultOpen={true}
                 className="group/collapsible"
               >
                 <SidebarMenuItem>
                   <CollapsibleTrigger asChild>
-                    <SidebarMenuButton>
-                      {item.title}{" "}
-                      <PlusIcon className="ml-auto group-data-[state=open]/collapsible:hidden" />
-                      <MinusIcon className="ml-auto group-data-[state=closed]/collapsible:hidden" />
+                    <SidebarMenuButton
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, folder.id)}
+                    >
+                      {/* PRESERVED: Consistent folder icon */}
+                      <img
+                        src="/apps/stellar/icns/system/_sidebar_folder.png"
+                        alt=""
+                        className="w-4 h-4 mr-1"
+                      />
+                      {folder.name}
                     </SidebarMenuButton>
                   </CollapsibleTrigger>
-                  {item.items?.length ? (
+                  {folder.children?.length > 0 && (
                     <CollapsibleContent>
                       <SidebarMenuSub>
-                        {item.items.map((item) => (
-                          <SidebarMenuSubItem key={item.title}>
+                        {folder.children.map((subFolder) => (
+                          <SidebarMenuSubItem key={subFolder.id}>
                             <SidebarMenuSubButton
-                              asChild
-                              isActive={item.isActive}
+                              draggable
+                              onDragStart={(e) =>
+                                handleDragStart(e, subFolder.id)
+                              }
                             >
-                              <a href={item.url}>{item.title}</a>
+                              <img
+                                src="/apps/stellar/icns/system/_sidebar_folder.png"
+                                alt=""
+                                className="w-4 h-4 mr-1"
+                              />
+                              {subFolder.name}
                             </SidebarMenuSubButton>
                           </SidebarMenuSubItem>
                         ))}
                       </SidebarMenuSub>
                     </CollapsibleContent>
-                  ) : null}
+                  )}
                 </SidebarMenuItem>
               </Collapsible>
             ))}
           </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarRail />
+
+      {/* PRESERVED: Rail */}
+      {/* <SidebarRail /> */}
     </Sidebar>
   );
 }
