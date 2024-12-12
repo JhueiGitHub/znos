@@ -61,60 +61,49 @@ export const FoldersArea = () => {
   }, []);
 
   // EVOLVED: File upload handling using proven media page mechanics
+  // Inside the FoldersArea component, replace handleFileUpload with:
+
+  // Inside the FoldersArea component, the fixed handleFileUpload:
+
   const handleFileUpload = useCallback(
     async (file: File) => {
       try {
         setIsUploading(true);
 
-        // PRESERVED: Exact working media detection from media page
-        const response = await fetch(
-          file.type.startsWith("video/")
-            ? "/api/uploadUrl?type=video"
-            : "/api/uploadUrl",
-          {
-            method: "GET",
-          }
+        // PRESERVED: Exact media app FormData construction
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("UPLOADCARE_PUB_KEY", "f908b6ff47aba6efd711");
+
+        // PRESERVED: Same upload URL logic as media app
+        const uploadResponse = await axios.post(
+          "https://upload.uploadcare.com/base/",
+          formData
         );
 
-        if (!response.ok) throw new Error("Failed to get upload URL");
-        const { url } = await response.json();
-
-        // PRESERVED: Direct file upload mechanic from media page
-        const uploadResponse = await fetch(url, {
-          method: "POST",
-          headers: {
-            "Content-Type": file.type,
-          },
-          body: file,
-        });
-
-        if (!uploadResponse.ok) throw new Error("Upload failed");
-        const { cdnUrl } = await uploadResponse.json();
-
-        // EVOLVED: Type detection from media page
-        let type: "IMAGE" | "VIDEO" | "FONT";
-        if (file.type.startsWith("video/")) {
-          type = "VIDEO";
-        } else if (
-          file.type.startsWith("font/") ||
-          file.name.match(/\.(ttf|otf|woff|woff2)$/)
-        ) {
-          type = "FONT";
-        } else {
-          type = "IMAGE";
+        if (!uploadResponse?.data?.file) {
+          throw new Error("Upload failed");
         }
 
-        // EVOLVED: Save to stellar files
+        const cdnUrl = `https://ucarecdn.com/${uploadResponse.data.file}/`;
+
+        // Step 1: Create media item exactly like media app
+        await axios.post("/api/media", {
+          name: file.name,
+          type: file.type.startsWith("video/") ? "VIDEO" : "IMAGE",
+          url: cdnUrl,
+        });
+
+        // Step 2: Also create stellar file entry
         await axios.post("/api/stellar/files", {
           name: file.name,
-          type,
           url: cdnUrl,
           size: file.size,
           mimeType: file.type,
           folderId: profile?.rootFolder?.id,
         });
 
-        // Refresh folder contents
+        // PRESERVED: Refresh folder contents
         const updatedProfile = await axios.get("/api/stellar/folders");
         setProfile(updatedProfile.data);
       } catch (error) {
@@ -209,82 +198,102 @@ export const FoldersArea = () => {
       </AnimatePresence>
 
       {/* PRESERVED: Original folder layout */}
-      <div className="flex flex-wrap gap-[1px]">
+      {/* EVOLVED: Replace the entire files mapping section */}
+      <div className="flex flex-wrap gap-6 p-4">
+        {/* EVOLVED: Folders without unnecessary container */}
         {rootFolder.children.map((folder) => (
           <motion.div
             key={folder.id}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ type: "spring", duration: 0.5 }}
+            className="flex flex-col items-center"
           >
-            <Card
-              className="w-[128px] h-[128px] border border-white/[0.00] rounded-[19px] transition-all hover:border-white/[0.15] cursor-pointer"
-              style={{ backgroundColor: getColor("Glass") }}
-            >
-              <CardContent className="p-6 flex flex-col items-center justify-center gap-[6px]">
-                <div className="w-16 h-16 rounded-xl flex items-center justify-center">
-                  <img
-                    src="/apps/stellar/icns/system/_folder.png"
-                    alt="Folder"
-                    className="w-[64px] h-[64px] object-contain"
-                  />
-                </div>
+            <div className="w-16 h-16 rounded-xl flex items-center justify-center">
+              <img
+                src="/apps/stellar/icns/system/_folder.png"
+                alt={folder.name}
+                className="w-[64px] h-[64px] object-contain"
+              />
+            </div>
 
-                <div className="text-center">
-                  <h3
-                    className="text-[13px] font-semibold truncate max-w-[150px] text-[#626581ca]"
-                    style={exemplarPro.style}
-                  >
-                    {folder.name}
-                  </h3>
-                </div>
-              </CardContent>
-            </Card>
+            <h3
+              className="text-[13px] font-semibold truncate max-w-[150px] text-[#626581ca] mt-1"
+              style={exemplarPro.style}
+            >
+              {folder.name}
+            </h3>
           </motion.div>
         ))}
 
-        {/* EVOLVED: Files display with media preview */}
+        {/* EVOLVED: Files with precise video styling */}
         {rootFolder.files.map((file) => (
           <motion.div
             key={file.id}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ type: "spring", duration: 0.5 }}
+            className="flex flex-col items-center"
           >
-            <Card
-              className="w-[128px] h-[128px] border border-white/[0.00] rounded-[19px] transition-all hover:border-white/[0.15] cursor-pointer overflow-hidden"
-              style={{ backgroundColor: getColor("Glass") }}
-            >
-              <CardContent className="p-0 h-full relative">
-                {file.mimeType?.startsWith("video/") ? (
-                  <video
-                    src={file.url}
-                    className="absolute inset-0 w-full h-full object-cover"
-                    autoPlay
-                    muted
-                    loop
-                    playsInline
-                  />
-                ) : file.mimeType?.startsWith("image/") ? (
+            {file.mimeType?.startsWith("video/") ? (
+              <div className="flex flex-col items-center">
+                {/* PRESERVED: Square container for layout consistency */}
+                <div className="relative w-16 h-16 flex items-center justify-center">
+                  {/* EVOLVED: 16:9 video container centered in square */}
+                  <div className="w-full h-12">
+                    {" "}
+                    {/* 16:9 ratio: 36px height in 64px container */}
+                    <video
+                      src={file.url}
+                      className="w-full h-full object-cover rounded-[9px]"
+                      autoPlay
+                      muted
+                      loop
+                      playsInline
+                    />
+                  </div>
+                </div>
+                <h3
+                  className="text-[13px] font-semibold truncate max-w-[150px] text-[#626581ca] mt-1"
+                  style={exemplarPro.style}
+                >
+                  {file.name}
+                </h3>
+              </div>
+            ) : file.mimeType?.startsWith("image/") ? (
+              <>
+                <div className="w-16 h-16">
                   <img
                     src={file.url}
                     alt={file.name}
-                    className="absolute inset-0 w-full h-full object-cover"
+                    className="w-full h-full object-cover rounded-lg"
                   />
-                ) : (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center p-4">
-                    <img
-                      src="/apps/stellar/icns/system/_file.png"
-                      alt={file.name}
-                      className="w-16 h-16 object-contain mb-2"
-                    />
-                    <span className="text-[11px] text-[#626581ca] truncate w-full text-center">
-                      {file.name}
-                    </span>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                </div>
+                <h3
+                  className="text-[13px] font-semibold truncate max-w-[150px] text-[#626581ca] mt-1"
+                  style={exemplarPro.style}
+                >
+                  {file.name}
+                </h3>
+              </>
+            ) : (
+              // Default file icon case remains unchanged
+              <>
+                <div className="w-16 h-16 flex items-center justify-center">
+                  <img
+                    src="/apps/stellar/icns/system/_file.png"
+                    alt={file.name}
+                    className="w-[64px] h-[64px] object-contain"
+                  />
+                </div>
+                <h3
+                  className="text-[13px] font-semibold truncate max-w-[150px] text-[#626581ca] mt-1"
+                  style={exemplarPro.style}
+                >
+                  {file.name}
+                </h3>
+              </>
+            )}
           </motion.div>
         ))}
       </div>
