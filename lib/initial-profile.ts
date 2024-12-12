@@ -331,10 +331,29 @@ export const initialProfile = async () => {
     });
 
     // In initial-profile.ts within the transaction
+    // In initial-profile.ts where folders are created
+    const GRID_SPACING = 100; // Pixels between items
+    const INITIAL_OFFSET = 50; // Initial padding from top-left
+
     const folders = [
-      { name: "Documents", inSidebar: true, sidebarOrder: 0 },
-      { name: "Downloads", inSidebar: true, sidebarOrder: 1 },
-      { name: "Pictures", inSidebar: true, sidebarOrder: 2 },
+      {
+        name: "Documents",
+        inSidebar: true,
+        sidebarOrder: 0,
+        position: { x: INITIAL_OFFSET, y: INITIAL_OFFSET },
+      },
+      {
+        name: "Downloads",
+        inSidebar: true,
+        sidebarOrder: 1,
+        position: { x: INITIAL_OFFSET + GRID_SPACING, y: INITIAL_OFFSET },
+      },
+      {
+        name: "Pictures",
+        inSidebar: true,
+        sidebarOrder: 2,
+        position: { x: INITIAL_OFFSET + GRID_SPACING * 2, y: INITIAL_OFFSET },
+      },
     ];
 
     await Promise.all(
@@ -346,6 +365,7 @@ export const initialProfile = async () => {
             stellarProfileId: stellarProfile.id,
             inSidebar: folder.inSidebar,
             sidebarOrder: folder.sidebarOrder,
+            position: folder.position,
           },
         })
       )

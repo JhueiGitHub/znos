@@ -3,22 +3,25 @@
 import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
-import { Card, CardContent } from "@/components/ui/card";
 import { useStyles } from "@/app/hooks/useStyles";
 import localFont from "next/font/local";
 
-// PRESERVED: Original font loading
 const exemplarPro = localFont({
   src: "../../../../public/fonts/SFProTextSemibold.ttf",
 });
 
-// PRESERVED: Original interfaces
+interface Position {
+  x: number;
+  y: number;
+}
+
 interface StellarFile {
   id: string;
   name: string;
   url: string;
   size: number;
   mimeType: string;
+  position: Position;
 }
 
 interface StellarFolder {
@@ -26,6 +29,7 @@ interface StellarFolder {
   name: string;
   children: StellarFolder[];
   files: StellarFile[];
+  position: Position;
 }
 
 interface StellarProfile {
@@ -36,20 +40,47 @@ interface StellarProfile {
   rootFolder: StellarFolder;
 }
 
+type CanvasItem = {
+  id: string;
+  itemType: "folder" | "file";
+  data: StellarFile | StellarFolder;
+  position: Position;
+};
+
 export const FoldersArea = () => {
   const [profile, setProfile] = useState<StellarProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const { getColor, getFont } = useStyles();
+  const [items, setItems] = useState<CanvasItem[]>([]);
+  const [fileDropActive, setFileDropActive] = useState(false);
+  const { getColor } = useStyles();
 
-  // PRESERVED: Original folder fetching
   useEffect(() => {
     const fetchFolders = async () => {
       try {
         setIsLoading(true);
         const response = await axios.get("/api/stellar/folders");
         setProfile(response.data);
+
+        if (response.data.rootFolder) {
+          const canvasItems: CanvasItem[] = [
+            ...response.data.rootFolder.children.map(
+              (folder: StellarFolder) => ({
+                id: folder.id,
+                itemType: "folder",
+                data: folder,
+                position: folder.position || { x: 0, y: 0 },
+              })
+            ),
+            ...response.data.rootFolder.files.map((file: StellarFile) => ({
+              id: file.id,
+              itemType: "file",
+              data: file,
+              position: file.position || { x: 0, y: 0 },
+            })),
+          ];
+          setItems(canvasItems);
+        }
       } catch (error) {
         console.error("Failed to fetch folders:", error);
       } finally {
@@ -60,22 +91,57 @@ export const FoldersArea = () => {
     fetchFolders();
   }, []);
 
-  // EVOLVED: File upload handling using proven media page mechanics
-  // Inside the FoldersArea component, replace handleFileUpload with:
+  const handleDragEnd = useCallback(
+    async (item: CanvasItem, position: Position) => {
+      try {
+        const endpoint =
+          item.itemType === "file"
+            ? `/api/stellar/files/${item.id}/position`
+            : `/api/stellar/folders/${item.id}/position`;
 
-  // Inside the FoldersArea component, the fixed handleFileUpload:
+        await axios.patch(endpoint, { position });
+
+        setItems((prev) =>
+          prev.map((prevItem) =>
+            prevItem.id === item.id ? { ...prevItem, position } : prevItem
+          )
+        );
+      } catch (error) {
+        console.error("Failed to update position:", error);
+      }
+    },
+    []
+  );
+
+  // File upload handlers
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    if (e.dataTransfer.types.includes("Files")) {
+      setFileDropActive(true);
+    }
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    const rect = e.currentTarget.getBoundingClientRect();
+    if (
+      e.clientY <= rect.top ||
+      e.clientY >= rect.bottom ||
+      e.clientX <= rect.left ||
+      e.clientX >= rect.right
+    ) {
+      setFileDropActive(false);
+    }
+  }, []);
 
   const handleFileUpload = useCallback(
-    async (file: File) => {
+    async (file: File, dropPosition: Position) => {
       try {
         setIsUploading(true);
-
-        // PRESERVED: Exact media app FormData construction
         const formData = new FormData();
         formData.append("file", file);
         formData.append("UPLOADCARE_PUB_KEY", "f908b6ff47aba6efd711");
 
-        // PRESERVED: Same upload URL logic as media app
         const uploadResponse = await axios.post(
           "https://upload.uploadcare.com/base/",
           formData
@@ -87,25 +153,24 @@ export const FoldersArea = () => {
 
         const cdnUrl = `https://ucarecdn.com/${uploadResponse.data.file}/`;
 
-        // Step 1: Create media item exactly like media app
-        await axios.post("/api/media", {
-          name: file.name,
-          type: file.type.startsWith("video/") ? "VIDEO" : "IMAGE",
-          url: cdnUrl,
-        });
-
-        // Step 2: Also create stellar file entry
-        await axios.post("/api/stellar/files", {
+        const fileResponse = await axios.post("/api/stellar/files", {
           name: file.name,
           url: cdnUrl,
           size: file.size,
           mimeType: file.type,
           folderId: profile?.rootFolder?.id,
+          position: dropPosition,
         });
 
-        // PRESERVED: Refresh folder contents
-        const updatedProfile = await axios.get("/api/stellar/folders");
-        setProfile(updatedProfile.data);
+        setItems((prev) => [
+          ...prev,
+          {
+            id: fileResponse.data.id,
+            itemType: "file",
+            data: fileResponse.data,
+            position: dropPosition,
+          },
+        ]);
       } catch (error) {
         console.error("Upload error:", error);
       } finally {
@@ -115,47 +180,26 @@ export const FoldersArea = () => {
     [profile?.rootFolder?.id]
   );
 
-  // EVOLVED: Enhanced drag and drop handlers
-  const handleDragOver = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      if (!isDragging) setIsDragging(true);
-    },
-    [isDragging]
-  );
-
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const rect = e.currentTarget.getBoundingClientRect();
-    if (
-      e.clientY <= rect.top ||
-      e.clientY >= rect.bottom ||
-      e.clientX <= rect.left ||
-      e.clientX >= rect.right
-    ) {
-      setIsDragging(false);
-    }
-  }, []);
-
   const handleDrop = useCallback(
     async (e: React.DragEvent) => {
       e.preventDefault();
-      e.stopPropagation();
-      setIsDragging(false);
+      setFileDropActive(false);
+
+      const dropPosition = {
+        x: e.clientX - e.currentTarget.getBoundingClientRect().left,
+        y: e.clientY - e.currentTarget.getBoundingClientRect().top,
+      };
 
       const { files } = e.dataTransfer;
       if (files?.length) {
         for (const file of Array.from(files)) {
-          await handleFileUpload(file);
+          await handleFileUpload(file, dropPosition);
         }
       }
     },
     [handleFileUpload]
   );
 
-  // PRESERVED: Loading state with skeleton grid
   if (isLoading) {
     return (
       <div className="grid grid-cols-4 gap-4 h-full p-4">
@@ -169,19 +213,15 @@ export const FoldersArea = () => {
     );
   }
 
-  const rootFolder = profile?.rootFolder;
-  if (!rootFolder) return null;
-
   return (
     <div
-      className="relative h-full flex-1 overflow-auto bg-[#010203]/30 p-4"
+      className="relative h-full flex-1 overflow-hidden bg-[#010203]/30"
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
-      {/* EVOLVED: Upload overlay */}
       <AnimatePresence>
-        {isDragging && (
+        {fileDropActive && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -197,100 +237,82 @@ export const FoldersArea = () => {
         )}
       </AnimatePresence>
 
-      {/* PRESERVED: Original folder layout */}
-      {/* EVOLVED: Replace the entire files mapping section */}
-      <div className="flex flex-wrap gap-6 p-4">
-        {/* EVOLVED: Folders without unnecessary container */}
-        {rootFolder.children.map((folder) => (
+      <div className="relative w-full h-full">
+        {items.map((item) => (
           <motion.div
-            key={folder.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ type: "spring", duration: 0.5 }}
-            className="flex flex-col items-center"
+            key={item.id}
+            className="absolute flex flex-col items-center cursor-grab active:cursor-grabbing"
+            drag
+            dragMomentum={false}
+            dragTransition={{ power: 0 }}
+            initial={false}
+            animate={{ x: item.position.x, y: item.position.y }}
+            onDragEnd={(_, info) => {
+              const finalPosition = {
+                x: item.position.x + info.offset.x,
+                y: item.position.y + info.offset.y,
+              };
+              handleDragEnd(item, finalPosition);
+            }}
           >
-            <div className="w-16 h-16 rounded-xl flex items-center justify-center">
-              <img
-                src="/apps/stellar/icns/system/_folder.png"
-                alt={folder.name}
-                className="w-[64px] h-[64px] object-contain"
-              />
-            </div>
-
-            <h3
-              className="text-[13px] font-semibold truncate max-w-[150px] text-[#626581ca] mt-1"
-              style={exemplarPro.style}
-            >
-              {folder.name}
-            </h3>
-          </motion.div>
-        ))}
-
-        {/* EVOLVED: Files with precise video styling */}
-        {rootFolder.files.map((file) => (
-          <motion.div
-            key={file.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ type: "spring", duration: 0.5 }}
-            className="flex flex-col items-center"
-          >
-            {file.mimeType?.startsWith("video/") ? (
-              <div className="flex flex-col items-center">
-                {/* PRESERVED: Square container for layout consistency */}
-                <div className="relative w-16 h-16 flex items-center justify-center">
-                  {/* EVOLVED: 16:9 video container centered in square */}
-                  <div className="w-full h-12">
-                    {" "}
-                    {/* 16:9 ratio: 36px height in 64px container */}
-                    <video
-                      src={file.url}
-                      className="w-full h-full object-cover rounded-[9px]"
-                      autoPlay
-                      muted
-                      loop
-                      playsInline
-                    />
-                  </div>
-                </div>
-                <h3
-                  className="text-[13px] font-semibold truncate max-w-[150px] text-[#626581ca] mt-1"
-                  style={exemplarPro.style}
-                >
-                  {file.name}
-                </h3>
-              </div>
-            ) : file.mimeType?.startsWith("image/") ? (
+            {item.itemType === "folder" ? (
               <>
-                <div className="w-16 h-16">
+                <div className="w-16 h-16 rounded-xl flex items-center justify-center">
                   <img
-                    src={file.url}
-                    alt={file.name}
-                    className="w-full h-full object-cover rounded-lg"
+                    src="/apps/stellar/icns/system/_folder.png"
+                    alt={item.data.name}
+                    className="w-[64px] h-[64px] object-contain"
+                    draggable={false}
                   />
                 </div>
                 <h3
                   className="text-[13px] font-semibold truncate max-w-[150px] text-[#626581ca] mt-1"
                   style={exemplarPro.style}
                 >
-                  {file.name}
+                  {item.data.name}
                 </h3>
               </>
             ) : (
-              // Default file icon case remains unchanged
               <>
-                <div className="w-16 h-16 flex items-center justify-center">
-                  <img
-                    src="/apps/stellar/icns/system/_file.png"
-                    alt={file.name}
-                    className="w-[64px] h-[64px] object-contain"
-                  />
-                </div>
+                {(item.data as StellarFile).mimeType?.startsWith("video/") ? (
+                  <div className="relative w-16 h-16 flex items-center justify-center">
+                    <div className="w-full h-12">
+                      <video
+                        src={(item.data as StellarFile).url}
+                        className="w-full h-full object-cover rounded-[9px]"
+                        autoPlay
+                        muted
+                        loop
+                        playsInline
+                      />
+                    </div>
+                  </div>
+                ) : (item.data as StellarFile).mimeType?.startsWith(
+                    "image/"
+                  ) ? (
+                  <div className="w-16 h-16">
+                    <img
+                      src={(item.data as StellarFile).url}
+                      alt={item.data.name}
+                      className="w-full h-full object-cover rounded-lg"
+                      draggable={false}
+                    />
+                  </div>
+                ) : (
+                  <div className="w-16 h-16 flex items-center justify-center">
+                    <img
+                      src="/apps/stellar/icns/system/_file.png"
+                      alt={item.data.name}
+                      className="w-[64px] h-[64px] object-contain"
+                      draggable={false}
+                    />
+                  </div>
+                )}
                 <h3
                   className="text-[13px] font-semibold truncate max-w-[150px] text-[#626581ca] mt-1"
                   style={exemplarPro.style}
                 >
-                  {file.name}
+                  {item.data.name}
                 </h3>
               </>
             )}
@@ -298,7 +320,6 @@ export const FoldersArea = () => {
         ))}
       </div>
 
-      {/* Upload progress indicator */}
       {isUploading && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="text-[#ABC4C3]">Uploading...</div>

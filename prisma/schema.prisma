@@ -244,6 +244,8 @@ model StellarFolder {
   parentId         String?
   parent           StellarFolder?  @relation("FolderToFolder", fields: [parentId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   children         StellarFolder[] @relation("FolderToFolder")
+
+  position Json @default("{\"x\":0,\"y\":0}")
   
   files            StellarFile[]
 
@@ -279,6 +281,7 @@ model StellarFile {
   url             String
   size            Int
   mimeType        String
+  position Json @default("{\"x\":0,\"y\":0}")
   stellarFolderId String
   stellarFolder   StellarFolder @relation(fields: [stellarFolderId], references: [id], onDelete: Restrict, onUpdate: Restrict)
 
