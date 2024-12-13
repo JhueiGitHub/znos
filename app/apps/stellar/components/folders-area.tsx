@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 import { useStyles } from "@/app/hooks/useStyles";
@@ -47,6 +47,11 @@ type CanvasItem = {
   position: Position;
 };
 
+interface EditState {
+  id: string | null;
+  value: string;
+}
+
 export const FoldersArea = () => {
   const [profile, setProfile] = useState<StellarProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -54,6 +59,19 @@ export const FoldersArea = () => {
   const [items, setItems] = useState<CanvasItem[]>([]);
   const [fileDropActive, setFileDropActive] = useState(false);
   const { getColor } = useStyles();
+  const [editState, setEditState] = useState<EditState>({
+    id: null,
+    value: "",
+  });
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Effect to focus input when editing starts
+  useEffect(() => {
+    if (editState.id && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [editState.id]);
 
   useEffect(() => {
     const fetchFolders = async () => {
@@ -200,6 +218,65 @@ export const FoldersArea = () => {
     [handleFileUpload]
   );
 
+  const handleDoubleClick = useCallback(
+    (item: CanvasItem, e: React.MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.tagName.toLowerCase() === "h3") {
+        setEditState({ id: item.id, value: item.data.name });
+      }
+    },
+    []
+  );
+
+  const handleRename = useCallback(
+    async (item: CanvasItem, newName: string) => {
+      try {
+        const response = await axios.patch(`/api/stellar/folders/${item.id}`, {
+          name: newName,
+        });
+
+        setItems((prev) =>
+          prev.map((prevItem) =>
+            prevItem.id === item.id
+              ? { ...prevItem, data: { ...prevItem.data, name: newName } }
+              : prevItem
+          )
+        );
+      } catch (error) {
+        console.error("Failed to rename folder:", error);
+      } finally {
+        setEditState({ id: null, value: "" });
+      }
+    },
+    []
+  );
+
+  const handleInputBlur = useCallback(
+    (item: CanvasItem) => {
+      if (editState.value.trim() && editState.value !== item.data.name) {
+        handleRename(item, editState.value);
+      } else {
+        setEditState({ id: null, value: "" });
+      }
+    },
+    [editState.value, handleRename]
+  );
+
+  const handleInputKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>, item: CanvasItem) => {
+      if (e.key === "Enter") {
+        if (editState.value.trim() && editState.value !== item.data.name) {
+          handleRename(item, editState.value);
+        } else {
+          setEditState({ id: null, value: "" });
+        }
+      } else if (e.key === "Escape") {
+        setEditState({ id: null, value: "" });
+      }
+    },
+    [editState.value, handleRename]
+  );
+
   if (isLoading) {
     return (
       <div className="grid grid-cols-4 gap-4 h-full p-4">
@@ -254,6 +331,7 @@ export const FoldersArea = () => {
               };
               handleDragEnd(item, finalPosition);
             }}
+            onDoubleClick={(e) => handleDoubleClick(item, e)}
           >
             {item.itemType === "folder" ? (
               <>
@@ -265,12 +343,28 @@ export const FoldersArea = () => {
                     draggable={false}
                   />
                 </div>
-                <h3
-                  className="text-[13px] font-semibold truncate max-w-[150px] text-[#626581ca] mt-1"
-                  style={exemplarPro.style}
-                >
-                  {item.data.name}
-                </h3>
+                {editState.id === item.id ? (
+                  <input
+                    ref={inputRef}
+                    type="text"
+                    value={editState.value}
+                    onChange={(e) =>
+                      setEditState({ ...editState, value: e.target.value })
+                    }
+                    onBlur={() => handleInputBlur(item)}
+                    onKeyDown={(e) => handleInputKeyDown(e, item)}
+                    className="text-[13px] font-semibold bg-[#4C4F69]/10 px-2 py-1 rounded outline-none focus:ring-2 focus:ring-[#4C4F69]/20 text-[#626581] mt-1"
+                    style={exemplarPro.style}
+                    maxLength={255}
+                  />
+                ) : (
+                  <h3
+                    className="text-[13px] font-semibold truncate max-w-[150px] text-[#626581ca] mt-1"
+                    style={exemplarPro.style}
+                  >
+                    {item.data.name}
+                  </h3>
+                )}
               </>
             ) : (
               <>
