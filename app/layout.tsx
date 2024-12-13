@@ -7,6 +7,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { DesignSystemProvider } from "./contexts/DesignSystemContext";
 import QueryProvider from "@/app/components/providers/query-provider";
 import { SocketProvider } from "./apps/discord/components/providers/socket-provider";
+import { Analytics } from "@vercel/analytics/react";
 
 export const metadata = {
   title: "Orion",
@@ -25,7 +26,10 @@ export default function RootLayout({
           <QueryProvider>
             <DesignSystemProvider>
               <body className="h-screen w-screen bg-black">
-                <OTPWrapper>{children}</OTPWrapper>
+                <OTPWrapper>
+                  {children}
+                  <Analytics />
+                </OTPWrapper>
                 <Toaster
                   position="bottom-right"
                   theme="dark"
