@@ -1,4 +1,3 @@
-// /root/app/apps/stellar/App.tsx
 "use client";
 
 import { AppSidebar } from "./components/app-sidebar";
@@ -8,7 +7,11 @@ import { FoldersArea } from "./components/folders-area";
 import { StatusBar } from "./components/status-bar";
 import { StellarKeyboardEvents } from "./components/ui/keyboard-listener";
 
-const Home = () => {
+interface HomeProps {
+  folderId?: string;
+}
+
+const Home: React.FC<HomeProps> = ({ folderId }) => {
   return (
     <div className="flex flex-col overflow-hidden">
       <SidebarProvider>
@@ -20,8 +23,8 @@ const Home = () => {
 
           <SidebarInset className="bg-black/0 flex-1 min-w-0">
             <main className="h-full flex flex-col">
-              <NavBar />
-              <FoldersArea />
+              <NavBar currentFolderId={folderId} />
+              <FoldersArea folderId={folderId} />
               <StatusBar />
             </main>
           </SidebarInset>

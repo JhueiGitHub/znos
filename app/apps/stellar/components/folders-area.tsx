@@ -5,6 +5,8 @@ import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 import { useStyles } from "@/app/hooks/useStyles";
 import localFont from "next/font/local";
+import { useRouter } from "next/navigation";
+import { ChevronLeft } from "lucide-react";
 
 const exemplarPro = localFont({
   src: "../../../../public/fonts/SFProTextSemibold.ttf",
@@ -52,7 +54,16 @@ interface EditState {
   value: string;
 }
 
-export const FoldersArea = () => {
+// In FoldersArea.tsx
+interface FoldersAreaProps {
+  initialFolderId?: string;
+}
+
+export const FoldersArea = ({ initialFolderId }: FoldersAreaProps) => {
+  const [currentFolderId, setCurrentFolderId] = useState<string | undefined>(
+    initialFolderId
+  );
+  const [navigationStack, setNavigationStack] = useState<string[]>([]);
   const [profile, setProfile] = useState<StellarProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
@@ -64,6 +75,7 @@ export const FoldersArea = () => {
     value: "",
   });
   const inputRef = useRef<HTMLInputElement>(null);
+  const router = useRouter();
 
   // Effect to focus input when editing starts
   useEffect(() => {
@@ -77,20 +89,23 @@ export const FoldersArea = () => {
     const fetchFolders = async () => {
       try {
         setIsLoading(true);
-        const response = await axios.get("/api/stellar/folders");
+        const response = await axios.get(
+          currentFolderId
+            ? `/api/stellar/folders/${currentFolderId}`
+            : "/api/stellar/folders"
+        );
         setProfile(response.data);
 
-        if (response.data.rootFolder) {
+        if (response.data.folder || response.data.rootFolder) {
+          const folder = response.data.folder || response.data.rootFolder;
           const canvasItems: CanvasItem[] = [
-            ...response.data.rootFolder.children.map(
-              (folder: StellarFolder) => ({
-                id: folder.id,
-                itemType: "folder",
-                data: folder,
-                position: folder.position || { x: 0, y: 0 },
-              })
-            ),
-            ...response.data.rootFolder.files.map((file: StellarFile) => ({
+            ...folder.children.map((folder: StellarFolder) => ({
+              id: folder.id,
+              itemType: "folder",
+              data: folder,
+              position: folder.position || { x: 0, y: 0 },
+            })),
+            ...folder.files.map((file: StellarFile) => ({
               id: file.id,
               itemType: "file",
               data: file,
@@ -107,7 +122,7 @@ export const FoldersArea = () => {
     };
 
     fetchFolders();
-  }, []);
+  }, [currentFolderId]);
 
   const handleDragEnd = useCallback(
     async (item: CanvasItem, position: Position) => {
@@ -218,14 +233,30 @@ export const FoldersArea = () => {
     [handleFileUpload]
   );
 
+  const handleFolderOpen = useCallback(
+    (folderId: string) => {
+      setNavigationStack((prev) => [...prev, currentFolderId as string]);
+      setCurrentFolderId(folderId);
+    },
+    [currentFolderId]
+  );
+
+  const handleBack = useCallback(() => {
+    const previousFolder = navigationStack[navigationStack.length - 1];
+    setNavigationStack((prev) => prev.slice(0, -1));
+    setCurrentFolderId(previousFolder);
+  }, [navigationStack]);
+
   const handleDoubleClick = useCallback(
     (item: CanvasItem, e: React.MouseEvent) => {
       const target = e.target as HTMLElement;
       if (target.tagName.toLowerCase() === "h3") {
         setEditState({ id: item.id, value: item.data.name });
+      } else if (item.itemType === "folder") {
+        handleFolderOpen(item.id);
       }
     },
-    []
+    [handleFolderOpen]
   );
 
   const handleRename = useCallback(
@@ -297,6 +328,17 @@ export const FoldersArea = () => {
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
+      {currentFolderId && (
+        <div className="absolute top-4 left-4 z-10">
+          <button
+            onClick={handleBack}
+            className="p-2 rounded-lg bg-[#4C4F69]/10 hover:bg-[#4C4F69]/20 transition"
+          >
+            <ChevronLeft className="w-4 h-4 text-[#626581]" />
+          </button>
+        </div>
+      )}
+
       <AnimatePresence>
         {fileDropActive && (
           <motion.div

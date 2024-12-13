@@ -1,12 +1,31 @@
 // /root/app/apps/stellar/components/nav-bar.tsx
 "use client";
 
-export const NavBar = () => {
+import { useCallback } from "react";
+import { useRouter } from "next/navigation";
+import { ChevronLeft } from "lucide-react";
+
+interface NavBarProps {
+  currentFolderId?: string;
+}
+
+export const NavBar = ({ currentFolderId }: NavBarProps) => {
+  const router = useRouter();
+
+  const handleBack = useCallback(() => {
+    router.back();
+  }, [router]);
+
   return (
-    <div className="h-8 min-h-[32px] flex items-center justify-between px-3 bg-black bg-opacity-30 border-b border-white/10">
-      <div className="flex items-center space-x-2">
-        <span className="text-sm text-white/70">Files</span>
-      </div>
+    <div className="w-full h-12 flex items-center px-4 bg-[#010203]/30">
+      {currentFolderId && (
+        <button
+          onClick={handleBack}
+          className="p-2 rounded-lg hover:bg-white/5 transition"
+        >
+          <ChevronLeft className="w-4 h-4 text-[#626581]" />
+        </button>
+      )}
     </div>
   );
 };
