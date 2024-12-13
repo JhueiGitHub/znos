@@ -84,3 +84,40 @@ export async function GET(req: Request) {
     return new NextResponse("Internal Error", { status: 500 });
   }
 }
+
+export async function POST(req: Request) {
+  try {
+    const profile = await currentProfile();
+    if (!profile) {
+      return new NextResponse("Unauthorized", { status: 401 });
+    }
+
+    const { name, position, parentId } = await req.json();
+
+    const stellarProfile = await db.stellarProfile.findUnique({
+      where: { profileId: profile.id },
+    });
+
+    if (!stellarProfile) {
+      return new NextResponse("Stellar Profile not found", { status: 404 });
+    }
+
+    const newFolder = await db.stellarFolder.create({
+      data: {
+        name,
+        position,
+        stellarProfileId: stellarProfile.id,
+        parentId: parentId || stellarProfile.rootFolderId,
+      },
+      include: {
+        files: true,
+        children: true,
+      },
+    });
+
+    return NextResponse.json(newFolder);
+  } catch (error) {
+    console.error("[FOLDER_CREATE]", error);
+    return new NextResponse("Internal Error", { status: 500 });
+  }
+}

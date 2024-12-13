@@ -54,12 +54,21 @@ interface EditState {
   value: string;
 }
 
-// In FoldersArea.tsx
-interface FoldersAreaProps {
-  initialFolderId?: string;
+// First, modify your FoldersArea.tsx to track folder paths and expose them to NavBar
+interface FolderPath {
+  id: string;
+  name: string;
 }
 
-export const FoldersArea = ({ initialFolderId }: FoldersAreaProps) => {
+interface FoldersAreaProps {
+  initialFolderId?: string;
+  onPathChange?: (path: FolderPath[]) => void;
+}
+
+export const FoldersArea = ({
+  initialFolderId,
+  onPathChange,
+}: FoldersAreaProps) => {
   const [currentFolderId, setCurrentFolderId] = useState<string | undefined>(
     initialFolderId
   );
@@ -75,7 +84,7 @@ export const FoldersArea = ({ initialFolderId }: FoldersAreaProps) => {
     value: "",
   });
   const inputRef = useRef<HTMLInputElement>(null);
-  const router = useRouter();
+  const [folderPath, setFolderPath] = useState<FolderPath[]>([]);
 
   // Effect to focus input when editing starts
   useEffect(() => {
@@ -95,6 +104,22 @@ export const FoldersArea = ({ initialFolderId }: FoldersAreaProps) => {
             : "/api/stellar/folders"
         );
         setProfile(response.data);
+
+        // Update folder path
+        if (response.data.folder) {
+          const newPath = [
+            { id: response.data.rootFolder.id, name: "Root" },
+            ...response.data.folder.path.map((f: any) => ({
+              id: f.id,
+              name: f.name,
+            })),
+          ];
+          setFolderPath(newPath);
+          onPathChange?.(newPath);
+        } else {
+          setFolderPath([{ id: response.data.rootFolder.id, name: "Root" }]);
+          onPathChange?.([{ id: response.data.rootFolder.id, name: "Root" }]);
+        }
 
         if (response.data.folder || response.data.rootFolder) {
           const folder = response.data.folder || response.data.rootFolder;
@@ -122,7 +147,7 @@ export const FoldersArea = ({ initialFolderId }: FoldersAreaProps) => {
     };
 
     fetchFolders();
-  }, [currentFolderId]);
+  }, [currentFolderId, onPathChange]);
 
   const handleDragEnd = useCallback(
     async (item: CanvasItem, position: Position) => {
