@@ -1,5 +1,4 @@
-"use client";
-
+// /root/app/api/stellar/folders/[folderId]/children/route.ts
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { currentProfile } from "@/lib/current-profile";
@@ -16,9 +15,13 @@ export async function POST(
 
     const { name, position } = await req.json();
 
+    // Verify parent folder and profile ownership
     const parentFolder = await db.stellarFolder.findUnique({
       where: {
         id: params.folderId,
+      },
+      include: {
+        stellarProfile: true,
       },
     });
 
@@ -26,18 +29,17 @@ export async function POST(
       return new NextResponse("Parent folder not found", { status: 404 });
     }
 
+    if (parentFolder.stellarProfile.profileId !== profile.id) {
+      return new NextResponse("Unauthorized", { status: 401 });
+    }
+
+    // Create the new folder as a child of the parent
     const newFolder = await db.stellarFolder.create({
       data: {
         name,
         position,
-        parent: {
-          connect: { id: params.folderId },
-        },
-        stellarProfile: {
-          connect: {
-            id: parentFolder.stellarProfileId,
-          },
-        },
+        stellarProfileId: parentFolder.stellarProfileId,
+        parentId: params.folderId,
       },
       include: {
         files: true,

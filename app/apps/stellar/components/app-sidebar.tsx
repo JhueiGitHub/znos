@@ -40,6 +40,11 @@ interface StellarProfile {
   driveCapacity: string;
 }
 
+// In AppSidebar.tsx
+interface AppSidebarProps {
+  onFolderSelect?: (folderId: string) => void;
+}
+
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   // EVOLVED: Data fetching
   const { data: profile, isLoading } = useQuery<StellarProfile>({
