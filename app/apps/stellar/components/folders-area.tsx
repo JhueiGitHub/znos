@@ -8,6 +8,11 @@ import localFont from "next/font/local";
 import { useRouter } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 import { useFolder } from "../contexts/folder-context";
+import {
+  FOLDER_CREATED_EVENT,
+  FolderCreatedEvent,
+} from "./ui/keyboard-listener";
+import { cn } from "@/lib/utils";
 
 const exemplarPro = localFont({
   src: "../../../../public/fonts/SFProTextSemibold.ttf",
@@ -73,11 +78,13 @@ interface FolderPath {
 interface FoldersAreaProps {
   initialFolderId?: string;
   onPathChange?: (path: FolderPath[]) => void;
+  className?: string;
 }
 
 export const FoldersArea = ({
   initialFolderId,
   onPathChange,
+  className,
 }: FoldersAreaProps) => {
   const router = useRouter();
   const { currentFolderId: contextFolderId, setCurrentFolder } = useFolder();
@@ -159,6 +166,37 @@ export const FoldersArea = ({
   useEffect(() => {
     fetchFolders();
   }, [fetchFolders]);
+
+  // Add this new useEffect after the existing useEffects in the FoldersArea component
+  // In folders-area.tsx, add this useEffect:
+  useEffect(() => {
+    const handleFolderCreated = (event: FolderCreatedEvent) => {
+      const newFolder = event.detail;
+      setItems((previousItems) => [
+        ...previousItems,
+        {
+          id: newFolder.id,
+          itemType: "folder",
+          data: { ...newFolder, itemType: "folder" },
+          position: newFolder.position || { x: 0, y: 0 },
+        },
+      ]);
+    };
+
+    // Add event listener for folder creation
+    window.addEventListener(
+      FOLDER_CREATED_EVENT,
+      handleFolderCreated as EventListener
+    );
+
+    // Cleanup
+    return () => {
+      window.removeEventListener(
+        FOLDER_CREATED_EVENT,
+        handleFolderCreated as EventListener
+      );
+    };
+  }, []);
 
   const handleDragEnd = useCallback(
     async (item: CanvasItem, position: Position) => {
@@ -375,7 +413,7 @@ export const FoldersArea = ({
 
   return (
     <div
-      className="relative h-full flex-1 overflow-hidden bg-[#010203]/30"
+      className="relative flex-1 overflow-hidden bg-[#010203]/30"
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}

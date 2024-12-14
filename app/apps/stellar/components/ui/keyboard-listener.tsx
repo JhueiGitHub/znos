@@ -1,19 +1,43 @@
+// keyboard-listener.tsx
 "use client";
 
 import { useEffect, useCallback } from "react";
 import axios from "axios";
-import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useFolder } from "../../contexts/folder-context";
 
+// Export the event name constant
+export const FOLDER_CREATED_EVENT = "folderCreated" as const;
+
+// Define and export the event type
+export interface FolderCreatedEvent extends CustomEvent {
+  detail: {
+    id: string;
+    name: string;
+    itemType: "folder";
+    position: { x: number; y: number };
+    children: any[];
+    files: any[];
+  };
+}
+
+export const emitFolderCreated = (folder: FolderCreatedEvent["detail"]) => {
+  const event = new CustomEvent<FolderCreatedEvent["detail"]>(
+    FOLDER_CREATED_EVENT,
+    {
+      detail: folder,
+    }
+  );
+  window.dispatchEvent(event);
+};
+
 export const StellarKeyboardEvents = () => {
-  const router = useRouter();
   const queryClient = useQueryClient();
   const { currentFolderId } = useFolder();
 
   const createNewFolder = useCallback(async () => {
     try {
-      console.log("Creating folder in:", currentFolderId); // Debug log
+      console.log("Creating folder in:", currentFolderId);
 
       const position = {
         x: Math.random() * 200 + 50,
@@ -22,7 +46,6 @@ export const StellarKeyboardEvents = () => {
 
       let response;
       if (currentFolderId) {
-        // We're in a specific folder
         response = await axios.post(
           `/api/stellar/folders/${currentFolderId}/children`,
           {
@@ -31,16 +54,47 @@ export const StellarKeyboardEvents = () => {
           }
         );
       } else {
-        // We're in root
         response = await axios.post("/api/stellar/folders", {
           name: "New Folder",
           position,
         });
       }
 
-      console.log("Created folder:", response.data);
+      const newFolder = response.data;
+      console.log("Created folder:", newFolder);
 
-      // Invalidate queries
+      // Emit the folder created event
+      emitFolderCreated(newFolder);
+
+      // Update sidebar through query cache
+      if (currentFolderId) {
+        queryClient.setQueryData(
+          ["stellar-folder", currentFolderId],
+          (oldData: any) => {
+            if (!oldData) return oldData;
+            return {
+              ...oldData,
+              folder: {
+                ...oldData.folder,
+                children: [...(oldData.folder.children || []), newFolder],
+              },
+            };
+          }
+        );
+      } else {
+        queryClient.setQueryData(["stellar-folders"], (oldData: any) => {
+          if (!oldData) return oldData;
+          return {
+            ...oldData,
+            rootFolder: {
+              ...oldData.rootFolder,
+              children: [...(oldData.rootFolder.children || []), newFolder],
+            },
+          };
+        });
+      }
+
+      // Invalidate queries for consistency
       if (currentFolderId) {
         await queryClient.invalidateQueries([
           "stellar-folder",
@@ -49,14 +103,10 @@ export const StellarKeyboardEvents = () => {
       }
       await queryClient.invalidateQueries(["stellar-folders"]);
       await queryClient.invalidateQueries(["stellar-profile"]);
-
-      // Wait for invalidation before refresh
-      await new Promise((resolve) => setTimeout(resolve, 100));
-      router.refresh();
     } catch (error) {
       console.error("Failed to create new folder:", error);
     }
-  }, [currentFolderId, queryClient, router]);
+  }, [currentFolderId, queryClient]);
 
   useEffect(() => {
     const handleKeyPress = async (e: KeyboardEvent) => {

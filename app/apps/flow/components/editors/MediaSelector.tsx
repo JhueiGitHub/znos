@@ -13,6 +13,31 @@ interface MediaSelectorProps {
   onClose: () => void;
 }
 
+// Define interface for Stellar files
+interface StellarFile {
+  id: string;
+  name: string;
+  url: string;
+  size: number;
+  mimeType: string;
+  position: { x: number; y: number };
+  stellarFolderId: string;
+}
+
+// Helper to convert StellarFile to MediaItem
+const convertToMediaItem = (file: StellarFile): MediaItem => {
+  return {
+    id: file.id,
+    name: file.name,
+    url: file.url,
+    type: file.mimeType.startsWith("video/") ? "VIDEO" : "IMAGE",
+    profileId: "", // This will be handled by the API
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    flowComponentId: null,
+  };
+};
+
 export const MediaSelector = ({
   position,
   onSelect,
@@ -20,11 +45,33 @@ export const MediaSelector = ({
 }: MediaSelectorProps) => {
   const { getColor } = useStyles();
 
-  const { data: mediaItems, isLoading } = useQuery({
-    queryKey: ["media-items"],
+  // Update query to fetch from Stellar instead
+  const { data: stellarFiles, isLoading } = useQuery({
+    queryKey: ["stellar-media-files"],
     queryFn: async () => {
-      const response = await axios.get("/api/media");
-      return response.data;
+      // Fetch from the root folder of Stellar
+      const response = await axios.get("/api/stellar/folders");
+
+      // Recursively collect all files from the folder structure
+      const collectFiles = (folder: any): StellarFile[] => {
+        let files: StellarFile[] = [...(folder.files || [])];
+        if (folder.children) {
+          folder.children.forEach((child: any) => {
+            files = [...files, ...collectFiles(child)];
+          });
+        }
+        return files;
+      };
+
+      // Filter for only media files
+      const allFiles = collectFiles(response.data.rootFolder);
+      const mediaFiles = allFiles.filter(
+        (file) =>
+          file.mimeType.startsWith("image/") ||
+          file.mimeType.startsWith("video/")
+      );
+
+      return mediaFiles;
     },
   });
 
@@ -67,7 +114,7 @@ export const MediaSelector = ({
                 color: getColor("Text Primary (Hd)"),
               }}
             >
-              Select Media
+              Select Media from Stellar
             </span>
             <button
               onClick={onClose}
@@ -82,28 +129,44 @@ export const MediaSelector = ({
           <div className="p-3">
             {isLoading ? (
               <MediaGridSkeleton />
-            ) : !mediaItems?.length ? (
+            ) : !stellarFiles?.length ? (
               <div
                 className="text-center py-8"
                 style={{ color: getColor("Text Secondary (Bd)") }}
               >
-                No media items found
+                No media files found in Stellar
               </div>
             ) : (
               <div className="grid grid-cols-3 gap-2">
-                {mediaItems.map((item: MediaItem) => (
+                {stellarFiles.map((file: StellarFile) => (
                   <motion.div
-                    key={item.id}
+                    key={file.id}
                     whileHover={{ scale: 1.05 }}
-                    className="aspect-square rounded-lg overflow-hidden cursor-pointer border"
+                    className="aspect-square rounded-lg overflow-hidden cursor-pointer border relative group"
                     style={{ borderColor: getColor("Brd") }}
-                    onClick={() => onSelect(item)}
+                    onClick={() => onSelect(convertToMediaItem(file))}
                   >
-                    <img
-                      src={item.url}
-                      alt={item.name}
-                      className="w-full h-full object-cover"
-                    />
+                    {file.mimeType.startsWith("video/") ? (
+                      <video
+                        src={file.url}
+                        className="w-full h-full object-cover"
+                        muted
+                        loop
+                        autoPlay
+                        playsInline
+                      />
+                    ) : (
+                      <img
+                        src={file.url}
+                        alt={file.name}
+                        className="w-full h-full object-cover"
+                      />
+                    )}
+                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <span className="text-xs text-white">
+                        {file.mimeType.startsWith("video/") ? "Video" : "Image"}
+                      </span>
+                    </div>
                   </motion.div>
                 ))}
               </div>

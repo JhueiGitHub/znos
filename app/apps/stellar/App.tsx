@@ -37,7 +37,6 @@ const Home: React.FC<HomeProps> = ({ folderId }) => {
 
   const handleFolderNavigate = useCallback(
     (folderId: string) => {
-      // Find the folder in the current path and navigate to it
       const folderIndex = currentPath.findIndex((item) => item.id === folderId);
       if (folderIndex !== -1) {
         const newPath = currentPath.slice(0, folderIndex + 1);
@@ -59,16 +58,16 @@ const Home: React.FC<HomeProps> = ({ folderId }) => {
   return (
     <QueryClientProvider client={queryClient}>
       <FolderProvider>
-        <div className="flex flex-col overflow-hidden">
+        <div className="flex flex-col">
           <SidebarProvider>
-            <div className="flex-1 flex overflow-hidden">
+            <div className="flex-1 flex">
               <StellarKeyboardEvents />
               <div className="flex">
                 <AppSidebar />
               </div>
 
               <SidebarInset className="bg-black/0 flex-1 min-w-0">
-                <main className="h-full flex flex-col">
+                <main className="absolute inset-0 flex flex-col">
                   <NavBar
                     currentFolderId={currentFolderId}
                     path={currentPath}
