@@ -337,28 +337,45 @@ export const initialProfile = async () => {
 
     const folders = [
       {
-        name: "Documents",
+        name: "Desktop", // Add Desktop as first folder
         inSidebar: true,
         sidebarOrder: 0,
         position: { x: INITIAL_OFFSET, y: INITIAL_OFFSET },
+        files: [
+          // Add initial Welcome.txt file
+          {
+            name: "Welcome.txt",
+            url: "/files/welcome.txt",
+            size: 1024,
+            mimeType: "text/plain",
+            position: { x: INITIAL_OFFSET, y: INITIAL_OFFSET },
+          },
+        ],
+      },
+      {
+        name: "Documents",
+        inSidebar: true,
+        sidebarOrder: 1, // Shift order for others
+        position: { x: INITIAL_OFFSET + GRID_SPACING, y: INITIAL_OFFSET },
       },
       {
         name: "Downloads",
         inSidebar: true,
-        sidebarOrder: 1,
-        position: { x: INITIAL_OFFSET + GRID_SPACING, y: INITIAL_OFFSET },
+        sidebarOrder: 2,
+        position: { x: INITIAL_OFFSET + GRID_SPACING * 2, y: INITIAL_OFFSET },
       },
       {
         name: "Pictures",
         inSidebar: true,
-        sidebarOrder: 2,
-        position: { x: INITIAL_OFFSET + GRID_SPACING * 2, y: INITIAL_OFFSET },
+        sidebarOrder: 3,
+        position: { x: INITIAL_OFFSET + GRID_SPACING * 3, y: INITIAL_OFFSET },
       },
     ];
 
+    // Evolve the folder creation to handle files
     await Promise.all(
-      folders.map((folder) =>
-        tx.stellarFolder.create({
+      folders.map(async (folder) => {
+        const newFolder = await tx.stellarFolder.create({
           data: {
             name: folder.name,
             parentId: rootFolder.id,
@@ -366,9 +383,16 @@ export const initialProfile = async () => {
             inSidebar: folder.inSidebar,
             sidebarOrder: folder.sidebarOrder,
             position: folder.position,
+            // EVOLVED: Add files if they exist
+            files: folder.files
+              ? {
+                  create: folder.files,
+                }
+              : undefined,
           },
-        })
-      )
+        });
+        return newFolder;
+      })
     );
 
     // PRESERVED: Rest of the transaction remains the same...

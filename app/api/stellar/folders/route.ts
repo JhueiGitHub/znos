@@ -1,8 +1,69 @@
-// app/api/stellar/folders/route.ts
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { currentProfile } from "@/lib/current-profile";
 
+export async function POST(req: Request) {
+  try {
+    const profile = await currentProfile();
+    if (!profile) {
+      return new NextResponse("Unauthorized", { status: 401 });
+    }
+
+    // EVOLVED: Extract parentId from request
+    const { name, position, parentId } = await req.json();
+
+    const stellarProfile = await db.stellarProfile.findUnique({
+      where: {
+        profileId: profile.id,
+      },
+      include: {
+        rootFolder: true,
+      },
+    });
+
+    if (!stellarProfile) {
+      return new NextResponse("Stellar Profile not found", { status: 404 });
+    }
+
+    // EVOLVED: If parentId provided, verify parent folder exists and belongs to user
+    if (parentId) {
+      const parentFolder = await db.stellarFolder.findUnique({
+        where: {
+          id: parentId,
+          stellarProfileId: stellarProfile.id,
+        },
+      });
+
+      if (!parentFolder) {
+        return new NextResponse("Parent folder not found", { status: 404 });
+      }
+    }
+
+    // EVOLVED: Create folder with proper parent relationship
+    const newFolder = await db.stellarFolder.create({
+      data: {
+        name,
+        position: position || { x: 0, y: 0 },
+        stellarProfileId: stellarProfile.id,
+        // EVOLVED: Set parentId if provided, otherwise connect to root
+        parentId: parentId || stellarProfile.rootFolder?.id,
+      },
+      include: {
+        files: true,
+        children: true,
+        // EVOLVED: Include parent information
+        parent: true,
+      },
+    });
+
+    return NextResponse.json(newFolder);
+  } catch (error) {
+    console.error("[FOLDER_CREATE]", error);
+    return new NextResponse("Internal Error", { status: 500 });
+  }
+}
+
+// PRESERVED: Original GET handler with hierarchical data
 export async function GET(req: Request) {
   try {
     const profile = await currentProfile();
@@ -10,7 +71,6 @@ export async function GET(req: Request) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    // EVOLVED: Enhanced query to ensure we get ALL necessary data
     const stellarProfile = await db.stellarProfile.findUnique({
       where: {
         profileId: profile.id,
@@ -18,13 +78,10 @@ export async function GET(req: Request) {
       include: {
         rootFolder: {
           include: {
-            // Get root folder
             files: true,
-            // Get children folders with their files
             children: {
               include: {
                 files: true,
-                // Also include grandchildren for deeper nesting
                 children: {
                   include: {
                     files: true,
@@ -32,7 +89,6 @@ export async function GET(req: Request) {
                 },
               },
               orderBy: {
-                // Order folders consistently
                 sidebarOrder: "asc",
               },
             },
@@ -45,7 +101,7 @@ export async function GET(req: Request) {
       return new NextResponse("Stellar Profile not found", { status: 404 });
     }
 
-    // EVOLVED: Add logging for debugging
+    // PRESERVED: Debug logging
     console.log(
       "Root folder structure:",
       JSON.stringify(
@@ -59,12 +115,10 @@ export async function GET(req: Request) {
       )
     );
 
-    // EVOLVED: Enhanced response with position verification
     const response = {
       ...stellarProfile,
       rootFolder: {
         ...stellarProfile.rootFolder,
-        // Ensure all positions have valid coordinates
         children: stellarProfile.rootFolder?.children?.map((child) => ({
           ...child,
           position: child.position || { x: 0, y: 0 },
@@ -74,50 +128,12 @@ export async function GET(req: Request) {
           position: file.position || { x: 0, y: 0 },
         })),
       },
-      // Convert BigInt to String
       driveCapacity: stellarProfile.driveCapacity.toString(),
     };
 
     return NextResponse.json(response);
   } catch (error) {
     console.error("[STELLAR_FOLDERS_GET]", error);
-    return new NextResponse("Internal Error", { status: 500 });
-  }
-}
-
-export async function POST(req: Request) {
-  try {
-    const profile = await currentProfile();
-    if (!profile) {
-      return new NextResponse("Unauthorized", { status: 401 });
-    }
-
-    const { name, position, parentId } = await req.json();
-
-    const stellarProfile = await db.stellarProfile.findUnique({
-      where: { profileId: profile.id },
-    });
-
-    if (!stellarProfile) {
-      return new NextResponse("Stellar Profile not found", { status: 404 });
-    }
-
-    const newFolder = await db.stellarFolder.create({
-      data: {
-        name,
-        position,
-        stellarProfileId: stellarProfile.id,
-        parentId: parentId || stellarProfile.rootFolderId,
-      },
-      include: {
-        files: true,
-        children: true,
-      },
-    });
-
-    return NextResponse.json(newFolder);
-  } catch (error) {
-    console.error("[FOLDER_CREATE]", error);
     return new NextResponse("Internal Error", { status: 500 });
   }
 }

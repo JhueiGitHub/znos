@@ -2,10 +2,9 @@
 
 import { useEffect, useCallback } from "react";
 import axios from "axios";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 
-// PRESERVED: Original types
 interface StellarFolder {
   id: string;
   name: string;
@@ -24,51 +23,63 @@ interface StellarFile {
 export const StellarKeyboardEvents = () => {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const pathname = usePathname() || ""; // EVOLVED: Safe pathname handling
 
-  // EVOLVED: Create folder handler as a callback
+  // EVOLVED: Extract current folder ID from pathname
+  const getCurrentFolderId = useCallback(() => {
+    // Match either /stellar/folder/[id] or /stellar/[id]
+    const match = pathname.match(/\/stellar(?:\/folder)?\/([^\/]+)$/);
+    return match ? match[1] : null;
+  }, [pathname]);
+
   const createNewFolder = useCallback(async () => {
     try {
+      const parentId = getCurrentFolderId();
+      const position = { x: 20, y: 20 }; // Default position for new folder
+
       await axios.post("/api/stellar/folders", {
         name: "New Folder",
+        parentId, // Will be null for root folder
+        position,
       });
 
-      // EVOLVED: Invalidate queries to force refresh
-      queryClient.invalidateQueries(["stellar-folders"]);
+      // EVOLVED: Invalidate appropriate queries based on context
+      if (parentId) {
+        // If we're in a folder view, invalidate that folder's data
+        queryClient.invalidateQueries(["stellar-folder", parentId]);
+        queryClient.invalidateQueries(["stellar-folders", parentId]);
+      } else {
+        // If we're in root view, invalidate root data
+        queryClient.invalidateQueries(["stellar-folders"]);
+      }
       queryClient.invalidateQueries(["stellar-profile"]);
 
-      // Force router refresh
       router.refresh();
     } catch (error) {
       console.error("Failed to create new folder:", error);
     }
-  }, [queryClient, router]);
+  }, [getCurrentFolderId, queryClient, router]);
 
   useEffect(() => {
     const handleKeyPress = async (e: KeyboardEvent) => {
-      // PRESERVED: Input element check
       const activeElement = document.activeElement?.tagName;
       if (["INPUT", "TEXTAREA"].includes(activeElement || "")) {
         return;
       }
 
-      // EVOLVED: Simplified key check
       if (e.key.toLowerCase() === "n") {
         e.preventDefault();
         await createNewFolder();
       }
     };
 
-    // EVOLVED: Add both keydown and keypress listeners to ensure capture
-    window.addEventListener("keydown", handleKeyPress);
+    // PRESERVED: Original event listener setup
     window.addEventListener("keypress", handleKeyPress);
 
-    return () => {
-      window.removeEventListener("keydown", handleKeyPress);
-      window.removeEventListener("keypress", handleKeyPress);
-    };
+    return () => window.removeEventListener("keypress", handleKeyPress);
   }, [createNewFolder]);
 
-  // Debug log to verify component mounting
+  // PRESERVED: Debug logging
   useEffect(() => {
     console.log("StellarKeyboardEvents mounted");
     return () => console.log("StellarKeyboardEvents unmounted");
