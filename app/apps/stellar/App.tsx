@@ -19,7 +19,7 @@ interface HomeProps {
   folderId?: string;
 }
 
-// Create a client
+// PRESERVED: QueryClient configuration
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -35,6 +35,7 @@ const Home: React.FC<HomeProps> = ({ folderId }) => {
     folderId
   );
 
+  // EVOLVED: Updated path handling to prevent root duplication
   const handleFolderNavigate = useCallback(
     (folderId: string) => {
       const folderIndex = currentPath.findIndex((item) => item.id === folderId);
@@ -47,11 +48,17 @@ const Home: React.FC<HomeProps> = ({ folderId }) => {
     [currentPath]
   );
 
+  // EVOLVED: Modified to handle root visibility
   const handlePathChange = useCallback((newPath: FolderPath[]) => {
-    setCurrentPath(newPath);
+    // Only set path if we're not at root or path is empty
+    const pathToSet = newPath.length <= 1 ? [] : newPath;
+    setCurrentPath(pathToSet);
+
     if (newPath.length > 0) {
       const lastFolder = newPath[newPath.length - 1];
       setCurrentFolderId(lastFolder.id);
+    } else {
+      setCurrentFolderId(undefined);
     }
   }, []);
 

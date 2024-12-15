@@ -124,18 +124,24 @@ export const FoldersArea = ({
       setProfile(response.data);
 
       if (response.data.folder) {
-        const newPath = [
-          { id: response.data.rootFolder.id, name: "Root" },
-          ...(response.data.folder.path || []).map((folder: any) => ({
+        // EVOLVED: Only include root once in the path
+        const newPath =
+          response.data.folder.path?.map((folder: any) => ({
             id: folder.id,
             name: folder.name,
-          })),
-        ];
+          })) || [];
+
+        // If we have a path and it doesn't start with root, add root at the beginning
+        if (newPath.length > 0 && newPath[0].name !== "Root") {
+          newPath.unshift({ id: response.data.rootFolder.id, name: "Root" });
+        }
+
         setFolderPath(newPath);
         onPathChange?.(newPath);
       } else {
-        setFolderPath([{ id: response.data.rootFolder.id, name: "Root" }]);
-        onPathChange?.([{ id: response.data.rootFolder.id, name: "Root" }]);
+        // At root level, don't set any path
+        setFolderPath([]);
+        onPathChange?.([]);
       }
 
       if (response.data.folder || response.data.rootFolder) {
