@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
+import type { DragEvent as ReactDragEvent } from "react";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 import { useStyles } from "@/app/hooks/useStyles";
@@ -13,6 +14,7 @@ import {
   FolderCreatedEvent,
 } from "./ui/keyboard-listener";
 import { cn } from "@/lib/utils";
+import { useStellarDrag } from "../hooks/use-stellar-drag";
 
 const exemplarPro = localFont({
   src: "../../../../public/fonts/SFProTextSemibold.ttf",
@@ -202,6 +204,13 @@ export const FoldersArea = ({
         handleFolderCreated as EventListener
       );
     };
+  }, []);
+
+  const handleDragStart = useCallback((item: CanvasItem) => {
+    const event = new CustomEvent("folder-drag-start", {
+      detail: { folderId: item.id },
+    });
+    document.dispatchEvent(event);
   }, []);
 
   const handleDragEnd = useCallback(
@@ -461,7 +470,11 @@ export const FoldersArea = ({
             dragMomentum={false}
             dragTransition={{ power: 0 }}
             initial={false}
-            animate={{ x: item.position.x, y: item.position.y }}
+            animate={{
+              x: item.position.x,
+              y: item.position.y,
+              zIndex: 999999, // Force absolute highest z-index for dragged items
+            }}
             onDragEnd={(_, info) => {
               const finalPosition = {
                 x: item.position.x + info.offset.x,
@@ -470,6 +483,8 @@ export const FoldersArea = ({
               handleDragEnd(item, finalPosition);
             }}
             onDoubleClick={(event) => handleDoubleClick(item, event)}
+            dragConstraints={false}
+            dragElastic={0}
           >
             {item.itemType === "folder" ? (
               <>

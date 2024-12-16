@@ -49,6 +49,20 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const queryClient = useQueryClient();
   // EVOLVED: Added state for drop zone highlight
   const [dropZoneActive, setDropZoneActive] = React.useState(false);
+  const [isDragging, setIsDragging] = React.useState(false);
+
+  React.useEffect(() => {
+    const handleDragStart = () => setIsDragging(true);
+    const handleDragEnd = () => setIsDragging(false);
+
+    document.addEventListener("dragstart", handleDragStart);
+    document.addEventListener("dragend", handleDragEnd);
+
+    return () => {
+      document.removeEventListener("dragstart", handleDragStart);
+      document.removeEventListener("dragend", handleDragEnd);
+    };
+  }, []);
 
   // PRESERVED: Sidebar folders query
   const { data: sidebarFolders, isLoading } = useQuery<StellarFolder[]>({
@@ -123,7 +137,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   };
 
   return (
-    <Sidebar {...props}>
+    <Sidebar
+      {...props}
+      style={{
+        zIndex: isDragging ? 1 : 10, // Lower z-index during drag
+        position: "relative", // Create stacking context
+      }}
+    >
       {/* PRESERVED: Header section if needed */}
 
       {/* EVOLVED: Enhanced content section with drop zone */}

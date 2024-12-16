@@ -1,14 +1,11 @@
+// layout.tsx
 import "./globals.css";
-import { FolderProvider } from "./contexts/folder-context";
+import React from "react";
 
 export default function StellarLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <div className="h-full w-full overflow-hidden dark">
-      <FolderProvider>{children}</FolderProvider>
-    </div>
-  );
+  return <div className="w-full overflow-hidden dark">{children}</div>;
 }

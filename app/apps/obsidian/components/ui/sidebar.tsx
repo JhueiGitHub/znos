@@ -212,10 +212,12 @@ const Sidebar = React.forwardRef<
       );
     }
 
+    // EVOLVED: Main desktop sidebar structure with fixed z-index issues
     return (
       <div
         ref={ref}
-        className="group peer hidden md:block text-[#cccccc81]"
+        className="group peer hidden md:block text-[#cccccc81] relative"
+        style={{ zIndex: -1 }} // Force sidebar behind everything
         data-state={state}
         data-collapsible={state === "collapsed" ? collapsible : ""}
         data-variant={variant}
@@ -223,21 +225,12 @@ const Sidebar = React.forwardRef<
       >
         <div
           className={cn(
-            "duration-200 relative h-full z-10 hidden w-[192px] transition-[left,right,width] ease-linear md:flex",
-            side === "left"
-              ? "left-0 group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)]"
-              : "right-0 group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)]",
-            variant === "floating" || variant === "inset"
-              ? "p-2 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4)_+2px)]"
-              : // EVOLVED: Completely removed ALL border classes
-                "group-data-[collapsible=icon]:w-[--sidebar-width-icon]",
-            className
+            "duration-200 relative h-full hidden w-[192px] transition-[left,right,width] ease-linear md:flex"
           )}
           {...props}
         >
           <div
             data-sidebar="sidebar"
-            // EVOLVED: Removed border from floating variant as well
             className="flex h-full w-full flex-col bg-black/30 group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:shadow"
           >
             {children}
