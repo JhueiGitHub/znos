@@ -1,12 +1,22 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useQueryClient } from "@tanstack/react-query";
+import axios from "axios";
 import { useDrag } from "../contexts/drag-context";
 import { SidebarContent } from "./sidebar/SidebarContent";
 
 export function Sidebar() {
+  const queryClient = useQueryClient();
   const sidebarRef = useRef<HTMLDivElement>(null);
-  const { isDraggingFolder, isOverSidebar, setIsOverSidebar, pointerPosition } =
-    useDrag();
+  const {
+    isDraggingFolder,
+    isOverSidebar,
+    setIsOverSidebar,
+    pointerPosition,
+    draggedFolderId,
+    setIsDraggingFolder,
+    setDraggedFolderId,
+  } = useDrag();
 
   // Check if pointer is over sidebar during drag
   useEffect(() => {
@@ -21,6 +31,59 @@ export function Sidebar() {
 
     setIsOverSidebar(isOver);
   }, [isDraggingFolder, pointerPosition, setIsOverSidebar]);
+
+  // Handle dropping folder into sidebar
+  const handleDrop = useCallback(async () => {
+    if (!draggedFolderId || !isOverSidebar) return;
+
+    try {
+      // Add folder to sidebar
+      await axios.post("/api/stellar/folders/sidebar", {
+        folderId: draggedFolderId,
+      });
+
+      // Optimistically update queries
+      await Promise.all([
+        queryClient.invalidateQueries(["sidebar-folders"]),
+        queryClient.invalidateQueries(["stellar-folders"]),
+      ]);
+    } catch (error) {
+      console.error("Failed to add folder to sidebar:", error);
+    } finally {
+      setIsDraggingFolder(false);
+      setDraggedFolderId(null);
+      setIsOverSidebar(false);
+    }
+  }, [
+    draggedFolderId,
+    isOverSidebar,
+    queryClient,
+    setIsDraggingFolder,
+    setDraggedFolderId,
+    setIsOverSidebar,
+  ]);
+
+  // Handle drag end
+  useEffect(() => {
+    const handleDragEnd = () => {
+      if (isOverSidebar && draggedFolderId) {
+        handleDrop();
+      }
+      setIsDraggingFolder(false);
+      setDraggedFolderId(null);
+      setIsOverSidebar(false);
+    };
+
+    window.addEventListener("mouseup", handleDragEnd);
+    return () => window.removeEventListener("mouseup", handleDragEnd);
+  }, [
+    isOverSidebar,
+    draggedFolderId,
+    handleDrop,
+    setIsDraggingFolder,
+    setDraggedFolderId,
+    setIsOverSidebar,
+  ]);
 
   return (
     <div
