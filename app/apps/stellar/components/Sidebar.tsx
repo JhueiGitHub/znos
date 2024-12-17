@@ -1,7 +1,7 @@
-// components/Sidebar.tsx
 import React, { useRef, useEffect } from "react";
-import { useDrag } from "../contexts/drag-context";
 import { motion, AnimatePresence } from "framer-motion";
+import { useDrag } from "../contexts/drag-context";
+import { SidebarContent } from "./sidebar/SidebarContent";
 
 export function Sidebar() {
   const sidebarRef = useRef<HTMLDivElement>(null);
@@ -27,6 +27,7 @@ export function Sidebar() {
       ref={sidebarRef}
       className="relative w-48 bg-black border-r border-[#29292981]"
     >
+      {/* Drag highlight overlay */}
       <AnimatePresence>
         {isDraggingFolder && isOverSidebar && (
           <motion.div
@@ -37,6 +38,9 @@ export function Sidebar() {
           />
         )}
       </AnimatePresence>
+
+      {/* Sidebar content */}
+      <SidebarContent />
     </div>
   );
 }
