@@ -16,6 +16,7 @@ export function Sidebar() {
     draggedFolderId,
     setIsDraggingFolder,
     setDraggedFolderId,
+    setDragStartPosition,
   } = useDrag();
 
   // Check if pointer is over sidebar during drag
@@ -32,7 +33,6 @@ export function Sidebar() {
     setIsOverSidebar(isOver);
   }, [isDraggingFolder, pointerPosition, setIsOverSidebar]);
 
-  // Handle dropping folder into sidebar
   const handleDrop = useCallback(async () => {
     if (!draggedFolderId || !isOverSidebar) return;
 
@@ -42,10 +42,14 @@ export function Sidebar() {
         folderId: draggedFolderId,
       });
 
-      // Optimistically update queries
+      // Invalidate and refetch both sidebar and current folder view
       await Promise.all([
+        // For sidebar
         queryClient.invalidateQueries(["sidebar-folders"]),
-        queryClient.invalidateQueries(["stellar-folders"]),
+        // For current folder view - use the exact query key structure
+        queryClient.invalidateQueries(["stellar-folder"]),
+        queryClient.refetchQueries(["stellar-folder"]), // Add this!
+        queryClient.refetchQueries(["sidebar-folders"]), // And this!
       ]);
     } catch (error) {
       console.error("Failed to add folder to sidebar:", error);
@@ -53,6 +57,7 @@ export function Sidebar() {
       setIsDraggingFolder(false);
       setDraggedFolderId(null);
       setIsOverSidebar(false);
+      setDragStartPosition(null);
     }
   }, [
     draggedFolderId,
@@ -61,6 +66,7 @@ export function Sidebar() {
     setIsDraggingFolder,
     setDraggedFolderId,
     setIsOverSidebar,
+    setDragStartPosition,
   ]);
 
   // Handle drag end
@@ -72,6 +78,7 @@ export function Sidebar() {
       setIsDraggingFolder(false);
       setDraggedFolderId(null);
       setIsOverSidebar(false);
+      setDragStartPosition(null); // Clean up drag start position when drag ends
     };
 
     window.addEventListener("mouseup", handleDragEnd);
@@ -83,6 +90,7 @@ export function Sidebar() {
     setIsDraggingFolder,
     setDraggedFolderId,
     setIsOverSidebar,
+    setDragStartPosition,
   ]);
 
   return (
