@@ -1,131 +1,120 @@
-// components/FoldersArea.tsx
 import { useEffect, useState, useCallback } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 import { useGrid, defaultGridConfig } from "../hooks/useGrid";
 import { CanvasItem } from "../types/stellar";
 import { useDrag } from "../contexts/drag-context";
+import { useFolder } from "../contexts/folder-context";
+import { ChevronLeft } from "lucide-react";
 
 export function FoldersArea() {
   const [items, setItems] = useState<CanvasItem[]>([]);
   const { findNextAvailablePosition } = useGrid(defaultGridConfig);
   const { setIsDraggingFolder, setDraggedFolderId, setPointerPosition } =
     useDrag();
+  const { currentFolderId, setCurrentFolder, navigateBack } = useFolder();
 
   useEffect(() => {
     const loadFolders = async () => {
       try {
-        const response = await axios.get("/api/stellar/folders");
-        const mappedItems = response.data.rootFolder.children.map(
-          (item: any) => ({
-            id: item.id,
-            name: item.name,
+        const response = await axios.get(
+          currentFolderId
+            ? `/api/stellar/folders/${currentFolderId}`
+            : "/api/stellar/folders"
+        );
+
+        const folderData = currentFolderId
+          ? response.data.folder
+          : response.data.rootFolder;
+
+        const mappedItems = [
+          ...folderData.children.map((folderItem: any) => ({
+            id: folderItem.id,
+            name: folderItem.name,
             itemType: "folder" as const,
             position:
-              item.position ||
+              folderItem.position ||
               findNextAvailablePosition(
-                response.data.rootFolder.children
+                folderData.children
                   .filter((i: any) => i.position)
                   .map((i: any) => i.position)
               ),
-          })
-        );
+          })),
+          ...folderData.files.map((fileItem: any) => ({
+            id: fileItem.id,
+            name: fileItem.name,
+            itemType: "file" as const,
+            position: fileItem.position || { x: 0, y: 0 },
+          })),
+        ];
+
         setItems(mappedItems);
       } catch (error) {
         console.error("Failed to load folders:", error);
       }
     };
+
     loadFolders();
-  }, []);
+  }, [currentFolderId, findNextAvailablePosition]);
 
-  const handleDragStart = useCallback(
+  const handleDoubleClick = useCallback(
     (item: CanvasItem) => {
-      setIsDraggingFolder(true);
-      setDraggedFolderId(item.id);
-    },
-    [setIsDraggingFolder, setDraggedFolderId]
-  );
-
-  const handleDragEnd = useCallback(
-    async (
-      item: CanvasItem,
-      info: {
-        offset: { x: number; y: number };
-        point: { x: number; y: number };
-      }
-    ) => {
-      setIsDraggingFolder(false);
-      setDraggedFolderId(null);
-      setPointerPosition(null);
-
-      try {
-        // Calculate the new position based on the original position plus the offset
-        const newPosition = {
-          x: item.position.x + info.offset.x,
-          y: item.position.y + info.offset.y,
-        };
-
-        await axios.patch(`/api/stellar/folders/${item.id}/position`, {
-          position: newPosition,
-        });
-
-        // Update local state with the precise new position
-        setItems((prev) =>
-          prev.map((prevItem) =>
-            prevItem.id === item.id
-              ? { ...prevItem, position: newPosition }
-              : prevItem
-          )
-        );
-      } catch (error) {
-        console.error("Failed to update position:", error);
+      if (item.itemType === "folder") {
+        setCurrentFolder(item.id);
       }
     },
-    [setIsDraggingFolder, setDraggedFolderId, setPointerPosition]
+    [setCurrentFolder]
   );
 
   return (
-    <div className="relative flex-1 bg-[#00000030]">
-      {items.map((item) => (
-        <motion.div
-          key={item.id}
-          className="absolute flex flex-col items-center cursor-grab active:cursor-grabbing"
-          initial={false}
-          animate={{
-            x: item.position.x,
-            y: item.position.y,
-          }}
-          drag
-          dragMomentum={false}
-          dragElastic={0}
-          dragTransition={{
-            bounceStiffness: 0,
-            bounceDamping: 0,
-            power: 0,
-          }}
-          onDragStart={() => handleDragStart(item)}
-          onDrag={(event, info) => {
-            setPointerPosition({ x: info.point.x, y: info.point.y });
-          }}
-          onDragEnd={(event, info) => handleDragEnd(item, info)}
-          whileDrag={{
-            scale: 1.05,
-            zIndex: 999999,
-          }}
-        >
-          <div className="w-16 h-16 rounded-xl flex items-center justify-center">
-            <img
-              src="/apps/stellar/icns/system/_folder.png"
-              alt={item.name}
-              className="w-[64px] h-[64px] object-contain"
-              draggable={false}
-            />
-          </div>
-          <h3 className="text-[13px] font-semibold truncate max-w-[150px] text-[#626581ca] mt-1">
-            {item.name}
-          </h3>
-        </motion.div>
-      ))}
+    <div className="relative w-full h-full flex-1 bg-[#00000030]">
+      {currentFolderId && (
+        <div className="absolute top-4 left-4 z-10">
+          <button
+            onClick={navigateBack}
+            className="p-2 rounded-lg bg-[#4C4F69]/10 hover:bg-[#4C4F69]/20 transition"
+          >
+            <ChevronLeft className="w-4 h-4 text-[#626581]" />
+          </button>
+        </div>
+      )}
+
+      <div className="relative w-full h-full">
+        {items.map((item) => (
+          <motion.div
+            key={item.id}
+            className="absolute flex flex-col items-center cursor-grab active:cursor-grabbing"
+            initial={false}
+            animate={{
+              x: item.position.x,
+              y: item.position.y,
+            }}
+            drag
+            dragMomentum={false}
+            dragElastic={0}
+            onDragStart={() => {
+              setIsDraggingFolder(true);
+              setDraggedFolderId(item.id);
+            }}
+            onDrag={(event, info) => {
+              setPointerPosition({ x: info.point.x, y: info.point.y });
+            }}
+            onDoubleClick={() => handleDoubleClick(item)}
+          >
+            <div className="w-16 h-16 rounded-xl flex items-center justify-center">
+              <img
+                src={`/apps/stellar/icns/system/_${item.itemType}.png`}
+                alt={item.name}
+                className="w-[64px] h-[64px] object-contain"
+                draggable={false}
+              />
+            </div>
+            <h3 className="text-[13px] font-semibold truncate max-w-[150px] text-[#626581ca] mt-1">
+              {item.name}
+            </h3>
+          </motion.div>
+        ))}
+      </div>
     </div>
   );
 }
