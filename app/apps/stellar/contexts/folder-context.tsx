@@ -1,5 +1,11 @@
-// contexts/folder-context.tsx
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+} from "react";
 
 interface FolderPath {
   id: string;
@@ -12,6 +18,10 @@ interface FolderContextType {
   folderPath: FolderPath[];
   setFolderPath: (path: FolderPath[]) => void;
   navigateBack: () => void;
+  navigateTo: (folderId: string) => void;
+  isNavigating: boolean;
+  navigationStack: string[];
+  clearNavigation: () => void;
 }
 
 interface FolderProviderProps {
@@ -30,25 +40,84 @@ export function FolderProvider({
   );
   const [folderPath, setFolderPath] = useState<FolderPath[]>([]);
   const [navigationStack, setNavigationStack] = useState<string[]>([]);
+  const [isNavigating, setIsNavigating] = useState(false);
+  const navigationTimeout = useRef<NodeJS.Timeout>();
 
+  // Clear any pending navigation timeouts on unmount
+  useEffect(() => {
+    return () => {
+      if (navigationTimeout.current) {
+        clearTimeout(navigationTimeout.current);
+      }
+    };
+  }, []);
+
+  // Handle initial folder ID
   useEffect(() => {
     if (initialFolderId) {
       setCurrentFolderId(initialFolderId);
+      setNavigationStack([]);
+      setFolderPath([]);
     }
   }, [initialFolderId]);
 
-  const setCurrentFolder = (id: string | null) => {
-    if (currentFolderId) {
-      setNavigationStack((prev) => [...prev, currentFolderId]);
-    }
-    setCurrentFolderId(id);
-  };
+  const setCurrentFolder = useCallback(
+    (id: string | null) => {
+      if (isNavigating) return;
+      setIsNavigating(true);
 
-  const navigateBack = () => {
+      if (currentFolderId) {
+        setNavigationStack((prev) => [...prev, currentFolderId]);
+      }
+      setCurrentFolderId(id);
+
+      setTimeout(() => {
+        setIsNavigating(false);
+      }, 300);
+    },
+    [currentFolderId, isNavigating]
+  );
+
+  const navigateBack = useCallback(() => {
+    if (isNavigating) return;
+
+    setIsNavigating(true);
     const previousFolder = navigationStack[navigationStack.length - 1];
+
     setNavigationStack((prev) => prev.slice(0, -1));
     setCurrentFolderId(previousFolder || null);
-  };
+
+    // Prevent rapid navigation
+    navigationTimeout.current = setTimeout(() => {
+      setIsNavigating(false);
+    }, 300);
+  }, [navigationStack, isNavigating]);
+
+  const navigateTo = useCallback(
+    (folderId: string) => {
+      if (isNavigating) return;
+
+      setIsNavigating(true);
+
+      if (currentFolderId) {
+        setNavigationStack((prev) => [...prev, currentFolderId]);
+      }
+
+      setCurrentFolderId(folderId);
+
+      // Prevent rapid navigation
+      navigationTimeout.current = setTimeout(() => {
+        setIsNavigating(false);
+      }, 300);
+    },
+    [currentFolderId, isNavigating]
+  );
+
+  const clearNavigation = useCallback(() => {
+    setNavigationStack([]);
+    setFolderPath([]);
+    setCurrentFolderId(null);
+  }, []);
 
   return (
     <FolderContext.Provider
@@ -58,6 +127,10 @@ export function FolderProvider({
         folderPath,
         setFolderPath,
         navigateBack,
+        navigateTo,
+        isNavigating,
+        navigationStack,
+        clearNavigation,
       }}
     >
       {children}
