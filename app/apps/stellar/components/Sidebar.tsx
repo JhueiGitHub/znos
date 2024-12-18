@@ -1,9 +1,9 @@
-import React, { useRef, useEffect, useCallback } from "react";
+import React, { useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
 import { useDrag } from "../contexts/drag-context";
 import { SidebarContent } from "./sidebar/SidebarContent";
+import { useQueryClient } from "@tanstack/react-query";
+import axios from "axios";
 
 export function Sidebar() {
   const queryClient = useQueryClient();
@@ -11,12 +11,14 @@ export function Sidebar() {
   const {
     isDraggingFolder,
     isOverSidebar,
-    setIsOverSidebar,
-    pointerPosition,
     draggedFolderId,
+    dragStartPosition,
+    setIsOverSidebar,
     setIsDraggingFolder,
     setDraggedFolderId,
+    setPointerPosition,
     setDragStartPosition,
+    pointerPosition,
   } = useDrag();
 
   // Check if pointer is over sidebar during drag
@@ -33,52 +35,38 @@ export function Sidebar() {
     setIsOverSidebar(isOver);
   }, [isDraggingFolder, pointerPosition, setIsOverSidebar]);
 
-  const handleDrop = useCallback(async () => {
-    if (!draggedFolderId || !isOverSidebar) return;
-
-    try {
-      // Add folder to sidebar
-      await axios.post("/api/stellar/folders/sidebar", {
-        folderId: draggedFolderId,
-      });
-
-      // Invalidate and refetch both sidebar and current folder view
-      await Promise.all([
-        // For sidebar
-        queryClient.invalidateQueries(["sidebar-folders"]),
-        // For current folder view - use the exact query key structure
-        queryClient.invalidateQueries(["stellar-folder"]),
-        queryClient.refetchQueries(["stellar-folder"]), // Add this!
-        queryClient.refetchQueries(["sidebar-folders"]), // And this!
-      ]);
-    } catch (error) {
-      console.error("Failed to add folder to sidebar:", error);
-    } finally {
-      setIsDraggingFolder(false);
-      setDraggedFolderId(null);
-      setIsOverSidebar(false);
-      setDragStartPosition(null);
-    }
-  }, [
-    draggedFolderId,
-    isOverSidebar,
-    queryClient,
-    setIsDraggingFolder,
-    setDraggedFolderId,
-    setIsOverSidebar,
-    setDragStartPosition,
-  ]);
-
-  // Handle drag end
   useEffect(() => {
-    const handleDragEnd = () => {
-      if (isOverSidebar && draggedFolderId) {
-        handleDrop();
+    const handleDragEnd = async () => {
+      if (isOverSidebar && draggedFolderId && dragStartPosition) {
+        // CRITICAL: Immediately restore position in folder cache
+        queryClient.setQueryData(["folder"], (oldData: any) => {
+          if (!oldData) return oldData;
+          return {
+            ...oldData,
+            items: oldData.items.map((item: any) =>
+              item.id === draggedFolderId
+                ? { ...item, position: dragStartPosition }
+                : item
+            ),
+          };
+        });
+
+        try {
+          await axios.post("/api/stellar/folders/sidebar", {
+            folderId: draggedFolderId,
+          });
+
+          await queryClient.invalidateQueries(["sidebar-folders"]);
+        } catch (error) {
+          console.error("Failed to add folder to sidebar:", error);
+        }
       }
+
       setIsDraggingFolder(false);
       setDraggedFolderId(null);
       setIsOverSidebar(false);
-      setDragStartPosition(null); // Clean up drag start position when drag ends
+      setPointerPosition(null);
+      setDragStartPosition(null);
     };
 
     window.addEventListener("mouseup", handleDragEnd);
@@ -86,19 +74,20 @@ export function Sidebar() {
   }, [
     isOverSidebar,
     draggedFolderId,
-    handleDrop,
+    dragStartPosition,
+    queryClient,
     setIsDraggingFolder,
     setDraggedFolderId,
     setIsOverSidebar,
+    setPointerPosition,
     setDragStartPosition,
   ]);
 
   return (
     <div
       ref={sidebarRef}
-      className="relative w-48 bg-black border-r border-[#29292981]"
+      className="relative w-[210px] pt-[6px] bg-black/30 border-r border-[#29292981]"
     >
-      {/* Drag highlight overlay */}
       <AnimatePresence>
         {isDraggingFolder && isOverSidebar && (
           <motion.div
@@ -110,7 +99,6 @@ export function Sidebar() {
         )}
       </AnimatePresence>
 
-      {/* Sidebar content */}
       <SidebarContent />
     </div>
   );

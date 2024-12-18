@@ -6,12 +6,15 @@ import { useDrag } from "../contexts/drag-context";
 import { useFolder } from "../contexts/folder-context";
 import { ChevronLeft } from "lucide-react";
 import localFont from "next/font/local";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
+import { useSidebarDrag } from "../hooks/useSidebarDrag";
 
-// Import the font
+// Import exemplar font
 const exemplarPro = localFont({
   src: "../../../../public/fonts/SFProTextSemibold.ttf",
 });
 
+// Type definitions remain unchanged
 interface Position {
   x: number;
   y: number;
@@ -46,18 +49,24 @@ interface EditState {
   value: string;
 }
 
-// Update the constants
-const MAX_NAME_WIDTH = 117; // Updated max width to 210px
-const LINE_HEIGHT = 16; // Line height in pixels
+// Constants
+const MAX_NAME_WIDTH = 117;
+const LINE_HEIGHT = 16;
 const MAX_LINES = 3;
 
 export function FoldersArea() {
-  // Local state only
-  const [items, setItems] = useState<CanvasItem[]>([]);
+  // Query client for cache management
+  const queryClient = useQueryClient();
+
+  // Local state management
   const [isLoading, setIsLoading] = useState(true);
   const [navigationStack, setNavigationStack] = useState<string[]>([]);
+  const [editState, setEditState] = useState<EditState>({
+    id: null,
+    value: "",
+  });
 
-  // Context state
+  // Context management
   const { currentFolderId, setCurrentFolder, setFolderPath } = useFolder();
   const { findNextAvailablePosition } = useGrid(defaultGridConfig);
   const {
@@ -69,17 +78,21 @@ export function FoldersArea() {
     setDragStartPosition,
   } = useDrag();
 
-  const [editState, setEditState] = useState<EditState>({
-    id: null,
-    value: "",
+  // Sidebar drag integration
+  const { handleSidebarDrop } = useSidebarDrag({
+    onSidebarDragStart: () => {
+      console.log("Started dragging towards sidebar");
+    },
   });
+
+  // References for text input management
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const inputContainerRef = useRef<HTMLDivElement>(null);
 
-  // Simple load folders without any guards or refs
-  const loadFolders = useCallback(async () => {
-    try {
-      setIsLoading(true);
+  // Enhanced folder data query
+  const { data: folderData } = useQuery({
+    queryKey: ["folder", currentFolderId],
+    queryFn: async () => {
       const response = await axios.get(
         currentFolderId
           ? `/api/stellar/folders/${currentFolderId}`
@@ -105,43 +118,146 @@ export function FoldersArea() {
         setFolderPath([]);
       }
 
-      const mappedItems: CanvasItem[] = [
-        ...folderData.children.map((folderItem: any) => ({
-          id: folderItem.id,
-          itemType: "folder" as const,
-          data: folderItem,
-          position:
-            folderItem.position ||
-            findNextAvailablePosition(
-              folderData.children
-                .filter((i: any) => i.position)
-                .map((i: any) => i.position)
-            ),
-        })),
-        ...folderData.files.map((fileItem: any) => ({
-          id: fileItem.id,
-          itemType: "file" as const,
-          data: fileItem,
-          position: fileItem.position || { x: 0, y: 0 },
-        })),
-      ];
-
-      setItems(mappedItems);
-    } catch (error) {
-      console.error("Failed to load folders:", error);
-    } finally {
+      return {
+        items: [
+          ...folderData.children.map((folderItem: any) => ({
+            id: folderItem.id,
+            itemType: "folder" as const,
+            data: folderItem,
+            position:
+              folderItem.position ||
+              findNextAvailablePosition(
+                folderData.children
+                  .filter((i: any) => i.position)
+                  .map((i: any) => i.position)
+              ),
+          })),
+          ...folderData.files.map((fileItem: any) => ({
+            id: fileItem.id,
+            itemType: "file" as const,
+            data: fileItem,
+            position: fileItem.position || { x: 0, y: 0 },
+          })),
+        ],
+        rawData: folderData,
+      };
+    },
+    onSuccess: () => {
       setIsLoading(false);
-    }
-  }, [currentFolderId, findNextAvailablePosition, setFolderPath]);
+    },
+  });
 
-  useEffect(() => {
-    loadFolders();
-  }, [currentFolderId]);
+  // Position mutation with optimistic updates
+  const positionMutation = useMutation({
+    mutationFn: async ({
+      item,
+      position,
+    }: {
+      item: CanvasItem;
+      position: Position;
+    }) => {
+      const endpoint =
+        item.itemType === "file"
+          ? `/api/stellar/files/${item.id}/position`
+          : `/api/stellar/folders/${item.id}/position`;
 
+      await axios.patch(endpoint, { position });
+      return { item, position };
+    },
+    onMutate: async ({ item, position }) => {
+      await queryClient.cancelQueries({
+        queryKey: ["folder", currentFolderId],
+      });
+      const previousData = queryClient.getQueryData([
+        "folder",
+        currentFolderId,
+      ]);
+
+      queryClient.setQueryData(["folder", currentFolderId], (old: any) => {
+        if (!old) return old;
+        return {
+          ...old,
+          items: old.items.map((i: CanvasItem) =>
+            i.id === item.id ? { ...i, position } : i
+          ),
+        };
+      });
+
+      return { previousData };
+    },
+    onError: (error, variables, context) => {
+      if (context?.previousData) {
+        queryClient.setQueryData(
+          ["folder", currentFolderId],
+          context.previousData
+        );
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["folder", currentFolderId] });
+    },
+  });
+
+  // Rename mutation with optimistic updates
+  const renameMutation = useMutation({
+    mutationFn: async ({
+      item,
+      newName,
+    }: {
+      item: CanvasItem;
+      newName: string;
+    }) => {
+      const endpoint =
+        item.itemType === "folder"
+          ? `/api/stellar/folders/${item.id}`
+          : `/api/stellar/files/${item.id}`;
+
+      await axios.patch(endpoint, { name: newName });
+      return { item, newName };
+    },
+    onMutate: async ({ item, newName }) => {
+      await queryClient.cancelQueries({
+        queryKey: ["folder", currentFolderId],
+      });
+      const previousData = queryClient.getQueryData([
+        "folder",
+        currentFolderId,
+      ]);
+
+      queryClient.setQueryData(["folder", currentFolderId], (old: any) => {
+        if (!old) return old;
+        return {
+          ...old,
+          items: old.items.map((i: CanvasItem) =>
+            i.id === item.id ? { ...i, data: { ...i.data, name: newName } } : i
+          ),
+        };
+      });
+
+      return { previousData };
+    },
+    onError: (error, variables, context) => {
+      if (context?.previousData) {
+        queryClient.setQueryData(
+          ["folder", currentFolderId],
+          context.previousData
+        );
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["folder", currentFolderId] });
+      queryClient.invalidateQueries({ queryKey: ["sidebar-folders"] });
+    },
+  });
+
+  // Navigation handlers
   const handleFolderOpen = useCallback(
     (folderId: string) => {
       if (currentFolderId) {
-        setNavigationStack((prev) => [...prev, currentFolderId]);
+        setNavigationStack((previousStack) => [
+          ...previousStack,
+          currentFolderId,
+        ]);
       }
       setCurrentFolder(folderId);
     },
@@ -150,33 +266,32 @@ export function FoldersArea() {
 
   const handleBack = useCallback(() => {
     const previousFolder = navigationStack[navigationStack.length - 1];
-    setNavigationStack((prev) => prev.slice(0, -1));
+    setNavigationStack((previousStack) => previousStack.slice(0, -1));
     setCurrentFolder(previousFolder || null);
   }, [navigationStack, setCurrentFolder]);
 
+  // Drag handlers
   const handleDragEnd = useCallback(
     async (item: CanvasItem, position: Position) => {
-      try {
-        const endpoint =
-          item.itemType === "file"
-            ? `/api/stellar/files/${item.id}/position`
-            : `/api/stellar/folders/${item.id}/position`;
-
-        await axios.patch(endpoint, { position });
-
-        setItems((prevItems) =>
-          prevItems.map((prevItem) =>
-            prevItem.id === item.id ? { ...prevItem, position } : prevItem
-          )
-        );
-      } catch (error) {
-        console.error("Failed to update position:", error);
+      // CRUCIAL: Don't mutate position if dropping on sidebar
+      if (!isOverSidebar) {
+        positionMutation.mutate({ item, position });
       }
     },
-    []
+    [isOverSidebar, positionMutation]
   );
 
-  // Add rename handlers
+  // Rename handlers
+  const handleRename = useCallback(
+    async (item: CanvasItem, newName: string) => {
+      if (newName.trim() && newName !== item.data.name) {
+        renameMutation.mutate({ item, newName });
+      }
+      setEditState({ id: null, value: "" });
+    },
+    [renameMutation]
+  );
+
   const handleDoubleClick = useCallback(
     (item: CanvasItem, event: React.MouseEvent) => {
       const target = event.target as HTMLElement;
@@ -193,35 +308,6 @@ export function FoldersArea() {
     [handleFolderOpen]
   );
 
-  const handleRename = useCallback(
-    async (item: CanvasItem, newName: string) => {
-      try {
-        const endpoint =
-          item.itemType === "folder"
-            ? `/api/stellar/folders/${item.id}`
-            : `/api/stellar/files/${item.id}`;
-
-        await axios.patch(endpoint, { name: newName });
-
-        setItems((prevItems) =>
-          prevItems.map((prevItem) =>
-            prevItem.id === item.id
-              ? {
-                  ...prevItem,
-                  data: { ...prevItem.data, name: newName },
-                }
-              : prevItem
-          )
-        );
-      } catch (error) {
-        console.error("Failed to rename item:", error);
-      } finally {
-        setEditState({ id: null, value: "" });
-      }
-    },
-    []
-  );
-
   const handleInputBlur = useCallback(
     (item: CanvasItem) => {
       if (editState.value.trim() && editState.value !== item.data.name) {
@@ -236,7 +322,7 @@ export function FoldersArea() {
   const handleInputKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLTextAreaElement>, item: CanvasItem) => {
       if (event.key === "Enter") {
-        event.preventDefault(); // Prevent new line in textarea
+        event.preventDefault();
         if (editState.value.trim() && editState.value !== item.data.name) {
           handleRename(item, editState.value);
         } else {
@@ -249,9 +335,9 @@ export function FoldersArea() {
     [editState.value, handleRename]
   );
 
+  // Text area height adjustment
   const adjustTextAreaHeight = useCallback(() => {
     if (inputRef.current) {
-      // Create a hidden span to measure text width
       const measureSpan = document.createElement("span");
       measureSpan.style.font = window.getComputedStyle(inputRef.current).font;
       measureSpan.style.visibility = "hidden";
@@ -261,18 +347,14 @@ export function FoldersArea() {
         inputRef.current.value || inputRef.current.placeholder || "M";
       document.body.appendChild(measureSpan);
 
-      // Calculate width based on content
       const textWidth = measureSpan.offsetWidth;
       const inputWidth = Math.min(Math.max(textWidth + 16, 30), MAX_NAME_WIDTH);
 
-      // Clean up measurement span
       document.body.removeChild(measureSpan);
 
-      // Reset textarea styles to properly measure content height
       inputRef.current.style.height = "auto";
       inputRef.current.style.height = `${Math.min(inputRef.current.scrollHeight, LINE_HEIGHT * MAX_LINES)}px`;
 
-      // Update input and container widths
       if (inputContainerRef.current) {
         inputContainerRef.current.style.width = `${inputWidth}px`;
         inputContainerRef.current.style.marginLeft = `${-inputWidth / 2}px`;
@@ -281,13 +363,17 @@ export function FoldersArea() {
   }, []);
 
   const handleInputChange = useCallback(
-    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-      setEditState((prev) => ({ ...prev, value: e.target.value }));
+    (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+      setEditState((previousState) => ({
+        ...previousState,
+        value: event.target.value,
+      }));
       adjustTextAreaHeight();
     },
     [adjustTextAreaHeight]
   );
 
+  // Input focus effect
   useEffect(() => {
     if (editState.id && inputRef.current) {
       adjustTextAreaHeight();
@@ -295,6 +381,24 @@ export function FoldersArea() {
       inputRef.current.select();
     }
   }, [editState.id, adjustTextAreaHeight]);
+
+  // Folder creation event subscription
+  useEffect(() => {
+    const handleFolderCreated = (event: CustomEvent) => {
+      queryClient.invalidateQueries({ queryKey: ["folder", currentFolderId] });
+    };
+
+    window.addEventListener(
+      "folderCreated",
+      handleFolderCreated as EventListener
+    );
+    return () => {
+      window.removeEventListener(
+        "folderCreated",
+        handleFolderCreated as EventListener
+      );
+    };
+  }, [currentFolderId, queryClient]);
 
   if (isLoading) {
     return (
@@ -323,7 +427,7 @@ export function FoldersArea() {
       )}
 
       <div className="relative w-full h-full">
-        {items.map((item) => (
+        {folderData?.items.map((item) => (
           <motion.div
             key={item.id}
             className="absolute flex flex-col items-center cursor-grab active:cursor-grabbing"
@@ -349,22 +453,26 @@ export function FoldersArea() {
               }
             }}
             onDragEnd={(_, info) => {
-              if (isOverSidebar && item.itemType === "folder") {
-                // If over sidebar, IMMEDIATELY prevent any position update
-                // and snap back to original position
-                setItems((prevItems) =>
-                  prevItems.map((prevItem) =>
-                    prevItem.id === item.id
-                      ? {
-                          ...prevItem,
-                          animate: false,
-                          position: dragStartPosition!,
-                        }
-                      : prevItem
-                  )
+              if (
+                isOverSidebar &&
+                item.itemType === "folder" &&
+                dragStartPosition
+              ) {
+                // First, immediately restore position in UI
+                queryClient.setQueryData(
+                  ["folder", currentFolderId],
+                  (oldData: any) => ({
+                    ...oldData,
+                    items: oldData.items.map((i: CanvasItem) =>
+                      i.id === item.id
+                        ? { ...i, position: dragStartPosition }
+                        : i
+                    ),
+                  })
                 );
+
+                // Then let the sidebar handle its API call
               } else {
-                // Only proceed with normal drag end if NOT over sidebar
                 const finalPosition = {
                   x: item.position.x + info.offset.x,
                   y: item.position.y + info.offset.y,
@@ -372,7 +480,7 @@ export function FoldersArea() {
                 handleDragEnd(item, finalPosition);
               }
 
-              // Clean up all drag state
+              // Clean up drag state
               setIsDraggingFolder(false);
               setDraggedFolderId(null);
               setPointerPosition(null);
@@ -405,7 +513,7 @@ export function FoldersArea() {
                       value={editState.value}
                       onChange={handleInputChange}
                       onBlur={() => handleInputBlur(item)}
-                      onKeyDown={(e) => handleInputKeyDown(e, item)}
+                      onKeyDown={(event) => handleInputKeyDown(event, item)}
                       className="resize-none overflow-hidden text-[13px] font-semibold bg-transparent text-[#626581ca] outline-none text-center"
                       style={{
                         ...exemplarPro.style,
@@ -414,7 +522,7 @@ export function FoldersArea() {
                         borderRadius: "3px",
                         lineHeight: `${LINE_HEIGHT}px`,
                         width: "100%",
-                        height: "auto", // Let height be determined by content
+                        height: "auto",
                         maxWidth: `${MAX_NAME_WIDTH}px`,
                       }}
                       maxLength={255}
