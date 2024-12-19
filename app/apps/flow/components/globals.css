@@ -1,0 +1,9 @@
+::selection {
+  background-color: rgba(76, 79, 105, 0.3); /* Latte accent at 30% */
+  color: inherit;
+}
+
+::-moz-selection {
+  background-color: rgba(76, 79, 105, 0.3); /* Latte accent at 30% */
+  color: inherit;
+}

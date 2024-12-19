@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { motion } from "framer-motion";
 import { useStyles } from "@/app/hooks/useStyles";
 import { FlowSkeletonGrid } from "@/app/components/skeletons/FlowSkeletons";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -13,6 +13,7 @@ import {
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 import { toast } from "sonner";
+import "./globals.css";
 
 // PRESERVED: Original interfaces with enhanced ColorComponent
 interface ColorComponent {
@@ -50,6 +51,8 @@ export const StreamView = ({ streamId, onFlowSelect }: StreamViewProps) => {
   const queryClient = useQueryClient();
   const [isDuplicating, setIsDuplicating] = useState<string | null>(null);
   const [isPublishing, setIsPublishing] = useState<string | null>(null);
+  const [renamingFlowId, setRenamingFlowId] = useState<string | null>(null);
+  const nameInputRef = useRef<HTMLInputElement>(null);
 
   // PRESERVED: Original query
   const { data: stream, isLoading } = useQuery<Stream>({
@@ -101,6 +104,57 @@ export const StreamView = ({ streamId, onFlowSelect }: StreamViewProps) => {
       setIsPublishing(null);
     },
   });
+
+  // Add rename mutation
+  const { mutate: renameFlow } = useMutation({
+    mutationFn: async ({ flowId, name }: { flowId: string; name: string }) => {
+      const response = await axios.patch(`/api/flows/${flowId}`, { name });
+      return response.data;
+    },
+    onSuccess: (updatedFlow) => {
+      // Update the cache directly instead of invalidating
+      queryClient.setQueryData(["stream", streamId], (oldData: any) => {
+        if (!oldData) return oldData;
+        return {
+          ...oldData,
+          flows: oldData.flows.map((flow: any) =>
+            flow.id === updatedFlow.id
+              ? { ...flow, name: updatedFlow.name }
+              : flow
+          ),
+        };
+      });
+      toast.success("Flow renamed successfully");
+      setRenamingFlowId(null);
+    },
+    onError: () => {
+      toast.error("Failed to rename flow");
+      setRenamingFlowId(null);
+    },
+  });
+
+  // Focus input when renaming starts
+  useEffect(() => {
+    if (renamingFlowId && nameInputRef.current) {
+      nameInputRef.current.focus();
+      // This will select all text immediately
+      nameInputRef.current.select();
+    }
+  }, [renamingFlowId]);
+
+  // Handle rename start
+  const handleRenameStart = (flowId: string) => {
+    setRenamingFlowId(flowId);
+  };
+
+  // Handle rename submit
+  const handleRenameSubmit = (flowId: string, newName: string) => {
+    if (newName.trim()) {
+      renameFlow({ flowId, name: newName });
+    } else {
+      setRenamingFlowId(null);
+    }
+  };
 
   if (isLoading) {
     return <FlowSkeletonGrid count={6} />;
@@ -185,15 +239,42 @@ export const StreamView = ({ streamId, onFlowSelect }: StreamViewProps) => {
                     {renderFlowPreview(flow)}
 
                     <div className="pl-px space-y-2.5">
-                      <h3
-                        className="text-sm font-semibold"
-                        style={{
-                          color: getColor("Text Primary (Hd)"),
-                          fontFamily: getFont("Text Primary"),
-                        }}
-                      >
-                        {flow.name}
-                      </h3>
+                      {renamingFlowId === flow.id ? (
+                        <input
+                          ref={nameInputRef}
+                          defaultValue={flow.name}
+                          className="text-sm font-semibold w-full px-2 py-1 rounded outline-none"
+                          style={{
+                            backgroundColor: "rgba(76, 79, 105, 0.3)",
+                            color: getColor("Text Primary (Hd)"),
+                            fontFamily: getFont("Text Primary"),
+                          }}
+                          onBlur={(e) =>
+                            handleRenameSubmit(flow.id, e.target.value)
+                          }
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              handleRenameSubmit(
+                                flow.id,
+                                e.currentTarget.value
+                              );
+                            } else if (e.key === "Escape") {
+                              setRenamingFlowId(null);
+                            }
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      ) : (
+                        <h3
+                          className="text-sm font-semibold"
+                          style={{
+                            color: getColor("Text Primary (Hd)"),
+                            fontFamily: getFont("Text Primary"),
+                          }}
+                        >
+                          {flow.name}
+                        </h3>
+                      )}
                       <div
                         className="flex items-center gap-[3px] text-[11px]"
                         style={{
@@ -230,6 +311,15 @@ export const StreamView = ({ streamId, onFlowSelect }: StreamViewProps) => {
                     }}
                   >
                     {isPublishing === flow.id ? "Publishing..." : "Add to XP"}
+                  </ContextMenuItem>
+                  <ContextMenuItem
+                    onClick={() => handleRenameStart(flow.id)}
+                    style={{
+                      color: getColor("Text Primary (Hd)"),
+                      fontFamily: getFont("Text Primary"),
+                    }}
+                  >
+                    Rename
                   </ContextMenuItem>
                   <ContextMenuSeparator />
                 </>

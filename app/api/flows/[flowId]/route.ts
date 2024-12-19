@@ -34,6 +34,8 @@ export async function GET(
   }
 }
 
+// app/api/flows/[flowId]/route.ts
+
 export async function PATCH(
   req: Request,
   { params }: { params: { flowId: string } }
@@ -44,50 +46,73 @@ export async function PATCH(
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    const { components } = await req.json();
+    const body = await req.json();
 
-    const updatedFlow = await db.flow.update({
-      where: {
-        id: params.flowId,
-        profileId: profile.id,
-      },
-      data: {
-        components: {
-          deleteMany: {},
-          createMany: {
-            data: components.map((component: any) => {
-              const baseComponent = {
-                type: component.type,
-                name: component.name,
-              };
+    // If it's a rename operation
+    if (body.name !== undefined) {
+      const updatedFlow = await db.flow.update({
+        where: {
+          id: params.flowId,
+          profileId: profile.id,
+        },
+        data: {
+          name: body.name,
+        },
+        include: {
+          components: true,
+        },
+      });
 
-              if (component.type === "color") {
-                return {
-                  ...baseComponent,
-                  value: component.value,
-                  opacity: component.opacity
-                    ? parseInt(component.opacity as string, 10)
-                    : null,
+      return NextResponse.json(updatedFlow);
+    }
+
+    // If it's a components update operation (preserve existing functionality)
+    if (body.components) {
+      const updatedFlow = await db.flow.update({
+        where: {
+          id: params.flowId,
+          profileId: profile.id,
+        },
+        data: {
+          components: {
+            deleteMany: {},
+            createMany: {
+              data: body.components.map((component: any) => {
+                const baseComponent = {
+                  type: component.type,
+                  name: component.name,
                 };
-              } else if (component.type === "typography") {
-                return {
-                  ...baseComponent,
-                  fontFamily: component.fontFamily,
-                  value: component.fontFamily, // Use fontFamily as value for typography components
-                };
-              }
 
-              return baseComponent;
-            }),
+                if (component.type === "color") {
+                  return {
+                    ...baseComponent,
+                    value: component.value,
+                    opacity: component.opacity
+                      ? parseInt(component.opacity as string, 10)
+                      : null,
+                  };
+                } else if (component.type === "typography") {
+                  return {
+                    ...baseComponent,
+                    fontFamily: component.fontFamily,
+                    value: component.fontFamily,
+                  };
+                }
+
+                return baseComponent;
+              }),
+            },
           },
         },
-      },
-      include: {
-        components: true,
-      },
-    });
+        include: {
+          components: true,
+        },
+      });
 
-    return NextResponse.json(updatedFlow);
+      return NextResponse.json(updatedFlow);
+    }
+
+    return new NextResponse("Invalid request body", { status: 400 });
   } catch (error) {
     console.error("[FLOW_PATCH]", error);
     return new NextResponse("Internal Error", { status: 500 });
