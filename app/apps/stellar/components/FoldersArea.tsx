@@ -20,28 +20,46 @@ interface Position {
   y: number;
 }
 
-interface StellarFile {
+interface StellarProfile {
   id: string;
   name: string;
-  url: string;
-  size: number;
-  mimeType: string;
+  driveCapacity: bigint;
+  currentUsage: number;
+  rootFolder: StellarFolder;
+}
+
+interface BaseItem {
+  id: string;
+  name: string;
   position: Position;
 }
 
-interface StellarFolder {
-  id: string;
-  name: string;
-  position: Position;
+interface StellarFile extends BaseItem {
+  itemType: "file";
+  url: string;
+  size: number;
+  mimeType: string;
+}
+
+interface StellarFolder extends BaseItem {
+  itemType: "folder";
   children: StellarFolder[];
   files: StellarFile[];
 }
 
-export interface CanvasItem {
+type CanvasItem = {
   id: string;
   itemType: "folder" | "file";
   data: StellarFile | StellarFolder;
   position: Position;
+};
+
+function isStellarFile(item: any): item is StellarFile {
+  return item && item.itemType === "file";
+}
+
+function isStellarFolder(item: any): item is StellarFolder {
+  return item && item.itemType === "folder";
 }
 
 interface EditState {
@@ -61,6 +79,10 @@ export function FoldersArea() {
   // Local state management
   const [isLoading, setIsLoading] = useState(true);
   const [navigationStack, setNavigationStack] = useState<string[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const [items, setItems] = useState<CanvasItem[]>([]);
+  const [fileDropActive, setFileDropActive] = useState(false);
+  const [profile, setProfile] = useState<StellarProfile | null>(null);
   const [editState, setEditState] = useState<EditState>({
     id: null,
     value: "",
@@ -78,12 +100,14 @@ export function FoldersArea() {
     setDragStartPosition,
   } = useDrag();
 
-  // Sidebar drag integration
-  const { handleSidebarDrop } = useSidebarDrag({
-    onSidebarDragStart: () => {
-      console.log("Started dragging towards sidebar");
-    },
-  });
+  const {
+    handleSidebarDrop,
+  }: { handleSidebarDrop: (folderId: string) => Promise<void> } =
+    useSidebarDrag({
+      onSidebarDragStart: () => {
+        console.log("Started dragging towards sidebar");
+      },
+    });
 
   // References for text input management
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -123,7 +147,7 @@ export function FoldersArea() {
           ...folderData.children.map((folderItem: any) => ({
             id: folderItem.id,
             itemType: "folder" as const,
-            data: folderItem,
+            data: { ...folderItem, itemType: "folder" }, // <-- Add itemType here
             position:
               folderItem.position ||
               findNextAvailablePosition(
@@ -135,7 +159,7 @@ export function FoldersArea() {
           ...folderData.files.map((fileItem: any) => ({
             id: fileItem.id,
             itemType: "file" as const,
-            data: fileItem,
+            data: { ...fileItem, itemType: "file" }, // <-- Add itemType here
             position: fileItem.position || { x: 0, y: 0 },
           })),
         ],
@@ -277,6 +301,24 @@ export function FoldersArea() {
       if (!isOverSidebar) {
         positionMutation.mutate({ item, position });
       }
+      try {
+        const endpoint =
+          item.itemType === "file"
+            ? `/api/stellar/files/${item.id}/position`
+            : `/api/stellar/folders/${item.id}/position`;
+
+        await axios.patch(endpoint, { position });
+
+        setItems((previousItems) =>
+          previousItems.map((previousItem) =>
+            previousItem.id === item.id
+              ? { ...previousItem, position }
+              : previousItem
+          )
+        );
+      } catch (error) {
+        console.error("Failed to update position:", error);
+      }
     },
     [isOverSidebar, positionMutation]
   );
@@ -306,6 +348,92 @@ export function FoldersArea() {
       }
     },
     [handleFolderOpen]
+  );
+
+  const handleDragOver = useCallback((event: React.DragEvent) => {
+    event.preventDefault();
+    if (event.dataTransfer.types.includes("Files")) {
+      setFileDropActive(true);
+    }
+  }, []);
+
+  const handleDragLeave = useCallback((event: React.DragEvent) => {
+    event.preventDefault();
+    const rect = event.currentTarget.getBoundingClientRect();
+    if (
+      event.clientY <= rect.top ||
+      event.clientY >= rect.bottom ||
+      event.clientX <= rect.left ||
+      event.clientX >= rect.right
+    ) {
+      setFileDropActive(false);
+    }
+  }, []);
+
+  const handleFileUpload = useCallback(
+    async (file: File, dropPosition: Position) => {
+      try {
+        setIsUploading(true);
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("UPLOADCARE_PUB_KEY", "f908b6ff47aba6efd711");
+
+        const uploadResponse = await axios.post(
+          "https://upload.uploadcare.com/base/",
+          formData
+        );
+
+        if (!uploadResponse?.data?.file) {
+          throw new Error("Upload failed");
+        }
+
+        const cdnUrl = `https://ucarecdn.com/${uploadResponse.data.file}/`;
+
+        const fileResponse = await axios.post("/api/stellar/files", {
+          name: file.name,
+          url: cdnUrl,
+          size: file.size,
+          mimeType: file.type,
+          folderId: currentFolderId || profile?.rootFolder?.id,
+          position: dropPosition,
+        });
+
+        setItems((previousItems) => [
+          ...previousItems,
+          {
+            id: fileResponse.data.id,
+            itemType: "file",
+            data: { ...fileResponse.data, itemType: "file" },
+            position: dropPosition,
+          },
+        ]);
+      } catch (error) {
+        console.error("Upload error:", error);
+      } finally {
+        setIsUploading(false);
+      }
+    },
+    [currentFolderId, profile?.rootFolder?.id]
+  );
+
+  const handleDrop = useCallback(
+    async (event: React.DragEvent) => {
+      event.preventDefault();
+      setFileDropActive(false);
+
+      const dropPosition = {
+        x: event.clientX - event.currentTarget.getBoundingClientRect().left,
+        y: event.clientY - event.currentTarget.getBoundingClientRect().top,
+      };
+
+      const { files } = event.dataTransfer;
+      if (files?.length) {
+        for (const file of Array.from(files)) {
+          await handleFileUpload(file, dropPosition);
+        }
+      }
+    },
+    [handleFileUpload]
   );
 
   const handleInputBlur = useCallback(
@@ -414,7 +542,12 @@ export function FoldersArea() {
   }
 
   return (
-    <div className="relative w-full h-full flex-1 bg-[#00000030]">
+    <div
+      className="relative flex-1 overflow-hidden bg-[#010203]/30"
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
       {currentFolderId && (
         <div className="absolute top-4 left-4 z-10">
           <button
@@ -425,6 +558,23 @@ export function FoldersArea() {
           </button>
         </div>
       )}
+
+      <AnimatePresence>
+        {fileDropActive && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 z-50 bg-[#4C4F69]/20 border-2 border-dashed border-[#4C4F69]/40 rounded-lg pointer-events-none"
+          >
+            <div className="flex items-center justify-center h-full">
+              <span className="text-[#4C4F69] text-lg">
+                Drop files to upload
+              </span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <div className="relative w-full h-full">
         {folderData?.items.map((item) => (
@@ -452,13 +602,14 @@ export function FoldersArea() {
                 setPointerPosition({ x: info.point.x, y: info.point.y });
               }
             }}
+            // In the motion.div's onDragEnd:
             onDragEnd={(_, info) => {
               if (
                 isOverSidebar &&
                 item.itemType === "folder" &&
                 dragStartPosition
               ) {
-                // First, immediately restore position in UI
+                // Optimistically update UI back to original position
                 queryClient.setQueryData(
                   ["folder", currentFolderId],
                   (oldData: any) => ({
@@ -471,7 +622,8 @@ export function FoldersArea() {
                   })
                 );
 
-                // Then let the sidebar handle its API call
+                // Handle sidebar operation
+                handleSidebarDrop(item.id);
               } else {
                 const finalPosition = {
                   x: item.position.x + info.offset.x,
@@ -551,25 +703,59 @@ export function FoldersArea() {
               </>
             ) : (
               <>
-                <div className="w-16 h-16 rounded-xl flex items-center justify-center">
-                  <img
-                    src="/apps/stellar/icns/system/_file.png"
-                    alt={item.data.name}
-                    className="w-[64px] h-[64px] object-contain"
-                    draggable={false}
-                  />
-                </div>
-                <h3
-                  className="text-[13px] font-semibold truncate max-w-[150px] text-[#626581ca] mt-1 px-1"
-                  style={exemplarPro.style}
-                >
-                  {item.data.name}
-                </h3>
+                {isStellarFile(item.data) && (
+                  <>
+                    {item.data.mimeType?.startsWith("video/") ? (
+                      <div className="relative w-16 h-16 flex items-center justify-center">
+                        <div className="w-full h-12">
+                          <video
+                            src={item.data.url}
+                            className="w-full h-full object-cover rounded-[9px]"
+                            autoPlay
+                            muted
+                            loop
+                            playsInline
+                          />
+                        </div>
+                      </div>
+                    ) : item.data.mimeType?.startsWith("image/") ? (
+                      <div className="w-16 h-16">
+                        <img
+                          src={item.data.url}
+                          alt={item.data.name}
+                          className="w-full h-full object-cover rounded-lg"
+                          draggable={false}
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-16 h-16 flex items-center justify-center">
+                        <img
+                          src="/apps/stellar/icns/system/_file.png"
+                          alt={item.data.name}
+                          className="w-[64px] h-[64px] object-contain"
+                          draggable={false}
+                        />
+                      </div>
+                    )}
+                    <h3
+                      className="text-[13px] font-semibold truncate max-w-[150px] text-[#626581ca] mt-1"
+                      style={exemplarPro.style}
+                    >
+                      {item.data.name}
+                    </h3>
+                  </>
+                )}
               </>
             )}
           </motion.div>
         ))}
       </div>
+
+      {isUploading && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="text-[#ABC4C3]">Uploading...</div>
+        </div>
+      )}
     </div>
   );
 }
