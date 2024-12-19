@@ -1,0 +1,206 @@
+#root {
+  display: block;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+}
+
+body {
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    "Open Sans",
+    "Helvetica Neue",
+    sans-serif;
+  background-color: rgba(0, 0, 0, 0.308);
+}
+
+div.entry {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-50%);
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+}
+
+/* Left Sidebar Navigation */
+div.entry nav {
+  background-color: rgba(0, 0, 0, 0.3);
+  width: 40px;
+  height: fit-content;
+  padding-block: 10px;
+  display: flex;
+  flex-direction: column;
+  border-radius: 10px;
+  gap: 10px;
+  justify-content: flex-start;
+  position: initial;
+  height: 100%;
+}
+
+div.entry nav button {
+  width: 40px;
+  aspect-ratio: 1;
+  display: block;
+  background-color: rgb(0, 0, 0, 0%);
+  border: 0;
+  outline: 0;
+  transition: transform 0.3s cubic-bezier(0.21, 1.57, 0.55, 1);
+  cursor: pointer;
+}
+
+div.entry nav button img {
+  width: 100%;
+}
+
+div.entry nav button[data-select="false"] {
+  opacity: 0.5;
+}
+
+div.entry nav button[data-select="false"]:hover {
+  opacity: 1;
+}
+
+div.entry nav button:hover {
+  transform: scale(0.9);
+}
+
+/* Main Content Area */
+div.entry main {
+  all: unset;
+  display: block;
+  flex-grow: 1;
+}
+
+div.entry main header {
+  color: rgba(255, 255, 255, 0.757);
+  margin-bottom: 20px;
+}
+
+div.entry main header h3 {
+  margin: 0;
+  font-weight: normal;
+  font-size: 30px;
+}
+
+div.entry main p {
+  color: white;
+  margin: 0;
+  margin-bottom: 10px;
+}
+
+/* Join Navigation */
+div.entry main nav.join {
+  background-color: rgba(0, 0, 0, 0.3);
+  height: 30px;
+  width: fit-content;
+  padding-block: 0;
+  padding-inline: 30px;
+  display: flex;
+  flex-direction: row;
+  border-radius: 10px;
+  gap: 20px;
+}
+
+div.entry main nav.join button {
+  all: unset;
+  height: 20px;
+  margin-block: auto;
+  aspect-ratio: 1;
+  display: inline-block;
+  background-color: rgb(0, 0, 0, 0%);
+  border: 0;
+  outline: 0;
+  transition: transform 0.3s cubic-bezier(0.21, 1.57, 0.55, 1);
+  cursor: pointer;
+}
+
+div.entry main nav.join button img {
+  display: inline-block;
+  width: 100%;
+}
+
+div.entry main nav.join button[data-select="false"] {
+  opacity: 0.5;
+}
+
+div.entry main nav.join button[data-select="false"]:hover {
+  opacity: 1;
+}
+
+div.entry main nav.join button:hover {
+  transform: scale(0.9);
+}
+
+/* Input Fields */
+div.entry main input[type="text"] {
+  font-size: 20px;
+  color: #ccccccb3;
+  background-color: rgba(0, 0, 0, 0);
+  border: 0;
+  border-bottom: 1px solid #ccccccb3;
+  margin-bottom: 30px;
+  width: 100%;
+}
+
+div.entry main input:focus {
+  outline: 0;
+}
+
+/* Join Button */
+div.entry main button {
+  font-size: 20px;
+  color: #ccccccb3;
+  background-color: #4c4f69;
+  display: block;
+  padding-inline: 40px;
+  border-radius: 5px;
+  margin-top: 25px;
+  cursor: pointer;
+  padding-block: 3px;
+  border: 0;
+  outline: 0;
+  transition: scale 0.35s cubic-bezier(0, 0.6, 0.28, 1.47);
+}
+
+div.entry main button:hover {
+  scale: 0.85;
+}
+
+/* Tooltips */
+*[data-tooltip-hover]::after {
+  content: attr(data-tooltip-hover);
+  opacity: 0;
+  font-size: 14px;
+  padding: 3px 6px;
+  color: #ccccccb3;
+  transition: opacity ease-out 0.1s;
+  user-select: none;
+  width: max-content;
+  height: max-content;
+  transform: translateY(-100%) translateX(-50%);
+  letter-spacing: normal;
+  z-index: 1200000000;
+  position: absolute;
+  top: -0.25rem;
+  left: 50%;
+  border-radius: 0.5vh;
+  background-color: black;
+  user-select: none;
+  visibility: hidden;
+}
+
+*[data-tooltip-hover]:hover::after {
+  visibility: visible;
+  opacity: 0.9;
+}
