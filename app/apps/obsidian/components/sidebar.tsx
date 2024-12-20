@@ -1,49 +1,56 @@
+// app/apps/obsidian/components/sidebar.tsx
 import React from "react";
 import { Tree, Folder, File } from "./ui/file-tree";
 import { useStyles } from "@os/hooks/useStyles";
 import Image from "next/image";
+import { useQuery } from "@tanstack/react-query";
+import axios from "axios";
+
+type ObsidianNote = {
+  id: string;
+  title: string;
+};
+
+type ObsidianFolder = {
+  id: string;
+  name: string;
+  notes: ObsidianNote[];
+  children: ObsidianFolder[];
+};
 
 const Sidebar: React.FC = () => {
   const { getColor, getFont } = useStyles();
 
-  const ELEMENTS = [
-    {
-      id: "1",
-      isSelectable: true,
-      name: "My Notebook",
-      children: [
-        {
-          id: "2",
-          isSelectable: true,
-          name: "Chapter 1",
-          children: [
-            {
-              id: "3",
-              isSelectable: true,
-              name: "Notes.md",
-            },
-            {
-              id: "4",
-              isSelectable: true,
-              name: "Ideas.md",
-            },
-          ],
-        },
-        {
-          id: "5",
-          isSelectable: true,
-          name: "Chapter 2",
-          children: [
-            {
-              id: "6",
-              isSelectable: true,
-              name: "Research.md",
-            },
-          ],
-        },
-      ],
+  // First, fetch the profile to get the vault
+  const { data: profile } = useQuery({
+    queryKey: ["profile"],
+    queryFn: async () => {
+      const response = await axios.get("/api/profile");
+      return response.data;
     },
-  ];
+  });
+
+  // Then fetch the vault using the profile
+  const { data: vault } = useQuery({
+    queryKey: ["vault", profile?.id],
+    queryFn: async () => {
+      const response = await axios.get(`/api/obsidian/profile-vault`);
+      return response.data;
+    },
+    enabled: !!profile?.id,
+  });
+
+  // Finally, fetch the folder structure using the vault ID
+  const { data: treeData, isLoading } = useQuery({
+    queryKey: ["vault-folders", vault?.id],
+    queryFn: async () => {
+      const response = await axios.get(
+        `/api/obsidian/vaults/${vault.id}/folders`
+      );
+      return response.data;
+    },
+    enabled: !!vault?.id,
+  });
 
   const customTreeStyles = {
     color: "#7E8691",
@@ -58,39 +65,94 @@ const Sidebar: React.FC = () => {
       alt={isOpen ? "Open Folder" : "Closed Folder"}
       width={16}
       height={16}
+      unoptimized
     />
   );
 
   const FileIcon = () => (
-    <Image src="/icns/_file.png" alt="File" width={16} height={16} />
+    <Image
+      src="/icns/_file.png"
+      alt="File"
+      width={16}
+      height={16}
+      unoptimized
+    />
   );
+
+  if (isLoading) {
+    return (
+      <div className="w-[240px] p-4">
+        <div className="animate-pulse space-y-2">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-6 bg-white/5 rounded" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Enhanced recursive rendering with proper typing
+  const renderTreeItems = (items: any[]) => {
+    if (!Array.isArray(items)) {
+      console.error("Items is not an array:", items);
+      return null;
+    }
+
+    return items.map((item) => {
+      if (!item || !item.id || !item.name) {
+        console.error("Invalid item structure:", item);
+        return null;
+      }
+
+      if (Array.isArray(item.children) && item.children.length > 0) {
+        return (
+          <Folder key={item.id} element={item.name} value={item.id}>
+            {renderTreeItems(item.children)}
+            {item.notes &&
+              renderTreeItems(
+                item.notes.map((note: ObsidianNote) => ({
+                  id: note.id,
+                  name: `${note.title}.md`,
+                }))
+              )}
+          </Folder>
+        );
+      } else {
+        return (
+          <File key={item.id} value={item.id} fileIcon={<FileIcon />}>
+            <p>{item.name}</p>
+          </File>
+        );
+      }
+    });
+  };
+
+  if (!vault) {
+    return (
+      <div className="w-[240px] p-4">
+        <div className="text-sm text-white/50">Loading vault...</div>
+      </div>
+    );
+  }
+
+  if (!treeData) {
+    return (
+      <div className="w-[240px] p-4">
+        <div className="text-sm text-white/50">No data available</div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-[240px] overflow-auto">
       <Tree
         className="p-2"
-        initialSelectedId="3"
-        initialExpandedItems={["1", "2"]}
-        elements={ELEMENTS}
+        elements={treeData}
         style={customTreeStyles}
         openIcon={<FolderIcon isOpen={true} />}
         closeIcon={<FolderIcon isOpen={false} />}
       >
-        <Folder element="My Notebook" value="1">
-          <Folder value="2" element="Chapter 1">
-            <File value="3" fileIcon={<FileIcon />}>
-              <p>Notes.md</p>
-            </File>
-            <File value="4" fileIcon={<FileIcon />}>
-              <p>Ideas.md</p>
-            </File>
-          </Folder>
-          <Folder value="5" element="Chapter 2">
-            <File value="6" fileIcon={<FileIcon />}>
-              <p>Research.md</p>
-            </File>
-          </Folder>
-        </Folder>
+        {renderTreeItems(treeData)}
       </Tree>
     </div>
   );

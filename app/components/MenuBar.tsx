@@ -12,11 +12,13 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import axios from "axios";
 import { useAppStore } from "@/app/store/appStore";
 import { StreamWithFlows, FlowWithComponents } from "@/app/types/flow";
 import { FlowComponent } from "@prisma/client";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 // PRESERVED: Original constants
 const MENU_HEIGHT = 32;
@@ -25,9 +27,9 @@ const TRIGGER_AREA_HEIGHT = 20;
 interface SystemIconProps {
   src: string;
   children: React.ReactNode;
+  onReset?: () => Promise<void>;
 }
 
-// EVOLVED: SystemIcon to support proper dropdown alignment
 const SystemIcon: React.FC<SystemIconProps> = ({ src, children }) => {
   const { getColor } = useStyles();
 
@@ -49,11 +51,7 @@ const SystemIcon: React.FC<SystemIconProps> = ({ src, children }) => {
           />
         </motion.button>
       </DropdownMenuTrigger>
-      {React.cloneElement(children as React.ReactElement, {
-        align: "start",
-        alignOffset: -10,
-        sideOffset: 4,
-      })}
+      {children}
     </DropdownMenu>
   );
 };
@@ -66,6 +64,8 @@ export const MenuBar = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [currentDate, setCurrentDate] = useState(new Date());
   const { activeOSFlowId, setActiveOSFlowId, setOrionConfig } = useAppStore();
+  const router = useRouter();
+  const queryClient = useQueryClient();
 
   // PRESERVED: Original date update effect
   useEffect(() => {
@@ -95,6 +95,21 @@ export const MenuBar = () => {
     document.addEventListener("mousemove", handleMouseMove);
     return () => document.removeEventListener("mousemove", handleMouseMove);
   }, [dropdownOpen]);
+
+  const resetObsidian = useMutation({
+    mutationFn: async () => {
+      const response = await axios.post("/api/profile/reset-obsidian");
+      return response.data;
+    },
+    onSuccess: () => {
+      // Invalidate relevant queries
+      queryClient.invalidateQueries({ queryKey: ["vault-folders"] });
+      toast.success("Obsidian data has been reset");
+    },
+    onError: () => {
+      toast.error("Failed to reset Obsidian data");
+    },
+  });
 
   // PRESERVED: Original queries
   const { data: orionConfig } = useQuery({
@@ -196,15 +211,26 @@ export const MenuBar = () => {
             <div className="flex items-center gap-3">
               <SystemIcon src="/icns/system/_dopa.png">
                 <DropdownMenuContent
-                  className="min-w-[280px] p-4"
+                  className="min-w-[280px] p-1"
                   style={{
                     backgroundColor: getColor("black-thick"),
                     borderColor: getColor("Brd"),
                   }}
                 >
-                  <span className="text-sm opacity-50">
-                    System settings coming soon
-                  </span>
+                  <DropdownMenuItem
+                    onClick={() => resetObsidian.mutate()}
+                    className="flex items-center justify-between px-3 py-2 hover:bg-white/5 rounded-md cursor-pointer"
+                    style={{
+                      color: "rgba(76, 79, 105, 0.81)",
+                    }}
+                  >
+                    <span className="text-sm">Reset Obsidian Data</span>
+                  </DropdownMenuItem>
+                  <div className="px-3 py-2">
+                    <span className="text-sm opacity-50">
+                      More system settings coming soon
+                    </span>
+                  </div>
                 </DropdownMenuContent>
               </SystemIcon>
 

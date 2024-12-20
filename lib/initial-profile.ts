@@ -3,6 +3,27 @@ import { db } from "@/lib/db";
 import { v4 as uuidv4 } from "uuid";
 import { MemberRole } from "@prisma/client";
 
+// EVOLVED: Better type safety for note creation
+type NoteCreateInput = {
+  title: string;
+  content: string;
+  frontmatter: Record<string, any>;
+  vaultId: string;
+  folderId: string;
+};
+
+const createNote = async (tx: any, data: NoteCreateInput) => {
+  return tx.note.create({
+    data: {
+      title: data.title,
+      content: data.content,
+      vaultId: data.vaultId,
+      folderId: data.folderId,
+      frontmatter: data.frontmatter,
+    },
+  });
+};
+
 export const initialProfile = async () => {
   const user = await currentUser();
 
@@ -430,10 +451,10 @@ export const initialProfile = async () => {
       },
     });
 
-    // NEW: Create initial Obsidian vault
+    // EVOLVED: Create the main vault with proper structure
     const mainVault = await tx.vault.create({
       data: {
-        name: "Main Vault",
+        name: "My Notebook",
         profileId: profile.id,
         settings: {
           theme: "zenith",
@@ -444,58 +465,56 @@ export const initialProfile = async () => {
       },
     });
 
-    // Create initial folder structure
-    const dailyNotesFolder = await tx.obsidianFolder.create({
+    // EVOLVED: Create Chapter 1 folder with proper connection
+    const chapter1Folder = await tx.obsidianFolder.create({
       data: {
-        name: "Daily Notes",
+        name: "Chapter 1",
         vaultId: mainVault.id,
       },
     });
 
-    const resourcesFolder = await tx.obsidianFolder.create({
+    // EVOLVED: Create Chapter 2 folder with proper connection
+    const chapter2Folder = await tx.obsidianFolder.create({
       data: {
-        name: "Resources",
+        name: "Chapter 2",
         vaultId: mainVault.id,
       },
     });
 
-    // Create welcome note
-    await tx.note.create({
-      data: {
-        title: "Welcome to Obsidian",
-        content: `# Welcome to Your Digital Garden 🌱
-
-Welcome to your new Obsidian vault! This space is designed to help you cultivate your thoughts and knowledge.
-
-## Quick Start
-- Create new notes with Cmd/Ctrl + N
-- Link notes using [[double brackets]]
-- Use #tags to categorize
-- Create daily notes in the Daily Notes folder
-
-## Features
-- Backlinks tracking
-- Tag system
-- Folder organization
-- Markdown support
-
-Happy note-taking! 🚀`,
+    // EVOLVED: Create notes with proper vault and folder connections
+    const notes: NoteCreateInput[] = [
+      {
+        title: "Notes",
+        content: "# Notes\n\nYour notes content here",
+        frontmatter: { created: new Date().toISOString() },
         vaultId: mainVault.id,
-        frontmatter: {
-          tags: ["getting-started"],
-          created: new Date().toISOString(),
-        },
+        folderId: chapter1Folder.id,
       },
-    });
-
-    // Create initial tag
-    await tx.tag.create({
-      data: {
-        name: "getting-started",
-        color: "#7B6CBD", // Using Lilac Accent from our design system
+      {
+        title: "Ideas",
+        content: "# Ideas\n\nYour ideas content here",
+        frontmatter: { created: new Date().toISOString() },
         vaultId: mainVault.id,
+        folderId: chapter1Folder.id,
       },
-    });
+      {
+        title: "Research",
+        content: "# Research\n\nYour research content here",
+        frontmatter: { created: new Date().toISOString() },
+        vaultId: mainVault.id,
+        folderId: chapter2Folder.id,
+      },
+      {
+        title: "Case Studies",
+        content: "# Case Studies\n\nYour case studies content here",
+        frontmatter: { created: new Date().toISOString() },
+        vaultId: mainVault.id,
+        folderId: chapter2Folder.id,
+      },
+    ];
+
+    // Create all notes with proper error handling
+    await Promise.all(notes.map((note) => createNote(tx, note)));
 
     return profile;
   });

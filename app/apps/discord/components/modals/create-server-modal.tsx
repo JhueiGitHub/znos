@@ -80,7 +80,7 @@ export const CreateServerModal = ({
   // EVOLVED: Return with fixed Zenith styling
   return (
     <Dialog open={isModalOpen} onOpenChange={handleClose}>
-      <DialogContent className="bg-[#010203] border border-[#29292981] rounded-lg">
+      <DialogContent className="bg-[#010203] border border-[#29292981] rounded-2xl">
         <DialogHeader className="pt-8 px-6">
           <DialogTitle className="text-2xl text-center font-bold text-[#CCCCCC]">
             Customize your server
