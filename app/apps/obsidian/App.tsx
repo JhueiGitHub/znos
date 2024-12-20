@@ -1,10 +1,18 @@
 "use client";
 
+import { useStyles } from "@os/hooks/useStyles";
+import ObsidianContainer from "./components/obsidian-container";
+import Sidebar from "./components/sidebar";
+import Editor from "./components/editor";
+
 const Home = () => {
+  const { getColor } = useStyles();
+
   return (
-    <main className="h-full overflow-hidden">
-      <div></div>
-    </main>
+    <ObsidianContainer>
+      <Sidebar />
+      <Editor />
+    </ObsidianContainer>
   );
 };
 
