@@ -1,9 +1,17 @@
 "use client";
 
-import dynamic from "next/dynamic";
+import { useStyles } from "@os/hooks/useStyles";
+import ObsidianContainer from "./components/ObsidianContainer";
+import Sidebar from "./components/Sidebar";
+import Editor from "./components/Editor";
 
-const App = dynamic(() => import("./App"), { ssr: false });
+export default function ObsidianPage() {
+  const { getColor } = useStyles();
 
-export default function StellarPage() {
-  return <App />;
+  return (
+    <ObsidianContainer>
+      <Sidebar />
+      <Editor />
+    </ObsidianContainer>
+  );
 }

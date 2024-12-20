@@ -30,8 +30,8 @@
       "@flowc/*": ["./app/apps/flow/components/*"],
       "@an/*": ["./app/apps/anki/*"],
       "@anc/*": ["./app/apps/anki/components/*"],
-      "@stl/*": ["./app/apps/obsidian/*"],
-      "@stlc/*": ["./app/apps/obsidian/components/*"]
+      "@stl/*": ["./app/apps/oldstellar/*"],
+      "@stlc/*": ["./app/apps/oldstellar/components/*"]
     },
     "target": "es2018",
     "types": ["@uploadcare/blocks/types/jsx"]

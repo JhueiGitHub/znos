@@ -35,7 +35,7 @@ export const FlowSidebar = ({ onViewChange }: FlowSidebarProps) => {
 
         <Button
           variant="ghost"
-          className="w-full h-8 pl-[15px] justify-start gap-[13px] text-[11px] text-[#cccccc]/70 hover:bg-[#292929] hover:text-white"
+          className="w-full h-8 pl-[15px] justify-start gap-[13px] text-[11px] text-[#cccccc]/70 hover:bg-[#4c4f693e] hover:text-[#ccccccbb]"
           onClick={() => onViewChange("streams")}
         >
           <img src="/icns/_all.png" alt="All" className="w-4 h-4" />
@@ -44,7 +44,7 @@ export const FlowSidebar = ({ onViewChange }: FlowSidebarProps) => {
 
         <Button
           variant="ghost"
-          className="w-full h-8 pl-[15px] justify-start gap-[13px] text-[11px] text-[#cccccc]/70 hover:bg-[#292929] hover:text-white"
+          className="w-full h-8 pl-[15px] justify-start gap-[13px] text-[11px] text-[#cccccc]/70 hover:bg-[#4c4f693e] hover:text-[#ccccccbb]"
           onClick={() => onViewChange("apps")}
         >
           <img src="/icns/_stellar.png" alt="Stellar" className="w-4 h-4" />
@@ -53,7 +53,7 @@ export const FlowSidebar = ({ onViewChange }: FlowSidebarProps) => {
 
         <Button
           variant="ghost"
-          className="w-full h-8 pl-[15px] justify-start gap-[13px] text-[11px] text-[#cccccc]/70 hover:bg-[#292929] hover:text-white"
+          className="w-full h-8 pl-[15px] justify-start gap-[13px] text-[11px] text-[#cccccc]/70 hover:bg-[#4c4f693e] hover:text-[#ccccccbb]"
           onClick={() => onViewChange("community")}
         >
           <img src="/icns/_xp.png" alt="Community" className="w-4 h-4" />
@@ -62,7 +62,7 @@ export const FlowSidebar = ({ onViewChange }: FlowSidebarProps) => {
 
         <Button
           variant="ghost"
-          className="w-full h-8 pl-[15px] justify-start gap-[13px] text-[11px] text-[#cccccc]/70 hover:bg-[#292929] hover:text-white"
+          className="w-full h-8 pl-[15px] justify-start gap-[13px] text-[11px] text-[#cccccc]/70 hover:bg-[#4c4f693e] hover:text-[#ccccccbb]"
         >
           <img src="/icns/_archive.png" alt="Archive" className="w-4 h-4" />
           Archive
@@ -78,14 +78,14 @@ export const FlowSidebar = ({ onViewChange }: FlowSidebarProps) => {
         </div>
         <Button
           variant="ghost"
-          className="w-full h-8 pl-[17px] justify-start gap-[13px] text-[11px] text-[#cccccc]/70 hover:bg-[#292929] hover:text-white"
+          className="w-full h-8 pl-[17px] justify-start gap-[13px] text-[11px] text-[#cccccc]/70 hover:bg-[#4c4f693e] hover:text-[#ccccccbb]"
         >
           <img src="/icns/_folder.png" alt="Folder" className="w-4 h-4" />
           Dopa P1
         </Button>
         <Button
           variant="ghost"
-          className="w-full h-8 pl-[17px] justify-start gap-[13px] text-[11px] text-[#cccccc]/70 hover:bg-[#292929] hover:text-white"
+          className="w-full h-8 pl-[17px] justify-start gap-[13px] text-[11px] text-[#cccccc]/70 hover:bg-[#4c4f693e] hover:text-[#ccccccbb]"
         >
           <img src="/icns/_folder.png" alt="Folder" className="w-4 h-4" />
           FlowV2

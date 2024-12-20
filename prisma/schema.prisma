@@ -28,6 +28,7 @@ model Profile {
   channels     Channel[]
   appConfigs   AppConfig[] // New relation
   mediaItems   MediaItem[]
+  vaults Vault[] // Add this line to the existing Profile model
 
   // NEW: XP Account fields
   xpProfile      XPProfile? // One-to-one relation with XP profile
@@ -557,4 +558,110 @@ model DirectMessage {
 
   @@index([memberId])
   @@index([conversationId])
+}
+
+// Obsidian-related models
+model Vault {
+  id        String   @id @default(cuid())
+  name      String
+  profileId String
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  
+  // Vault settings
+  settings  Json     @default("{}")
+  
+  // Content organization
+  folders   ObsidianFolder[]
+  notes     Note[]
+  tags      Tag[]
+  
+  // Metadata
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([profileId])
+}
+
+model ObsidianFolder {
+  id       String   @id @default(cuid())
+  name     String
+  vaultId  String
+  vault    Vault    @relation(fields: [vaultId], references: [id], onDelete: Cascade)
+  
+  // Hierarchical structure
+  parentId String?
+  parent   ObsidianFolder?  @relation("FolderHierarchy", fields: [parentId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  children ObsidianFolder[] @relation("FolderHierarchy")
+  
+  // Content
+  notes    Note[]
+  
+  // Metadata
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([vaultId])
+  @@index([parentId])
+}
+
+model Note {
+  id       String   @id @default(cuid())
+  title    String
+  content  String   @db.Text
+  
+  // Organization
+  vaultId  String
+  vault    Vault    @relation(fields: [vaultId], references: [id], onDelete: Cascade)
+  folderId String?
+  folder   ObsidianFolder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  
+  // Metadata and note-specific features
+  frontmatter Json?    // For YAML frontmatter
+  tags       Tag[]
+  backlinks  Backlink[] @relation("SourceNote")
+  linkedBy   Backlink[] @relation("TargetNote")
+  aliases    String[]  // Alternative titles for the note
+  
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  lastAccessed DateTime @default(now())
+
+  @@index([vaultId])
+  @@index([folderId])
+}
+
+model Tag {
+  id      String @id @default(cuid())
+  name    String
+  color   String? // Optional color for tag visualization
+  
+  // Relations
+  vaultId String
+  vault   Vault  @relation(fields: [vaultId], references: [id], onDelete: Cascade)
+  notes   Note[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([name, vaultId]) // Tags should be unique within a vault
+  @@index([vaultId])
+}
+
+model Backlink {
+  id          String @id @default(cuid())
+  sourceNoteId String
+  targetNoteId String
+  sourceNote   Note   @relation("SourceNote", fields: [sourceNoteId], references: [id], onDelete: Cascade)
+  targetNote   Note   @relation("TargetNote", fields: [targetNoteId], references: [id], onDelete: Cascade)
+  
+  // Store the actual text context of the link
+  context     String?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([sourceNoteId, targetNoteId])
+  @@index([sourceNoteId])
+  @@index([targetNoteId])
 }

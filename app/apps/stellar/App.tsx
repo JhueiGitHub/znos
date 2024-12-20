@@ -28,7 +28,6 @@ export default function App({ initialFolderId }: AppProps) {
             <StatusBar />
           </main>
         </div>
-        <DebugPanel />
       </FolderProvider>
     </DragProvider>
   );

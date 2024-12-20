@@ -430,6 +430,73 @@ export const initialProfile = async () => {
       },
     });
 
+    // NEW: Create initial Obsidian vault
+    const mainVault = await tx.vault.create({
+      data: {
+        name: "Main Vault",
+        profileId: profile.id,
+        settings: {
+          theme: "zenith",
+          enableBacklinks: true,
+          enableTags: true,
+          enableAliases: true,
+        },
+      },
+    });
+
+    // Create initial folder structure
+    const dailyNotesFolder = await tx.obsidianFolder.create({
+      data: {
+        name: "Daily Notes",
+        vaultId: mainVault.id,
+      },
+    });
+
+    const resourcesFolder = await tx.obsidianFolder.create({
+      data: {
+        name: "Resources",
+        vaultId: mainVault.id,
+      },
+    });
+
+    // Create welcome note
+    await tx.note.create({
+      data: {
+        title: "Welcome to Obsidian",
+        content: `# Welcome to Your Digital Garden 🌱
+
+Welcome to your new Obsidian vault! This space is designed to help you cultivate your thoughts and knowledge.
+
+## Quick Start
+- Create new notes with Cmd/Ctrl + N
+- Link notes using [[double brackets]]
+- Use #tags to categorize
+- Create daily notes in the Daily Notes folder
+
+## Features
+- Backlinks tracking
+- Tag system
+- Folder organization
+- Markdown support
+
+Happy note-taking! 🚀`,
+        vaultId: mainVault.id,
+        frontmatter: {
+          tags: ["getting-started"],
+          created: new Date().toISOString(),
+        },
+      },
+    });
+
+    // Create initial tag
+    await tx.tag.create({
+      data: {
+        name: "getting-started",
+        color: "#7B6CBD", // Using Lilac Accent from our design system
+        vaultId: mainVault.id,
+      },
+    });
+
     return profile;
   });
 

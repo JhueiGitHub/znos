@@ -46,7 +46,7 @@
   top: 100%;
   transform: translateZ(0);
   -webkit-font-smoothing: antialiased;
-  animation: scroll 100s linear 4s forwards;
+  animation: scroll 120s linear 4s forwards;
 }
 
 .titles p {
