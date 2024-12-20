@@ -5,6 +5,7 @@ import { useStyles } from "@os/hooks/useStyles";
 import Image from "next/image";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
+import { useNote } from "../contexts/note-context";
 
 type ObsidianNote = {
   id: string;
@@ -20,6 +21,7 @@ type ObsidianFolder = {
 
 const Sidebar: React.FC = () => {
   const { getColor, getFont } = useStyles();
+  const { activeNoteId, setActiveNoteId } = useNote();
 
   // First, fetch the profile to get the vault
   const { data: profile } = useQuery({
@@ -79,6 +81,11 @@ const Sidebar: React.FC = () => {
     />
   );
 
+  const handleNoteSelect = (noteId: string) => {
+    console.log("Selected note:", noteId); // Debug log
+    setActiveNoteId(noteId);
+  };
+
   if (isLoading) {
     return (
       <div className="w-[240px] p-4">
@@ -104,6 +111,8 @@ const Sidebar: React.FC = () => {
         return null;
       }
 
+      const isNote = item.name.endsWith(".md");
+
       if (Array.isArray(item.children) && item.children.length > 0) {
         return (
           <Folder key={item.id} element={item.name} value={item.id}>
@@ -119,7 +128,12 @@ const Sidebar: React.FC = () => {
         );
       } else {
         return (
-          <File key={item.id} value={item.id} fileIcon={<FileIcon />}>
+          <File
+            key={item.id}
+            value={item.id}
+            fileIcon={<FileIcon />}
+            handleSelect={(id) => setActiveNoteId(id)}
+          >
             <p>{item.name}</p>
           </File>
         );
@@ -151,6 +165,7 @@ const Sidebar: React.FC = () => {
         style={customTreeStyles}
         openIcon={<FolderIcon isOpen={true} />}
         closeIcon={<FolderIcon isOpen={false} />}
+        initialSelectedId={activeNoteId}
       >
         {renderTreeItems(treeData)}
       </Tree>

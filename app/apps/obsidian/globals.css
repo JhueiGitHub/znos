@@ -1,3 +1,18 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* app/globals.css (add these definitions) */
+@font-face {
+  font-family: "ExemplarPro";
+  src: url("/fonts/ExemplarPro.otf") format("opentype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Dank";
+  src: url("/fonts/Dank.otf") format("opentype");
+  font-weight: normal;
+  font-style: normal;
+}

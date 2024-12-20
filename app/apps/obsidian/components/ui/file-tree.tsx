@@ -291,6 +291,7 @@ const File = forwardRef<
   {
     value: string;
     handleSelect?: (id: string) => void;
+    onSelect?: (id: string) => void; // Add this prop
     isSelectable?: boolean;
     isSelect?: boolean;
     fileIcon?: React.ReactNode;
@@ -301,6 +302,7 @@ const File = forwardRef<
       value,
       className,
       handleSelect,
+      onSelect, // Add this
       isSelectable = true,
       isSelect,
       fileIcon,
@@ -311,6 +313,14 @@ const File = forwardRef<
   ) => {
     const { direction, selectedId, selectItem } = useTree();
     const isSelected = isSelect ?? selectedId === value;
+
+    // Define click handler that ignores the event and just uses the value
+    const handleClick = () => {
+      selectItem(value);
+      if (handleSelect) handleSelect(value);
+      if (onSelect) onSelect(value);
+    };
+
     return (
       <AccordionPrimitive.Item value={value} className="relative">
         <AccordionPrimitive.Trigger
@@ -328,7 +338,7 @@ const File = forwardRef<
             isSelectable ? "cursor-pointer" : "opacity-50 cursor-not-allowed",
             className
           )}
-          onClick={() => selectItem(value)}
+          onClick={handleClick} // No event parameter needed
         >
           {fileIcon ?? <FileIcon className="size-4" />}
           {children}
