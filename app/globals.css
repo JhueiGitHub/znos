@@ -122,3 +122,9 @@ body {
   --s-accent: 17%;
   --l-accent: 36%;
 }
+
+.bg-grid-pattern {
+  background-size: 75px 75px;
+  background-image: linear-gradient(to right, #00000030 1px, transparent 1px),
+    linear-gradient(to bottom, #00000030 1px, transparent 1px);
+}

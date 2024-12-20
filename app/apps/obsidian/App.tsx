@@ -9,10 +9,12 @@ const Home = () => {
   const { getColor } = useStyles();
 
   return (
-    <ObsidianContainer>
-      <Sidebar />
-      <Editor />
-    </ObsidianContainer>
+    <div className="h-full w-full bg-black/80">
+      <ObsidianContainer>
+        <Sidebar />
+        <Editor />
+      </ObsidianContainer>
+    </div>
   );
 };
 

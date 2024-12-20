@@ -6,9 +6,8 @@ const Editor: React.FC = () => {
 
   return (
     <div
-      className="flex-1 p-6 rounded-lg"
+      className="flex-1 p-6 rounded-lg bg-[#00000093]"
       style={{
-        backgroundColor: getColor("Overlaying BG"),
         color: getColor("Text Primary (Hd)"),
         fontFamily: getFont("Text Primary"),
       }}

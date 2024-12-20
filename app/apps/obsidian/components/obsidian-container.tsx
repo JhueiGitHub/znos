@@ -7,7 +7,7 @@ const ObsidianContainer: React.FC<{ children: React.ReactNode }> = ({
   const { getColor } = useStyles();
 
   return (
-    <div className="flex h-full w-full p-3.5 gap-3 bg-[#ffffff1b]">
+    <div className="flex h-full w-full p-3.5 gap-3 bg-[#4c4f6924]">
       {children}
     </div>
   );
