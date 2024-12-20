@@ -31,7 +31,7 @@ export const appDefinitions: AppDefinition[] = [
     animationType: "magnify",
   },
   {
-    id: "oldstellar",
+    id: "obsidian",
     name: "Opus",
     icon: "/media/mila.png",
     dockPosition: 3,
