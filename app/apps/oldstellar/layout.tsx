@@ -1,14 +1,14 @@
-import "./globals.css";
-import { FolderProvider } from "./contexts/folder-context";
+import { Metadata } from "next";
 
-export default function StellarLayout({
+export const metadata: Metadata = {
+  title: "Obsidian Clone",
+  description: "A clone of Obsidian using Next.js and Zenith design system",
+};
+
+export default function ObsidianLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <div className="h-full w-full overflow-hidden dark">
-      <FolderProvider>{children}</FolderProvider>
-    </div>
-  );
+  return { children };
 }
