@@ -1,10 +1,11 @@
 // app/apps/obsidian/components/editor.tsx
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { useStyles } from "@os/hooks/useStyles";
 import { useNote } from "../contexts/note-context";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import debounce from "lodash/debounce";
+import { motion } from "framer-motion";
 
 const Editor: React.FC = () => {
   const { getColor } = useStyles();
@@ -54,33 +55,35 @@ const Editor: React.FC = () => {
 
   if (!activeNote) {
     return (
-      <div className="flex-1 p-6 rounded-lg bg-[#00000093] flex items-center justify-center">
+      <div className="h-full bg-[#00000093] rounded-lg flex items-center justify-center">
         <div className="text-sm text-[#7E8691]/95">No note selected</div>
       </div>
     );
   }
 
   return (
-    <div className="flex-1 p-6 rounded-lg bg-[#00000093] flex flex-col">
-      <h1
-        className="text-2xl font-bold mb-4"
-        style={{
-          fontFamily: "ExemplarPro",
-          color: "#4C4F69",
-          opacity: 0.81,
-        }}
-      >
-        {activeNote.title}
-      </h1>
-      <textarea
-        value={content}
-        onChange={handleContentChange}
-        className="flex-1 bg-transparent resize-none outline-none prose prose-invert max-w-none"
-        style={{
-          fontFamily: "Dank",
-          color: "#7E8691",
-        }}
-      />
+    <div className="h-full bg-[#00000093] rounded-lg flex justify-center">
+      <div className="w-[970px] p-6">
+        <h1
+          className="text-2xl font-bold mb-4"
+          style={{
+            fontFamily: "ExemplarPro",
+            color: "#4C4F69",
+            opacity: 0.81,
+          }}
+        >
+          {activeNote.title}
+        </h1>
+        <textarea
+          value={content}
+          onChange={handleContentChange}
+          className="w-full h-[calc(100%-3rem)] bg-transparent resize-none outline-none prose prose-invert"
+          style={{
+            fontFamily: "Dank",
+            color: "#7E8691",
+          }}
+        />
+      </div>
     </div>
   );
 };

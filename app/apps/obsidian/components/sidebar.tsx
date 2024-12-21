@@ -158,7 +158,7 @@ const Sidebar: React.FC = () => {
   }
 
   return (
-    <div className="w-[240px] overflow-auto">
+    <div className="w-[240px] h-full">
       <Tree
         className="p-2"
         elements={treeData}
