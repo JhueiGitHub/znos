@@ -129,9 +129,15 @@ export function StellarKeyboardEvents() {
       // Invalidate queries to trigger refetch
       await Promise.all([
         currentFolderId &&
-          queryClient.invalidateQueries(["stellar-folder", currentFolderId]),
-        queryClient.invalidateQueries(["stellar-folders"]),
-        queryClient.invalidateQueries(["sidebar-folders"]),
+          queryClient.invalidateQueries({
+            queryKey: ["stellar-folder", currentFolderId],
+          }),
+        queryClient.invalidateQueries({
+          queryKey: ["stellar-folders"],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["sidebar-folders"],
+        }),
       ]);
     } catch (error) {
       console.error("Failed to create new folder:", error);

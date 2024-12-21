@@ -14,23 +14,22 @@ model Profile {
   name         String
   imageUrl     String
   email        String
-  hasSeenIntro Boolean @default(false) // NEW: Track intro state
+  hasSeenIntro Boolean @default(false)
 
-  // Add relationship to Stream
+  // Keep original relationships in original order
   streams Stream[]
-
   designSystem DesignSystem?
   flows        Flow[]
   servers      Server[]
   members      Member[]
   channels     Channel[]
-  appConfigs   AppConfig[] // New relation
+  appConfigs   AppConfig[]
   mediaItems   MediaItem[]
-  vaults       Vault[] // Add this line to the existing Profile model
-
-  // NEW: XP Account fields
-  xpProfile      XPProfile? // One-to-one relation with XP profile
   stellarProfile StellarProfile[]
+
+  // Add new relationships after
+  vaults Vault[]
+  xpProfile XPProfile?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

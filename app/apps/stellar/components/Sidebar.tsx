@@ -56,7 +56,9 @@ export function Sidebar() {
             folderId: draggedFolderId,
           });
 
-          await queryClient.invalidateQueries(["sidebar-folders"]);
+          await queryClient.invalidateQueries({
+            queryKey: ["sidebar-folders"],
+          });
         } catch (error) {
           console.error("Failed to add folder to sidebar:", error);
         }

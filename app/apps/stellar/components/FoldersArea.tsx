@@ -142,12 +142,14 @@ export function FoldersArea() {
         setFolderPath([]);
       }
 
+      setIsLoading(false);
+
       return {
         items: [
           ...folderData.children.map((folderItem: any) => ({
             id: folderItem.id,
             itemType: "folder" as const,
-            data: { ...folderItem, itemType: "folder" }, // <-- Add itemType here
+            data: { ...folderItem, itemType: "folder" },
             position:
               folderItem.position ||
               findNextAvailablePosition(
@@ -159,15 +161,12 @@ export function FoldersArea() {
           ...folderData.files.map((fileItem: any) => ({
             id: fileItem.id,
             itemType: "file" as const,
-            data: { ...fileItem, itemType: "file" }, // <-- Add itemType here
+            data: { ...fileItem, itemType: "file" },
             position: fileItem.position || { x: 0, y: 0 },
           })),
         ],
         rawData: folderData,
       };
-    },
-    onSuccess: () => {
-      setIsLoading(false);
     },
   });
 
