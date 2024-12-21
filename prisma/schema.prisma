@@ -21,14 +21,12 @@ model Profile {
 
   designSystem DesignSystem?
   flows        Flow[]
-  folders      Folder[]
-  files        File[]
   servers      Server[]
   members      Member[]
   channels     Channel[]
   appConfigs   AppConfig[] // New relation
   mediaItems   MediaItem[]
-  vaults Vault[] // Add this line to the existing Profile model
+  vaults       Vault[] // Add this line to the existing Profile model
 
   // NEW: XP Account fields
   xpProfile      XPProfile? // One-to-one relation with XP profile
@@ -216,50 +214,50 @@ model AppConfig {
 // In your schema.prisma
 
 model StellarProfile {
-  id            String          @id @default(cuid())
-  profileId     String          @unique
-  profile       Profile         @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  id            String           @id @default(cuid())
+  profileId     String           @unique
+  profile       Profile          @relation(fields: [profileId], references: [id], onDelete: Cascade)
   name          String
   driveCapacity BigInt
   currentUsage  Int
   settings      StellarSettings?
 
   // For 1:1 root folder relation
-  rootFolder    StellarFolder?  @relation("RootFolder", fields: [rootFolderId], references: [id])
-  rootFolderId  String?         @unique  // This ensures 1:1 for root folder
+  rootFolder   StellarFolder? @relation("RootFolder", fields: [rootFolderId], references: [id])
+  rootFolderId String?        @unique // This ensures 1:1 for root folder
 
   // For 1:many regular folders - no unique constraint
-  allFolders   StellarFolder[]  // This allows many folders per profile
+  allFolders StellarFolder[] // This allows many folders per profile
 
-  createdAt    DateTime         @default(now())
-  updatedAt    DateTime         @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([profileId])
 }
 
 model StellarFolder {
-  id               String          @id @default(cuid())
-  name             String
-  
+  id   String @id @default(cuid())
+  name String
+
   // For folder hierarchy
-  parentId         String?
-  parent           StellarFolder?  @relation("FolderToFolder", fields: [parentId], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  children         StellarFolder[] @relation("FolderToFolder")
+  parentId String?
+  parent   StellarFolder?  @relation("FolderToFolder", fields: [parentId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  children StellarFolder[] @relation("FolderToFolder")
 
   position Json @default("{\"x\":0,\"y\":0}")
-  
-  files            StellarFile[]
+
+  files StellarFile[]
 
   // For the 1:1 root folder relation
-  rootForProfile   StellarProfile? @relation("RootFolder")
+  rootForProfile StellarProfile? @relation("RootFolder")
 
   // For the regular 1:many folder relation - REMOVED unique constraint
   stellarProfileId String
-  stellarProfile   StellarProfile  @relation(fields: [stellarProfileId], references: [id], onUpdate: Restrict)
-  
+  stellarProfile   StellarProfile @relation(fields: [stellarProfileId], references: [id], onUpdate: Restrict)
+
   // EVOLVED: Added sidebar tracking
-  inSidebar        Boolean         @default(false)
-  sidebarOrder     Int?            // null means not in sidebar
+  inSidebar    Boolean @default(false)
+  sidebarOrder Int? // null means not in sidebar
 
   @@index([parentId])
   @@index([stellarProfileId])
@@ -282,45 +280,11 @@ model StellarFile {
   url             String
   size            Int
   mimeType        String
-  position Json @default("{\"x\":0,\"y\":0}")
+  position        Json          @default("{\"x\":0,\"y\":0}")
   stellarFolderId String
   stellarFolder   StellarFolder @relation(fields: [stellarFolderId], references: [id], onDelete: Restrict, onUpdate: Restrict)
 
   @@index([stellarFolderId])
-}
-
-model Folder {
-  id         String   @id @default(cuid())
-  name       String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  profileId  String
-  profile    Profile  @relation(fields: [profileId], references: [id])
-  parentId   String?
-  parent     Folder?  @relation("FolderToFolder", fields: [parentId], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  subfolders Folder[] @relation("FolderToFolder")
-  files      File[]
-  isRoot     Boolean  @default(false)
-
-  @@index([profileId])
-  @@index([parentId])
-}
-
-model File {
-  id        String   @id @default(cuid())
-  name      String
-  type      String
-  size      Int
-  content   String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  folderId  String
-  folder    Folder   @relation(fields: [folderId], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  profileId String
-  profile   Profile  @relation(fields: [profileId], references: [id])
-
-  @@index([folderId])
-  @@index([profileId])
 }
 
 // NEW: XP Account related enums
@@ -562,19 +526,19 @@ model DirectMessage {
 
 // Obsidian-related models
 model Vault {
-  id        String   @id @default(cuid())
+  id        String  @id @default(cuid())
   name      String
   profileId String
-  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
-  
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
   // Vault settings
-  settings  Json     @default("{}")
-  
+  settings Json @default("{}")
+
   // Content organization
-  folders   ObsidianFolder[]
-  notes     Note[]
-  tags      Tag[]
-  
+  folders ObsidianFolder[]
+  notes   Note[]
+  tags    Tag[]
+
   // Metadata
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -583,19 +547,19 @@ model Vault {
 }
 
 model ObsidianFolder {
-  id       String   @id @default(cuid())
-  name     String
-  vaultId  String
-  vault    Vault    @relation(fields: [vaultId], references: [id], onDelete: Cascade)
-  
+  id      String @id @default(cuid())
+  name    String
+  vaultId String
+  vault   Vault  @relation(fields: [vaultId], references: [id], onDelete: Cascade)
+
   // Hierarchical structure
   parentId String?
   parent   ObsidianFolder?  @relation("FolderHierarchy", fields: [parentId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   children ObsidianFolder[] @relation("FolderHierarchy")
-  
+
   // Content
-  notes    Note[]
-  
+  notes Note[]
+
   // Metadata
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -605,26 +569,26 @@ model ObsidianFolder {
 }
 
 model Note {
-  id       String   @id @default(cuid())
-  title    String
-  content  String   @db.Text
-  
+  id      String @id @default(cuid())
+  title   String
+  content String @db.Text
+
   // Organization
   vaultId  String
-  vault    Vault    @relation(fields: [vaultId], references: [id], onDelete: Cascade)
+  vault    Vault           @relation(fields: [vaultId], references: [id], onDelete: Cascade)
   folderId String?
   folder   ObsidianFolder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
-  
+
   // Metadata and note-specific features
-  frontmatter Json?    // For YAML frontmatter
-  tags       Tag[]
-  backlinks  Backlink[] @relation("SourceNote")
-  linkedBy   Backlink[] @relation("TargetNote")
-  aliases    String[]  // Alternative titles for the note
-  
+  frontmatter Json? // For YAML frontmatter
+  tags        Tag[]
+  backlinks   Backlink[] @relation("SourceNote")
+  linkedBy    Backlink[] @relation("TargetNote")
+  aliases     String[] // Alternative titles for the note
+
   // Timestamps
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
   lastAccessed DateTime @default(now())
 
   @@index([vaultId])
@@ -632,15 +596,15 @@ model Note {
 }
 
 model Tag {
-  id      String @id @default(cuid())
-  name    String
-  color   String? // Optional color for tag visualization
-  
+  id    String  @id @default(cuid())
+  name  String
+  color String? // Optional color for tag visualization
+
   // Relations
   vaultId String
   vault   Vault  @relation(fields: [vaultId], references: [id], onDelete: Cascade)
   notes   Note[]
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -649,19 +613,178 @@ model Tag {
 }
 
 model Backlink {
-  id          String @id @default(cuid())
+  id           String @id @default(cuid())
   sourceNoteId String
   targetNoteId String
   sourceNote   Note   @relation("SourceNote", fields: [sourceNoteId], references: [id], onDelete: Cascade)
   targetNote   Note   @relation("TargetNote", fields: [targetNoteId], references: [id], onDelete: Cascade)
-  
+
   // Store the actual text context of the link
-  context     String?
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  context String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([sourceNoteId, targetNoteId])
   @@index([sourceNoteId])
   @@index([targetNoteId])
+}
+
+model User {
+  id           String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email        String         @unique
+  firstname    String?
+  lastname     String?
+  createdAt    DateTime       @default(now())
+  clerkid      String         @unique
+  studio       Media?
+  image        String?
+  workspace    WorkSpace[]
+  videos       Video[]
+  subscription Subscription?
+  members      OpalMember[]
+  notification Notification[]
+  sender       Invite[]       @relation("sender")
+  reciever     Invite[]       @relation("reciever")
+  trial        Boolean        @default(false)
+  firstView    Boolean        @default(false)
+  comment      Comment[]
+}
+
+model Comment {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  comment   String
+  reply     Comment[] @relation("reply")
+  Comment   Comment?  @relation("reply", fields: [commentId], references: [id], onUpdate: Restrict, onDelete: Restrict)
+  commentId String?   @db.Uuid
+  User      User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String?   @db.Uuid
+  Video     Video?    @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  videoId   String?   @db.Uuid
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+  @@index([commentId])
+  @@index([videoId])
+}
+
+model Subscription {
+  id         String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  User       User?             @relation(fields: [userId], references: [id])
+  userId     String?           @unique @db.Uuid
+  createdAt  DateTime          @default(now())
+  plan       SUBSCRIPTION_PLAN @default(FREE)
+  updatedAt  DateTime          @default(now())
+  customerId String?           @unique
+}
+
+model Media {
+  id     String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  screen String?
+  mic    String?
+  camera String?
+  preset PRESET  @default(SD)
+  User   User?   @relation(fields: [userId], references: [id])
+  userId String? @unique @db.Uuid
+}
+
+model WorkSpace {
+  id        String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  type      Type
+  name      String
+  User      User?        @relation(fields: [userId], references: [id])
+  userId    String?      @db.Uuid
+  createdAt DateTime     @default(now())
+  folders   Folder[]
+  videos    Video[]
+  members   OpalMember[]
+  invite    Invite[]
+
+  @@index([userId])
+}
+
+model Folder {
+  id          String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String     @default("Untitled Folder")
+  createdAt   DateTime   @default(now())
+  WorkSpace   WorkSpace? @relation(fields: [workSpaceId], references: [id])
+  workSpaceId String?    @db.Uuid
+  videos      Video[]
+
+  @@index([workSpaceId])
+}
+
+model Video {
+  id          String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title       String?    @default("Untilted Video")
+  description String?    @default("No Description")
+  source      String     @unique
+  createdAt   DateTime   @default(now())
+  Folder      Folder?    @relation(fields: [folderId], references: [id], onDelete: Cascade)
+  folderId    String?    @db.Uuid
+  User        User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String?    @db.Uuid
+  processing  Boolean    @default(true)
+  WorkSpace   WorkSpace? @relation(fields: [workSpaceId], references: [id], onDelete: Cascade)
+  workSpaceId String?    @db.Uuid
+  views       Int        @default(0)
+  summery     String?
+  Comment     Comment[]
+
+  @@index([userId])
+  @@index([folderId])
+  @@index([workSpaceId])
+}
+
+model OpalMember {
+  id          String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  User        User?      @relation(fields: [userId], references: [id])
+  userId      String?    @db.Uuid
+  createdAt   DateTime   @default(now())
+  member      Boolean    @default(true)
+  WorkSpace   WorkSpace? @relation(fields: [workSpaceId], references: [id])
+  workSpaceId String?    @db.Uuid
+
+  @@index([userId])
+  @@index([workSpaceId])
+}
+
+model Notification {
+  id      String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  User    User?   @relation(fields: [userId], references: [id])
+  userId  String? @db.Uuid
+  content String
+
+  @@index([userId])
+}
+
+model Invite {
+  id          String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sender      User?      @relation("sender", fields: [senderId], references: [id])
+  senderId    String?    @db.Uuid
+  reciever    User?      @relation("reciever", fields: [recieverId], references: [id])
+  recieverId  String?    @db.Uuid
+  content     String
+  WorkSpace   WorkSpace? @relation(fields: [workSpaceId], references: [id])
+  workSpaceId String?    @db.Uuid
+  accepted    Boolean    @default(false)
+
+  @@index([senderId])
+  @@index([recieverId])
+  @@index([workSpaceId])
+}
+
+enum Type {
+  PERSONAL
+  PUBLIC
+}
+
+enum PRESET {
+  HD
+  SD
+}
+
+enum SUBSCRIPTION_PLAN {
+  PRO
+  FREE
 }

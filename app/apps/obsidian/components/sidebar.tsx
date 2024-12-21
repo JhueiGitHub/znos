@@ -159,7 +159,7 @@ const Sidebar: React.FC = () => {
   }
 
   return (
-    <div className="w-[240px] h-full flex flex-col gap-auto">
+    <div className="w-[240px] h-full flex flex-col justify-between">
       <Tree
         className="p-2"
         elements={treeData}

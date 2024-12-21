@@ -31,7 +31,10 @@
       "@an/*": ["./app/apps/anki/*"],
       "@anc/*": ["./app/apps/anki/components/*"],
       "@stl/*": ["./app/apps/obsidian/*"],
-      "@stlc/*": ["./app/apps/obsidian/components/*"]
+      "@stlc/*": ["./app/apps/obsidian/components/*"],
+      "@opal/*": ["./app/apps/opal/*"],
+      "@opals/*": ["./app/apps/opal/src/*"],
+      "@opalc/*": ["./app/apps/opal/components/*"]
     },
     "target": "es2018",
     "types": ["@uploadcare/blocks/types/jsx"]

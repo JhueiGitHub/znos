@@ -211,26 +211,15 @@ export const MenuBar = () => {
             <div className="flex items-center gap-3">
               <SystemIcon src="/icns/system/_dopa.png">
                 <DropdownMenuContent
-                  className="min-w-[280px] p-1"
+                  className="min-w-[280px] p-4"
                   style={{
                     backgroundColor: getColor("black-thick"),
                     borderColor: getColor("Brd"),
                   }}
                 >
-                  <DropdownMenuItem
-                    onClick={() => resetObsidian.mutate()}
-                    className="flex items-center justify-between px-3 py-2 hover:bg-white/5 rounded-md cursor-pointer"
-                    style={{
-                      color: "rgba(76, 79, 105, 0.81)",
-                    }}
-                  >
-                    <span className="text-sm">Reset Obsidian Data</span>
-                  </DropdownMenuItem>
-                  <div className="px-3 py-2">
-                    <span className="text-sm opacity-50">
-                      More system settings coming soon
-                    </span>
-                  </div>
+                  <span className="text-sm opacity-50">
+                    More system settings coming soon
+                  </span>
                 </DropdownMenuContent>
               </SystemIcon>
 
