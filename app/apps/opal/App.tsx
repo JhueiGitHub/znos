@@ -9,7 +9,7 @@ const OpalApp = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   return (
-    <div className="flex h-screen w-screen bg-[#010203] text-white/75">
+    <div className="flex h-full w-full bg-black/80 text-white/75">
       {/* Main app container */}
       <Sidebar activeWorkspaceId="default" />
 

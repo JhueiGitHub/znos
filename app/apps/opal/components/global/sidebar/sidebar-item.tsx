@@ -1,14 +1,14 @@
-import { cn } from '@/lib/utils'
-import Link from 'next/link'
-import React from 'react'
+import { cn } from "@/lib/utils";
+import Link from "next/link";
+import React from "react";
 
 type Props = {
-  icon: React.ReactNode
-  title: string
-  href: string
-  selected: boolean
-  notifications?: number
-}
+  icon: React.ReactNode;
+  title: string;
+  href: string;
+  selected: boolean;
+  notifications?: number;
+};
 
 const SidebarItem = ({ href, icon, selected, title, notifications }: Props) => {
   return (
@@ -16,16 +16,16 @@ const SidebarItem = ({ href, icon, selected, title, notifications }: Props) => {
       <Link
         href={href}
         className={cn(
-          'flex items-center justify-between group rounded-lg hover:bg-[#1D1D1D]',
-          selected ? 'bg-[#1D1D1D]' : ''
+          "flex items-center justify-between group rounded-lg hover:bg-[#1D1D1D]",
+          selected ? "bg-[#1D1D1D]" : ""
         )}
       >
         <div className="flex items-center gap-2 transition-all p-[5px] cursor-pointer">
           {icon}
           <span
             className={cn(
-              'font-medium group-hover:text-[#9D9D9D] transition-all truncate w-32',
-              selected ? 'text-[#9D9D9D]' : 'text-[#545454]'
+              "font-medium group-hover:text-[#9D9D9D] transition-all truncate w-32",
+              selected ? "text-[#9D9D9D]" : "text-[#545454]"
             )}
           >
             {title}
@@ -34,7 +34,7 @@ const SidebarItem = ({ href, icon, selected, title, notifications }: Props) => {
         {}
       </Link>
     </li>
-  )
-}
+  );
+};
 
-export default SidebarItem
+export default SidebarItem;

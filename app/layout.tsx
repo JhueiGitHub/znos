@@ -8,6 +8,7 @@ import { DesignSystemProvider } from "./contexts/DesignSystemContext";
 import QueryProvider from "@/app/components/providers/query-provider";
 import { SocketProvider } from "./apps/discord/components/providers/socket-provider";
 import { Analytics } from "@vercel/analytics/react";
+import { ReduxProvider } from "@/redux/provider";
 
 export const metadata = {
   title: "Orion",
@@ -24,32 +25,34 @@ export default function RootLayout({
       <html lang="en">
         <SocketProvider>
           <QueryProvider>
-            <DesignSystemProvider>
-              <body className="h-screen w-screen bg-black">
-                <OTPWrapper>
-                  {children}
-                  <Analytics />
-                </OTPWrapper>
-                <Toaster
-                  position="bottom-right"
-                  theme="dark"
-                  className="!bg-transparent"
-                  toastOptions={{
-                    unstyled: true,
-                    classNames: {
-                      toast:
-                        "bg-[#010203]/80 backdrop-blur-md border border-white/10 text-white rounded-lg p-4 shadow-lg",
-                      title: "font-medium text-sm",
-                      description: "text-sm text-white/70",
-                      actionButton:
-                        "bg-white/10 text-white text-sm px-3 py-1 rounded-md hover:bg-white/20 transition-colors",
-                      cancelButton:
-                        "text-white/50 text-sm px-3 py-1 rounded-md hover:bg-white/10 transition-colors",
-                    },
-                  }}
-                />
-              </body>
-            </DesignSystemProvider>
+            <ReduxProvider>
+              <DesignSystemProvider>
+                <body className="h-screen w-screen bg-black">
+                  <OTPWrapper>
+                    {children}
+                    <Analytics />
+                  </OTPWrapper>
+                  <Toaster
+                    position="bottom-right"
+                    theme="dark"
+                    className="!bg-transparent"
+                    toastOptions={{
+                      unstyled: true,
+                      classNames: {
+                        toast:
+                          "bg-[#010203]/80 backdrop-blur-md border border-white/10 text-white rounded-lg p-4 shadow-lg",
+                        title: "font-medium text-sm",
+                        description: "text-sm text-white/70",
+                        actionButton:
+                          "bg-white/10 text-white text-sm px-3 py-1 rounded-md hover:bg-white/20 transition-colors",
+                        cancelButton:
+                          "text-white/50 text-sm px-3 py-1 rounded-md hover:bg-white/10 transition-colors",
+                      },
+                    }}
+                  />
+                </body>
+              </DesignSystemProvider>
+            </ReduxProvider>
           </QueryProvider>
         </SocketProvider>
       </html>
