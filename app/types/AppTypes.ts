@@ -32,7 +32,7 @@ export const appDefinitions: AppDefinition[] = [
   },
   {
     id: "obsidian",
-    name: "Opus",
+    name: "Onyx",
     icon: "/media/mila.png",
     dockPosition: 3,
     animationType: "magnify",

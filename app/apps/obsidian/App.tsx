@@ -39,28 +39,30 @@ const App = ({ initialNoteId }: AppProps) => {
 
   return (
     <NoteProvider initialNoteId={initialNoteId}>
-      <div className="h-full w-full bg-[#4c4f6924] p-4">
-        <div className="flex h-full w-full">
-          <AnimatePresence initial={false} mode="wait">
-            {areSidebarsVisible && (
-              <motion.div
-                {...sidebarAnimation}
-                className="shrink-0"
-                style={{ overflow: "hidden" }}
-              >
-                <div className="w-[222px] pr-4">
-                  <Sidebar />
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-          <div className="flex-1">
-            <Editor />
+      <div className="h-full w-full bg-black/80">
+        <div className="h-full w-full bg-[#4c4f6924] p-4">
+          <div className="flex h-full w-full">
+            <AnimatePresence initial={false} mode="wait">
+              {areSidebarsVisible && (
+                <motion.div
+                  {...sidebarAnimation}
+                  className="shrink-0"
+                  style={{ overflow: "hidden" }}
+                >
+                  <div className="w-[222px] pr-4 h-full">
+                    <Sidebar />
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+            <div className="flex-1">
+              <Editor />
+            </div>
           </div>
-        </div>
 
-        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-[#cccccc]/50 text-xs">
-          Press ⌘ X to toggle sidebar
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-[#cccccc]/50 text-xs">
+            Press ⌘ X to toggle sidebar
+          </div>
         </div>
       </div>
     </NoteProvider>

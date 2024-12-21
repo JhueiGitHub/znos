@@ -27,7 +27,7 @@ const MainLayout = ({
   };
 
   return (
-    <div className="h-full">
+    <div className="h-full bg-black/70">
       <div className="hidden md:flex h-full w-[72px] z-30 flex-col fixed">
         <NavigationSidebar initialServerId={initialServerId} />
       </div>

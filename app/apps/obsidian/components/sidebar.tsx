@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { useNote } from "../contexts/note-context";
+import { ObsidianCalendar } from "./obsidian-calendar";
 
 type ObsidianNote = {
   id: string;
@@ -158,7 +159,7 @@ const Sidebar: React.FC = () => {
   }
 
   return (
-    <div className="w-[240px] h-full">
+    <div className="w-[240px] h-full flex flex-col gap-auto">
       <Tree
         className="p-2"
         elements={treeData}
@@ -169,6 +170,7 @@ const Sidebar: React.FC = () => {
       >
         {renderTreeItems(treeData)}
       </Tree>
+      <ObsidianCalendar />
     </div>
   );
 };
