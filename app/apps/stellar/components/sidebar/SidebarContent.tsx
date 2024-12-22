@@ -44,7 +44,9 @@ export function SidebarContent() {
         <motion.div
           key={folder.id}
           onDoubleClick={() => handleDoubleClick(folder.id)}
-          className="flex items-center gap-2 px-[12px] py-1.5 rounded-md hover:bg-[#4C4F6930] cursor-pointer group select-none"
+          className="flex items-center gap-2 px-[12px] py-1.5 rounded-md cursor-pointer group select-none"
+          initial={{ backgroundColor: "rgba(76, 79, 105, 0)" }}
+          animate={{ backgroundColor: "rgba(76, 79, 105, 0)" }}
           whileHover={{ backgroundColor: "rgba(76, 79, 105, 0.2)" }}
           whileTap={{ scale: 0.98 }}
         >

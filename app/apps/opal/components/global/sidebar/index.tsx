@@ -31,9 +31,14 @@ import InfoBar from "../info-bar";
 import { useDispatch } from "react-redux";
 import { WORKSPACES } from "@/redux/slices/workspaces";
 import PaymentButton from "../payment-button";
+import localFont from "next/font/local";
 type Props = {
   activeWorkspaceId: string;
 };
+
+const exemplarPro = localFont({
+  src: "../../../../../../public/fonts/ExemplarPro.otf",
+});
 
 const Sidebar = ({ activeWorkspaceId }: Props) => {
   const router = useRouter();
@@ -71,7 +76,9 @@ const Sidebar = ({ activeWorkspaceId }: Props) => {
           width={40}
           alt="logo"
         />
-        <p className="text-2xl">LOOM</p>
+        <p className="text-2xl" style={exemplarPro.style}>
+          LOOM
+        </p>
       </div>
       <Select
         defaultValue={activeWorkspaceId}
@@ -111,7 +118,7 @@ const Sidebar = ({ activeWorkspaceId }: Props) => {
               <span className="text-sm cursor-pointer flex items-center justify-center bg-neutral-800/90  hover:bg-neutral-800/60 w-full rounded-sm p-[5px] gap-2">
                 <PlusCircle
                   size={15}
-                  className="text-neutral-800/90 fill-neutral-500"
+                  className="text-neutral-800/90 fill-neutral-500 bg-[#1f233c]"
                 />
                 <span className="text-neutral-400 font-semibold text-xs">
                   Invite To Workspace
@@ -124,7 +131,12 @@ const Sidebar = ({ activeWorkspaceId }: Props) => {
             <Search workspaceId={activeWorkspaceId} />
           </Modal>
         )}
-      <p className="w-full text-[#9D9D9D] font-bold mt-4">Menu</p>
+      <p
+        className="w-full text-[#9D9D9D] font-bold mt-4"
+        style={exemplarPro.style}
+      >
+        Menu
+      </p>
       <nav className="w-full">
         <ul>
           {menuItems.map((item) => (
@@ -145,11 +157,16 @@ const Sidebar = ({ activeWorkspaceId }: Props) => {
         </ul>
       </nav>
       <Separator className="w-4/5" />
-      <p className="w-full text-[#9D9D9D] font-bold mt-4 ">Workspaces</p>
+      <p
+        className="w-full text-[#9D9D9D] font-bold mt-4"
+        style={exemplarPro.style}
+      >
+        Workspaces
+      </p>
 
       {workspace.workspace.length === 1 && workspace.members.length === 0 && (
         <div className="w-full mt-[-10px]">
-          <p className="text-[#3c3c3c] font-medium text-sm">
+          <p className="text-[#4c4f6960] font-medium text-sm">
             {workspace.subscription?.plan === "FREE"
               ? "Upgrade to create workspaces"
               : "No Workspaces"}

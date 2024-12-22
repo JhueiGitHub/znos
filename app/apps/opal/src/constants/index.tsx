@@ -1,32 +1,33 @@
-// /root/app/apps/opal/constants/index.ts
-import { Bell, CreditCard, FolderIcon, Home, Settings } from "lucide-react";
+import {
+  Bell,
+  CreditCard,
+  FileDuoToneBlack,
+  Home,
+  Settings,
+} from "@opal/components/icons";
 
 export const MENU_ITEMS = (
   workspaceId: string
 ): { title: string; href: string; icon: React.ReactNode }[] => [
-  {
-    title: "Home",
-    href: `/dashboard/${workspaceId}/home`,
-    icon: <Home className="w-4 h-4" />,
-  },
+  { title: "Home", href: `/dashboard/${workspaceId}/home`, icon: <Home /> },
   {
     title: "My Library",
     href: `/dashboard/${workspaceId}`,
-    icon: <FolderIcon className="w-4 h-4" />,
+    icon: <FileDuoToneBlack />,
   },
   {
     title: "Notifications",
     href: `/dashboard/${workspaceId}/notifications`,
-    icon: <Bell className="w-4 h-4" />,
+    icon: <Bell />,
   },
   {
     title: "Billing",
     href: `/dashboard/${workspaceId}/billing`,
-    icon: <CreditCard className="w-4 h-4" />,
+    icon: <CreditCard />,
   },
   {
     title: "Settings",
     href: `/dashboard/${workspaceId}/settings`,
-    icon: <Settings className="w-4 h-4" />,
+    icon: <Settings />,
   },
 ];

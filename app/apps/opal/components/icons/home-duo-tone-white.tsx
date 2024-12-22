@@ -18,5 +18,5 @@ export const HomeDuoToneWhite = () => {
         fill="#A0A0A0"
       />
     </svg>
-  )
-}
+  );
+};
