@@ -10,7 +10,6 @@ import {
   SelectValue,
 } from "@opalc/ui/select";
 import { Separator } from "@opalc/ui/separator";
-
 import { NotificationProps, WorkspaceProps } from "@opals/types/index.type";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
@@ -25,13 +24,13 @@ import { useQueryData } from "@opals/hooks/useQueryData";
 import WorkspacePlaceholder from "./workspace-placeholder";
 import GlobalCard from "../global-card";
 import { Button } from "@/components/ui/button";
-import Loader from "../loader";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import InfoBar from "../info-bar";
 import { useDispatch } from "react-redux";
 import { WORKSPACES } from "@/redux/slices/workspaces";
 import PaymentButton from "../payment-button";
 import localFont from "next/font/local";
+
 type Props = {
   activeWorkspaceId: string;
 };
@@ -59,6 +58,7 @@ const Sidebar = ({ activeWorkspaceId }: Props) => {
   const onChangeActiveWorkspace = (value: string) => {
     router.push(`/dashboard/${value}`);
   };
+
   const currentWorkspace = workspace.workspace.find(
     (s) => s.id === activeWorkspaceId
   );
@@ -80,23 +80,24 @@ const Sidebar = ({ activeWorkspaceId }: Props) => {
           LOOM
         </p>
       </div>
+
       <Select
         defaultValue={activeWorkspaceId}
         onValueChange={onChangeActiveWorkspace}
       >
         <SelectTrigger className="mt-16 text-neutral-400 bg-transparent">
-          <SelectValue placeholder="Select a workspace"></SelectValue>
+          <SelectValue placeholder="Select a workspace" />
         </SelectTrigger>
         <SelectContent className="bg-[#111111] backdrop-blur-xl">
           <SelectGroup>
             <SelectLabel>Workspaces</SelectLabel>
             <Separator />
-            {workspace.workspace.map((workspace) => (
+            {workspace?.workspace?.map((workspace) => (
               <SelectItem value={workspace.id} key={workspace.id}>
                 {workspace.name}
               </SelectItem>
             ))}
-            {workspace.members.length > 0 &&
+            {workspace?.members?.length > 0 &&
               workspace.members.map(
                 (workspace) =>
                   workspace.WorkSpace && (
@@ -111,8 +112,9 @@ const Sidebar = ({ activeWorkspaceId }: Props) => {
           </SelectGroup>
         </SelectContent>
       </Select>
+
       {currentWorkspace?.type === "PUBLIC" &&
-        workspace.subscription?.plan == "PRO" && (
+        workspace?.subscription?.plan === "PRO" && (
           <Modal
             trigger={
               <span className="text-sm cursor-pointer flex items-center justify-center bg-neutral-800/90  hover:bg-neutral-800/60 w-full rounded-sm p-[5px] gap-2">
@@ -131,6 +133,7 @@ const Sidebar = ({ activeWorkspaceId }: Props) => {
             <Search workspaceId={activeWorkspaceId} />
           </Modal>
         )}
+
       <p
         className="w-full text-[#9D9D9D] font-bold mt-4"
         style={exemplarPro.style}
@@ -148,15 +151,16 @@ const Sidebar = ({ activeWorkspaceId }: Props) => {
               key={item.title}
               notifications={
                 (item.title === "Notifications" &&
-                  count._count &&
-                  count._count.notification) ||
+                  count?._count?.notification) ||
                 0
               }
             />
           ))}
         </ul>
       </nav>
+
       <Separator className="w-4/5" />
+
       <p
         className="w-full text-[#9D9D9D] font-bold mt-4"
         style={exemplarPro.style}
@@ -211,8 +215,10 @@ const Sidebar = ({ activeWorkspaceId }: Props) => {
             ))}
         </ul>
       </nav>
+
       <Separator className="w-4/5" />
-      {workspace.subscription?.plan === "FREE" && (
+
+      {workspace?.subscription?.plan === "FREE" && (
         <GlobalCard
           title="Upgrade to Pro"
           description=" Unlock AI features like transcription, AI summary, and more."
@@ -221,6 +227,7 @@ const Sidebar = ({ activeWorkspaceId }: Props) => {
       )}
     </div>
   );
+
   return (
     <div className="full">
       <InfoBar />

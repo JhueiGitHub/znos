@@ -33,6 +33,7 @@ export const verifyAccessToWorkspace = async (workspaceId: string) => {
         ],
       },
     });
+
     return {
       status: 200,
       data: { workspace: isUserInWorkspace },

@@ -1,4 +1,3 @@
-// app/components/MenuBar.tsx
 "use client";
 
 import React, { useEffect, useState, useMemo, useRef } from "react";
@@ -20,7 +19,6 @@ import { FlowComponent } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
-// PRESERVED: Original constants
 const MENU_HEIGHT = 32;
 const TRIGGER_AREA_HEIGHT = 20;
 
@@ -57,7 +55,6 @@ const SystemIcon: React.FC<SystemIconProps> = ({ src, children }) => {
 };
 
 export const MenuBar = () => {
-  // PRESERVED: Original hooks and state
   const { getColor } = useStyles();
   const menuRef = useRef<HTMLDivElement>(null);
   const [isMenuVisible, setIsMenuVisible] = useState(false);
@@ -67,19 +64,16 @@ export const MenuBar = () => {
   const router = useRouter();
   const queryClient = useQueryClient();
 
-  // PRESERVED: Original date update effect
   useEffect(() => {
     const timer = setInterval(() => setCurrentDate(new Date()), 60000);
     return () => clearInterval(timer);
   }, []);
 
-  // PRESERVED: Original mouse move handler
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       const { clientY } = e;
       const menuRect = menuRef.current?.getBoundingClientRect();
       const inTriggerZone = clientY <= MENU_HEIGHT + TRIGGER_AREA_HEIGHT;
-
       const inMenuBounds =
         menuRect &&
         ((clientY >= menuRect.top && clientY <= menuRect.bottom) ||
@@ -96,18 +90,28 @@ export const MenuBar = () => {
     return () => document.removeEventListener("mousemove", handleMouseMove);
   }, [dropdownOpen]);
 
-  const resetObsidian = useMutation({
+  const resetAllData = useMutation({
     mutationFn: async () => {
-      const response = await axios.post("/api/profile/reset-obsidian");
-      return response.data;
+      // Execute both resets in parallel
+      const [obsidianRes, loomRes] = await Promise.all([
+        axios.post("/api/profile/reset-obsidian"),
+        axios.post("/api/profile/reset-loom"),
+      ]);
+
+      return {
+        obsidian: obsidianRes.data,
+        loom: loomRes.data,
+      };
     },
     onSuccess: () => {
-      // Invalidate relevant queries
+      // Invalidate queries for both apps
       queryClient.invalidateQueries({ queryKey: ["vault-folders"] });
-      toast.success("Obsidian data has been reset");
+      queryClient.invalidateQueries({ queryKey: ["user-workspaces"] });
+      queryClient.invalidateQueries({ queryKey: ["user-notifications"] });
+      toast.success("Successfully reset all app data");
     },
     onError: () => {
-      toast.error("Failed to reset Obsidian data");
+      toast.error("Failed to reset app data");
     },
   });
 
@@ -211,15 +215,26 @@ export const MenuBar = () => {
             <div className="flex items-center gap-3">
               <SystemIcon src="/icns/system/_dopa.png">
                 <DropdownMenuContent
-                  className="min-w-[280px] p-4"
+                  className="min-w-[280px] p-1"
                   style={{
                     backgroundColor: getColor("black-thick"),
                     borderColor: getColor("Brd"),
                   }}
                 >
-                  <span className="text-sm opacity-50">
-                    More system settings coming soon
-                  </span>
+                  <DropdownMenuItem
+                    onClick={() => resetAllData.mutate()}
+                    className="flex items-center justify-between px-3 py-2 hover:bg-white/5 rounded-md cursor-pointer"
+                    style={{
+                      color: "rgba(76, 79, 105, 0.81)",
+                    }}
+                  >
+                    <span className="text-sm">Reset All App Data</span>
+                  </DropdownMenuItem>
+                  <div className="px-3 py-2">
+                    <span className="text-sm opacity-50">
+                      Resets both Obsidian and Loom data
+                    </span>
+                  </div>
                 </DropdownMenuContent>
               </SystemIcon>
 

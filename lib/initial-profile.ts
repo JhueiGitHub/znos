@@ -416,26 +416,6 @@ export const initialProfile = async () => {
       })
     );
 
-    // PRESERVED: Rest of the transaction remains the same...
-    const osRootFolder = await tx.folder.create({
-      data: {
-        name: "Root",
-        isRoot: true,
-        profileId: profile.id,
-      },
-    });
-
-    await tx.file.create({
-      data: {
-        name: "Welcome.txt",
-        type: "text/plain",
-        size: 23,
-        content: "Welcome to StellarOS!",
-        folderId: osRootFolder.id,
-        profileId: profile.id,
-      },
-    });
-
     await tx.server.create({
       data: {
         profileId: profile.id,
