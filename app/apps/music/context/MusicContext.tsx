@@ -41,7 +41,16 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
       artist: "Unknown Artist",
       path: "/audio/songs/song1.mp4",
     },
-    // Add more default songs as needed
+    {
+      title: "song2",
+      artist: "Unknown Artist",
+      path: "/audio/songs/song2.mp4",
+    },
+    {
+      title: "song3",
+      artist: "Unknown Artist",
+      path: "/audio/songs/song3.mp4",
+    },
   ]);
   const [currentSongIndex, setCurrentSongIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);

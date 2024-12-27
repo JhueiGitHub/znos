@@ -44,12 +44,12 @@ interface MusicDropdownProps {
 }
 
 const MusicDropdown: React.FC<MusicDropdownProps> = ({
-  currentSong = { title: "song1", artist: "Unknown Artist" }, // Default song
+  currentSong = { title: "song1", artist: "Unknown Artist" },
   isPlaying,
   onPlayPause,
   onNext,
   onPrevious,
-  progress, // Now TypeScript knows about this prop
+  progress,
 }) => {
   const { getColor } = useStyles();
 
@@ -81,31 +81,35 @@ const MusicDropdown: React.FC<MusicDropdownProps> = ({
           </div>
         </div>
 
-        {/* Progress bar */}
         <div className="flex items-center gap-2 px-1">
           <div className="w-full bg-white/10 rounded-full h-[3px]">
             <div
-              className="h-full bg-white rounded-full transition-all duration-200"
-              style={{ width: `${progress}%` }}
+              className="h-full rounded-full transition-all duration-200"
+              style={{
+                width: `${progress}%`,
+                backgroundColor: "rgba(76, 79, 105, 0.81)",
+              }}
             />
           </div>
         </div>
 
-        {/* Controls */}
         <div className="flex justify-center items-center gap-6">
           <button
             onClick={onPrevious}
-            className="text-white/80 hover:text-white"
+            className="text-[rgba(76,79,105,0.81)] hover:text-[rgba(76,79,105,0.95)] transition-colors"
           >
             <SkipBack size={20} />
           </button>
           <button
             onClick={onPlayPause}
-            className="text-white/80 hover:text-white"
+            className="text-[rgba(76,79,105,0.81)] hover:text-[rgba(76,79,105,0.95)] transition-colors"
           >
             {isPlaying ? <Pause size={24} /> : <Play size={24} />}
           </button>
-          <button onClick={onNext} className="text-white/80 hover:text-white">
+          <button
+            onClick={onNext}
+            className="text-[rgba(76,79,105,0.81)] hover:text-[rgba(76,79,105,0.95)] transition-colors"
+          >
             <SkipForward size={20} />
           </button>
         </div>
