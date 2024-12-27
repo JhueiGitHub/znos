@@ -59,7 +59,7 @@ export const appDefinitions: AppDefinition[] = [
     animationType: "magnify",
   },
   {
-    id: "videos",
+    id: "music",
     name: "Quasar",
     icon: "/media/trash.png",
     dockPosition: 7,

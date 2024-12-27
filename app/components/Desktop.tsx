@@ -12,6 +12,7 @@ import LoadingScreen from "@os/components/LoadingScreen";
 import { SpotlightSearch } from "./SpotlightSearch";
 import axios from "axios";
 import { FlowComponent } from "@prisma/client";
+import { MusicProvider } from "../apps/music/context/MusicContext";
 
 const Desktop: React.FC = () => {
   // Preserve existing state
@@ -107,27 +108,29 @@ const Desktop: React.FC = () => {
   }
 
   return (
-    <div className="h-screen w-screen overflow-hidden relative">
-      <Wallpaper />
-      <MenuBar />
-      <div
-        className="relative z-10 h-full"
-        style={{
-          color: getColor("Text Primary (Hd)"),
-          fontFamily: getFont("Text Primary"),
-        }}
-      >
-        {openApps.map((app) => (
-          <Window key={app.id} app={app} isActive={app.id === activeAppId} />
-        ))}
-        <Dock />
-      </div>
+    <MusicProvider>
+      <div className="h-screen w-screen overflow-hidden relative">
+        <Wallpaper />
+        <MenuBar />
+        <div
+          className="relative z-10 h-full"
+          style={{
+            color: getColor("Text Primary (Hd)"),
+            fontFamily: getFont("Text Primary"),
+          }}
+        >
+          {openApps.map((app) => (
+            <Window key={app.id} app={app} isActive={app.id === activeAppId} />
+          ))}
+          <Dock />
+        </div>
 
-      <SpotlightSearch
-        isOpen={isSpotlightOpen}
-        onClose={() => setIsSpotlightOpen(false)}
-      />
-    </div>
+        <SpotlightSearch
+          isOpen={isSpotlightOpen}
+          onClose={() => setIsSpotlightOpen(false)}
+        />
+      </div>
+    </MusicProvider>
   );
 };
 

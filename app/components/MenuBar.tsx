@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Play, Pause, SkipForward, SkipBack } from "lucide-react";
 import { useStyles } from "@/app/hooks/useStyles";
 import { Check } from "lucide-react";
 import {
@@ -18,6 +18,8 @@ import { StreamWithFlows, FlowWithComponents } from "@/app/types/flow";
 import { FlowComponent } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+// Add this new import
+import { useMusicContext } from "../apps/music/context/MusicContext";
 
 const MENU_HEIGHT = 32;
 const TRIGGER_AREA_HEIGHT = 20;
@@ -26,13 +28,101 @@ interface SystemIconProps {
   src: string;
   children: React.ReactNode;
   onReset?: () => Promise<void>;
+  onOpenChange?: (open: boolean) => void; // Add this prop
 }
 
-const SystemIcon: React.FC<SystemIconProps> = ({ src, children }) => {
+interface MusicDropdownProps {
+  currentSong?: {
+    title: string;
+    artist: string;
+  };
+  isPlaying: boolean;
+  onPlayPause: () => void;
+  onNext: () => void;
+  onPrevious: () => void;
+  progress: number;
+}
+
+const MusicDropdown: React.FC<MusicDropdownProps> = ({
+  currentSong = { title: "song1", artist: "Unknown Artist" }, // Default song
+  isPlaying,
+  onPlayPause,
+  onNext,
+  onPrevious,
+  progress, // Now TypeScript knows about this prop
+}) => {
   const { getColor } = useStyles();
 
   return (
-    <DropdownMenu>
+    <DropdownMenuContent
+      className="w-[300px] p-3"
+      align="end"
+      alignOffset={-10}
+      sideOffset={4}
+      style={{
+        backgroundColor: getColor("black-thick"),
+        borderColor: getColor("Brd"),
+      }}
+    >
+      <div className="space-y-3">
+        <div className="flex items-center gap-3">
+          <img
+            src="/media/system/_empty_image.png"
+            alt={currentSong.title}
+            className="w-12 h-12 rounded"
+          />
+          <div className="flex-1 min-w-0">
+            <div className="text-sm font-medium truncate text-white">
+              {currentSong.title}
+            </div>
+            <div className="text-xs text-white/60 truncate">
+              {currentSong.artist}
+            </div>
+          </div>
+        </div>
+
+        {/* Progress bar */}
+        <div className="flex items-center gap-2 px-1">
+          <div className="w-full bg-white/10 rounded-full h-[3px]">
+            <div
+              className="h-full bg-white rounded-full transition-all duration-200"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+        </div>
+
+        {/* Controls */}
+        <div className="flex justify-center items-center gap-6">
+          <button
+            onClick={onPrevious}
+            className="text-white/80 hover:text-white"
+          >
+            <SkipBack size={20} />
+          </button>
+          <button
+            onClick={onPlayPause}
+            className="text-white/80 hover:text-white"
+          >
+            {isPlaying ? <Pause size={24} /> : <Play size={24} />}
+          </button>
+          <button onClick={onNext} className="text-white/80 hover:text-white">
+            <SkipForward size={20} />
+          </button>
+        </div>
+      </div>
+    </DropdownMenuContent>
+  );
+};
+
+const SystemIcon: React.FC<SystemIconProps> = ({
+  src,
+  children,
+  onOpenChange,
+}) => {
+  const { getColor } = useStyles();
+
+  return (
+    <DropdownMenu onOpenChange={onOpenChange}>
       <DropdownMenuTrigger asChild>
         <motion.button
           className="relative p-2 rounded-md flex items-center justify-center hover:bg-white/5"
@@ -63,6 +153,30 @@ export const MenuBar = () => {
   const { activeOSFlowId, setActiveOSFlowId, setOrionConfig } = useAppStore();
   const router = useRouter();
   const queryClient = useQueryClient();
+
+  // Remove these local states since they come from context
+  // const [currentSong, setCurrentSong] = useState<{title: string; artist: string} | undefined>();
+  // const [isPlaying, setIsPlaying] = useState(false);
+  // const [progress, setProgress] = useState(0);
+
+  // Get everything from context instead
+  const {
+    songs,
+    currentSongIndex,
+    isPlaying,
+    songProgress, // MUST match the context property name exactly
+    togglePlay,
+    playNext,
+    playPrevious,
+  } = useMusicContext();
+
+  // Get current song info
+  const currentSong = songs[currentSongIndex]
+    ? {
+        title: songs[currentSongIndex].title,
+        artist: songs[currentSongIndex].artist,
+      }
+    : undefined;
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentDate(new Date()), 60000);
@@ -300,13 +414,37 @@ export const MenuBar = () => {
               </div>
             </div>
 
-            <div
-              className="text-xs font-medium"
-              style={{
-                color: "rgba(76, 79, 105, 0.81)",
-              }}
-            >
-              {formattedDate}
+            <div className="flex">
+              <div className="flex items-center gap-2">
+                <SystemIcon
+                  src="/icns/system/_play.png"
+                  onOpenChange={setDropdownOpen} // Add this prop
+                >
+                  <MusicDropdown
+                    currentSong={
+                      songs[currentSongIndex]
+                        ? {
+                            title: songs[currentSongIndex].title,
+                            artist: songs[currentSongIndex].artist,
+                          }
+                        : { title: "song1", artist: "Unknown Artist" }
+                    }
+                    isPlaying={isPlaying}
+                    onPlayPause={togglePlay}
+                    onNext={playNext}
+                    onPrevious={playPrevious}
+                    progress={songProgress}
+                  />
+                </SystemIcon>
+                <div
+                  className="text-xs font-medium"
+                  style={{
+                    color: "rgba(76, 79, 105, 0.81)",
+                  }}
+                >
+                  {formattedDate}
+                </div>
+              </div>
             </div>
           </motion.div>
         )}
