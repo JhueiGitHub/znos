@@ -3,7 +3,7 @@
 
 import { DesignSystemProvider } from "../../contexts/DesignSystemContext";
 import { useStyles } from "@/app/hooks/useStyles";
-import "./styles/globals.css";
+import "./globals.css";
 
 export default function MusicLayout({
   children,
