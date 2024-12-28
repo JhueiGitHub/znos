@@ -1,4 +1,4 @@
-// app/apps/obsidian/components/sidebar.tsx
+// components/sidebar.tsx
 import React from "react";
 import { Tree, Folder, File } from "./ui/file-tree";
 import { useStyles } from "@os/hooks/useStyles";
@@ -11,6 +11,7 @@ import { ObsidianCalendar } from "./obsidian-calendar";
 type ObsidianNote = {
   id: string;
   title: string;
+  isDaily?: boolean;
 };
 
 type ObsidianFolder = {
@@ -22,7 +23,7 @@ type ObsidianFolder = {
 
 const Sidebar: React.FC = () => {
   const { getColor, getFont } = useStyles();
-  const { activeNoteId, setActiveNoteId } = useNote();
+  const { activeNoteId, setActiveNoteId, navigateToDate } = useNote();
 
   // First, fetch the profile to get the vault
   const { data: profile } = useQuery({
@@ -50,7 +51,33 @@ const Sidebar: React.FC = () => {
       const response = await axios.get(
         `/api/obsidian/vaults/${vault.id}/folders`
       );
-      return response.data;
+
+      // Filter out daily notes before returning
+      const filterDailyNotes = (data: any): any => {
+        if (!data) return data;
+
+        // Handle array of items
+        if (Array.isArray(data)) {
+          return data.map(filterDailyNotes);
+        }
+
+        // Handle single folder item
+        const notes = Array.isArray(data.notes)
+          ? data.notes.filter((note: ObsidianNote) => !note.isDaily)
+          : [];
+
+        const children = Array.isArray(data.children)
+          ? data.children.map(filterDailyNotes)
+          : [];
+
+        return {
+          ...data,
+          notes,
+          children,
+        };
+      };
+
+      return filterDailyNotes(response.data);
     },
     enabled: !!vault?.id,
   });
@@ -82,24 +109,7 @@ const Sidebar: React.FC = () => {
     />
   );
 
-  const handleNoteSelect = (noteId: string) => {
-    console.log("Selected note:", noteId); // Debug log
-    setActiveNoteId(noteId);
-  };
-
-  if (isLoading) {
-    return (
-      <div className="w-[240px] p-4">
-        <div className="animate-pulse space-y-2">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="h-6 bg-white/5 rounded" />
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  // Enhanced recursive rendering with proper typing
+  // Enhanced recursive rendering with proper typing and null checks
   const renderTreeItems = (items: any[]) => {
     if (!Array.isArray(items)) {
       console.error("Items is not an array:", items);
@@ -112,13 +122,11 @@ const Sidebar: React.FC = () => {
         return null;
       }
 
-      const isNote = item.name.endsWith(".md");
-
       if (Array.isArray(item.children) && item.children.length > 0) {
         return (
           <Folder key={item.id} element={item.name} value={item.id}>
             {renderTreeItems(item.children)}
-            {item.notes &&
+            {Array.isArray(item.notes) &&
               renderTreeItems(
                 item.notes.map((note: ObsidianNote) => ({
                   id: note.id,
@@ -141,6 +149,18 @@ const Sidebar: React.FC = () => {
       }
     });
   };
+
+  if (isLoading) {
+    return (
+      <div className="w-[240px] p-4">
+        <div className="animate-pulse space-y-2">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-6 bg-white/5 rounded" />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   if (!vault) {
     return (
@@ -170,7 +190,7 @@ const Sidebar: React.FC = () => {
       >
         {renderTreeItems(treeData)}
       </Tree>
-      <ObsidianCalendar />
+      <ObsidianCalendar onDateSelect={navigateToDate} />
     </div>
   );
 };

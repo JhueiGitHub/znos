@@ -579,11 +579,12 @@ model Note {
   folder   ObsidianFolder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
 
   // Metadata and note-specific features
-  frontmatter Json? // For YAML frontmatter
   tags        Tag[]
   backlinks   Backlink[] @relation("SourceNote")
   linkedBy    Backlink[] @relation("TargetNote")
   aliases     String[] // Alternative titles for the note
+  isDaily     Boolean @default(false)
+  frontmatter Json?   @default("{}")
 
   // Timestamps
   createdAt    DateTime @default(now())

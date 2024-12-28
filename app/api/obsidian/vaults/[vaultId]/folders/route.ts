@@ -25,17 +25,25 @@ export async function GET(
         folders: {
           include: {
             notes: {
+              where: {
+                isDaily: false, // Only include non-daily notes
+              },
               select: {
                 id: true,
                 title: true,
+                isDaily: true,
               },
             },
             children: {
               include: {
                 notes: {
+                  where: {
+                    isDaily: false, // Only include non-daily notes
+                  },
                   select: {
                     id: true,
                     title: true,
+                    isDaily: true,
                   },
                 },
               },
@@ -45,10 +53,12 @@ export async function GET(
         notes: {
           where: {
             folderId: null,
+            isDaily: false, // Only include non-daily notes for root level
           },
           select: {
             id: true,
             title: true,
+            isDaily: true,
           },
         },
       },
@@ -78,21 +88,23 @@ export async function GET(
     });
 
     // Create the tree structure exactly as the component expects
-    const treeData = [{
-      id: vault.id,
-      name: vault.name,
-      isSelectable: true,
-      children: [
-        ...vault.folders
-          .filter(folder => !folder.parentId)
-          .map(transformFolder),
-        ...vault.notes.map(note => ({
-          id: note.id,
-          name: `${note.title}.md`,
-          isSelectable: true,
-        })),
-      ],
-    }];
+    const treeData = [
+      {
+        id: vault.id,
+        name: vault.name,
+        isSelectable: true,
+        children: [
+          ...vault.folders
+            .filter((folder) => !folder.parentId)
+            .map(transformFolder),
+          ...vault.notes.map((note) => ({
+            id: note.id,
+            name: `${note.title}.md`,
+            isSelectable: true,
+          })),
+        ],
+      },
+    ];
 
     // Log the transformed data
     console.log("Transformed tree data:", JSON.stringify(treeData, null, 2));

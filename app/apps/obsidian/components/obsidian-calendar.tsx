@@ -1,27 +1,69 @@
-// app/apps/obsidian/components/obsidian-calendar.tsx
+// components/obsidian-calendar.tsx
 "use client";
 
 import * as React from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { DayPicker } from "react-day-picker";
+import {
+  DayPicker,
+  DayClickEventHandler,
+  ModifiersStyles,
+} from "react-day-picker";
 import { cn } from "@/lib/utils";
 import { useStyles } from "@os/hooks/useStyles";
+import { isSameDay } from "date-fns";
+import { useNote } from "../contexts/note-context";
 
-export type ObsidianCalendarProps = React.ComponentProps<typeof DayPicker>;
+interface ObsidianCalendarProps
+  extends Omit<
+    React.ComponentProps<typeof DayPicker>,
+    "mode" | "selected" | "onSelect"
+  > {
+  onDateSelect: (date: Date) => void;
+}
 
 function ObsidianCalendar({
   className,
   classNames,
   showOutsideDays = true,
+  onDateSelect,
   ...props
 }: ObsidianCalendarProps) {
-  const { getColor, getFont } = useStyles();
-  const [date, setDate] = React.useState<Date | undefined>(new Date());
+  const { getColor } = useStyles();
+  const [selectedDay, setSelectedDay] = React.useState<Date>(new Date());
+  const today = React.useMemo(() => new Date(), []);
+  const { activeNote } = useNote();
+
+  const handleDayClick: DayClickEventHandler = (day, modifiers) => {
+    setSelectedDay(day);
+    onDateSelect(day);
+  };
+
+  const modifiersStyles: ModifiersStyles = {
+    currentNotSelected: {
+      border: "1px solid rgba(76, 79, 105, 0.3)",
+      borderRadius: "6px",
+    },
+    selected: {
+      backgroundColor: activeNote?.isDaily
+        ? "rgba(76, 79, 105, 0.1)"
+        : undefined,
+      color: "rgb(76, 79, 105)",
+    },
+  };
 
   return (
     <DayPicker
+      mode="single"
+      selected={selectedDay}
+      onDayClick={handleDayClick}
       showOutsideDays={showOutsideDays}
       className={cn("p-0", className)}
+      modifiersStyles={modifiersStyles}
+      modifiers={{
+        currentNotSelected: (day: Date) =>
+          isSameDay(day, today) &&
+          (!activeNote?.isDaily || !isSameDay(day, selectedDay)),
+      }}
       classNames={{
         months: "flex flex-col space-y-4",
         month: "space-y-4",
@@ -44,10 +86,6 @@ function ObsidianCalendar({
           "h-8 w-8 p-0 font-normal aria-selected:opacity-100 rounded-md",
           "text-[#7E8691]/90 hover:bg-[#4C4F69]/10 focus:bg-[#4C4F69]/10"
         ),
-        day_selected: cn(
-          "bg-[#4C4F69]/20 text-[#7E8691] hover:bg-[#4C4F69]/20 focus:bg-[#4C4F69]/20"
-        ),
-        day_today: "bg-transparent text-[#7E8691]",
         day_outside: "text-[#7E8691]/50",
         day_disabled: "text-[#7E8691]/30",
         day_hidden: "invisible",
@@ -65,6 +103,7 @@ function ObsidianCalendar({
     />
   );
 }
+
 ObsidianCalendar.displayName = "ObsidianCalendar";
 
 export { ObsidianCalendar };

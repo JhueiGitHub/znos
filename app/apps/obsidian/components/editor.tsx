@@ -1,5 +1,5 @@
-// app/apps/obsidian/components/editor.tsx
-import React, { useState, useCallback, useEffect } from "react";
+// components/editor.tsx
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import { useStyles } from "@os/hooks/useStyles";
 import { useNote } from "../contexts/note-context";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -9,9 +9,36 @@ import { motion } from "framer-motion";
 
 const Editor: React.FC = () => {
   const { getColor } = useStyles();
-  const { activeNote } = useNote();
+  const { activeNote, activeNoteId, saveScrollPosition, getScrollPosition } =
+    useNote();
   const [content, setContent] = useState(activeNote?.content || "");
   const queryClient = useQueryClient();
+  const editorRef = useRef<HTMLTextAreaElement>(null);
+
+  // Save scroll position periodically
+  const saveScrollDebounced = useCallback(
+    debounce((position: number) => {
+      if (activeNoteId) {
+        saveScrollPosition(activeNoteId, position);
+      }
+    }, 100),
+    [activeNoteId, saveScrollPosition]
+  );
+
+  // Handle scroll events
+  const handleScroll = useCallback(() => {
+    if (editorRef.current && activeNoteId) {
+      saveScrollDebounced(editorRef.current.scrollTop);
+    }
+  }, [activeNoteId, saveScrollDebounced]);
+
+  // Restore scroll position when note changes
+  useEffect(() => {
+    if (editorRef.current && activeNoteId) {
+      const savedPosition = getScrollPosition(activeNoteId);
+      editorRef.current.scrollTop = savedPosition;
+    }
+  }, [activeNoteId, getScrollPosition]);
 
   useEffect(() => {
     setContent(activeNote?.content || "");
@@ -50,8 +77,9 @@ const Editor: React.FC = () => {
   useEffect(() => {
     return () => {
       debouncedSave.cancel();
+      saveScrollDebounced.cancel();
     };
-  }, [debouncedSave]);
+  }, [debouncedSave, saveScrollDebounced]);
 
   if (!activeNote) {
     return (
@@ -75,8 +103,10 @@ const Editor: React.FC = () => {
           {activeNote.title}
         </h1>
         <textarea
+          ref={editorRef}
           value={content}
           onChange={handleContentChange}
+          onScroll={handleScroll}
           className="w-full h-[calc(100%-3rem)] bg-transparent resize-none outline-none prose prose-invert"
           style={{
             fontFamily: "Dank",
