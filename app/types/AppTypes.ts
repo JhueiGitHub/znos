@@ -53,14 +53,14 @@ export const appDefinitions: AppDefinition[] = [
   },
   {
     id: "opal",
-    name: "Desktop",
+    name: "Ronin",
     icon: "/media/desktop.png",
     dockPosition: 6,
     animationType: "magnify",
   },
   {
-    id: "music",
-    name: "Quasar",
+    id: "glory",
+    name: "Glory",
     icon: "/media/trash.png",
     dockPosition: 7,
     animationType: "magnify",
