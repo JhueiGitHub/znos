@@ -6,6 +6,7 @@ import * as Portal from "@radix-ui/react-portal";
 import { MediaItem } from "@prisma/client";
 import { useStyles } from "@os/hooks/useStyles";
 import { Skeleton } from "@/components/ui/skeleton";
+import * as ScrollArea from "@radix-ui/react-scroll-area";
 
 interface MediaSelectorProps {
   position: { x: number; y: number };
@@ -126,52 +127,60 @@ export const MediaSelector = ({
               ESC
             </button>
           </div>
-          <div className="p-3">
-            {isLoading ? (
-              <MediaGridSkeleton />
-            ) : !stellarFiles?.length ? (
-              <div
-                className="text-center py-8"
-                style={{ color: getColor("Text Secondary (Bd)") }}
-              >
-                No media files found in Stellar
-              </div>
-            ) : (
-              <div className="grid grid-cols-3 gap-2">
-                {stellarFiles.map((file: StellarFile) => (
-                  <motion.div
-                    key={file.id}
-                    whileHover={{ scale: 1.05 }}
-                    className="aspect-square rounded-lg overflow-hidden cursor-pointer border relative group"
-                    style={{ borderColor: getColor("Brd") }}
-                    onClick={() => onSelect(convertToMediaItem(file))}
-                  >
-                    {file.mimeType.startsWith("video/") ? (
-                      <video
-                        src={file.url}
-                        className="w-full h-full object-cover"
-                        muted
-                        loop
-                        autoPlay
-                        playsInline
-                      />
-                    ) : (
-                      <img
-                        src={file.url}
-                        alt={file.name}
-                        className="w-full h-full object-cover"
-                      />
-                    )}
-                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <span className="text-xs text-white">
-                        {file.mimeType.startsWith("video/") ? "Video" : "Image"}
-                      </span>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            )}
-          </div>
+          <ScrollArea.Root className="h-[400px]">
+            <ScrollArea.Viewport className="p-3 w-full h-full">
+              {isLoading ? (
+                <MediaGridSkeleton />
+              ) : !stellarFiles?.length ? (
+                <div
+                  className="text-center py-8"
+                  style={{ color: getColor("Text Secondary (Bd)") }}
+                >
+                  No media files found in Stellar
+                </div>
+              ) : (
+                <div className="grid grid-cols-3 gap-2">
+                  {stellarFiles.map((file: StellarFile) => (
+                    <motion.div
+                      key={file.id}
+                      whileHover={{ scale: 1.05 }}
+                      className="aspect-square rounded-lg overflow-hidden cursor-pointer border relative group"
+                      style={{ borderColor: getColor("Brd") }}
+                      onClick={() => onSelect(convertToMediaItem(file))}
+                    >
+                      {file.mimeType.startsWith("video/") ? (
+                        <video
+                          src={file.url}
+                          className="w-full h-full object-cover"
+                          muted
+                          loop
+                          autoPlay
+                          playsInline
+                        />
+                      ) : (
+                        <img
+                          src={file.url}
+                          alt={file.name}
+                          className="w-full h-full object-cover"
+                        />
+                      )}
+                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <span className="text-xs text-white">
+                          {file.mimeType.startsWith("video/") ? "Video" : "Image"}
+                        </span>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </ScrollArea.Viewport>
+            <ScrollArea.Scrollbar
+              className="flex select-none touch-none p-0.5 bg-black/5 transition-colors duration-150 ease-out hover:bg-black/10"
+              orientation="vertical"
+            >
+              <ScrollArea.Thumb className="flex-1 bg-black/40 rounded-full relative" />
+            </ScrollArea.Scrollbar>
+          </ScrollArea.Root>
         </div>
       </motion.div>
     </Portal.Root>
