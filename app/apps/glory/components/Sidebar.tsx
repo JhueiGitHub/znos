@@ -6,7 +6,9 @@ import { useVideo } from "../context/VideoContext";
 
 export function Sidebar() {
   const { getColor } = useStyles();
-  const { episodes, setCurrentEpisode, currentEpisode } = useVideo();
+  const { currentSeries, setCurrentEpisode, currentEpisode } = useVideo();
+
+  if (!currentSeries) return null;
 
   return (
     <div
@@ -19,10 +21,10 @@ export function Sidebar() {
         className="text-lg font-semibold mb-4"
         style={{ color: getColor("Text Primary (Hd)") }}
       >
-        Episodes
+        {currentSeries.title} - Episodes
       </h2>
       <div className="space-y-2">
-        {episodes.map((episode, index) => (
+        {currentSeries.episodes.map((episode, index) => (
           <button
             key={episode.videoId}
             onClick={() => setCurrentEpisode(episode)}

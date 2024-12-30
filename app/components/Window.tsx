@@ -71,9 +71,7 @@ const Window: React.FC<WindowProps> = ({ app, isActive }) => {
         <h2
           className="text-sm font-medium"
           style={{ color: getColor("Text Primary (Hd)") }}
-        >
-          {app.name}
-        </h2>
+        ></h2>
       </div>
       <div className="flex-grow overflow-auto">
         <AppComponent />
