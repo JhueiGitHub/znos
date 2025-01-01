@@ -5,15 +5,18 @@ import { useDailyColor } from "../hooks/useDailyColor";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import debounce from "lodash/debounce";
+import { useShorthand } from "../hooks/useShorthand";
 
-// Regex pattern for all special symbols we want to style
-const SYMBOL_PATTERN = /(->|"|"|"|:|;)/g;
+// Updated regex pattern to include both arrows and bullet points while preserving their original form
+const SYMBOL_PATTERN = /(->|- |"|"|"|:|;)/g;
 
-// Helper to identify symbol types
+// Enhanced helper to identify symbol types including bullet points
 const getSymbolType = (symbol: string) => {
   switch (symbol) {
     case "->":
       return "arrow";
+    case "- ":
+      return "bullet";
     case '"':
     case '"':
     case '"':
@@ -26,6 +29,7 @@ const getSymbolType = (symbol: string) => {
   }
 };
 
+// Enhanced PreviewContent component to handle both arrows and bullets
 const PreviewContent: React.FC<{ content: string; accentColor: string }> =
   React.memo(({ content, accentColor }) => {
     // Split content by our symbol pattern while preserving the symbols
@@ -36,12 +40,21 @@ const PreviewContent: React.FC<{ content: string; accentColor: string }> =
         return part;
       }
 
-      // Style configuration based on symbol type
+      // Enhanced style configuration to handle both arrows and bullets
       const style = {
         color: accentColor,
-        opacity: symbolType === "punctuation" ? 0.9 : 1, // Slightly dimmed punctuation
-        fontWeight: symbolType === "quote" ? 500 : "inherit", // Slightly bolder quotes
+        opacity: symbolType === "punctuation" ? 0.9 : 1,
+        fontWeight: symbolType === "quote" ? 500 : "inherit",
       };
+
+      // Special handling for bullet points
+      if (symbolType === "bullet") {
+        return (
+          <span key={index} style={style}>
+            • {/* Unicode bullet point replaces "- " */}
+          </span>
+        );
+      }
 
       return (
         <span key={index} style={style}>
@@ -121,6 +134,10 @@ const Editor: React.FC = () => {
     [activeNote?.id]
   );
 
+  const { handleKeyDown: handleShorthand } = useShorthand({
+    accentColor,
+  });
+
   const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newContent = e.target.value;
     setContent(newContent);
@@ -162,10 +179,12 @@ const Editor: React.FC = () => {
             value={content}
             onChange={handleContentChange}
             onScroll={handleScroll}
+            onKeyDown={handleShorthand}
             className="absolute inset-0 w-full h-full bg-transparent resize-none outline-none prose prose-invert"
             style={{
               fontFamily: "Dank",
-              color: "#7E8691",
+              color: "transparent", // Make the text transparent instead of #7E8691
+              caretColor: "#7E8691", // Keep the cursor visible
               zIndex: 1,
             }}
           />
