@@ -2,15 +2,16 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import { useStyles } from "@os/hooks/useStyles";
 import { useNote } from "../contexts/note-context";
+import { useDailyColor } from "../hooks/useDailyColor";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import debounce from "lodash/debounce";
-import { motion } from "framer-motion";
 
 const Editor: React.FC = () => {
   const { getColor } = useStyles();
   const { activeNote, activeNoteId, saveScrollPosition, getScrollPosition } =
     useNote();
+  const { accentColor } = useDailyColor();
   const [content, setContent] = useState(activeNote?.content || "");
   const queryClient = useQueryClient();
   const editorRef = useRef<HTMLTextAreaElement>(null);
@@ -89,14 +90,34 @@ const Editor: React.FC = () => {
     );
   }
 
+  // CSS for applying accent color to specific elements
+  const editorStyles = `
+    .editor-content h1, 
+    .editor-content h2, 
+    .editor-content h3, 
+    .editor-content h4, 
+    .editor-content h5, 
+    .editor-content h6 {
+      color: ${accentColor} !important;
+    }
+    .editor-content hr {
+      border-color: ${accentColor} !important;
+    }
+    .editor-content .punctuation,
+    .editor-content .arrow {
+      color: ${accentColor} !important;
+    }
+  `;
+
   return (
     <div className="h-full bg-[#00000093] rounded-lg flex justify-center">
+      <style>{editorStyles}</style>
       <div className="w-[970px] p-6">
         <h1
           className="text-2xl font-bold mb-4"
           style={{
             fontFamily: "ExemplarPro",
-            color: "#4C4F69",
+            color: activeNote.isDaily ? accentColor : "#4C4F69",
             opacity: 0.81,
           }}
         >
@@ -107,7 +128,7 @@ const Editor: React.FC = () => {
           value={content}
           onChange={handleContentChange}
           onScroll={handleScroll}
-          className="w-full h-[calc(100%-3rem)] bg-transparent resize-none outline-none prose prose-invert"
+          className="w-full h-[calc(100%-3rem)] bg-transparent resize-none outline-none prose prose-invert editor-content"
           style={{
             fontFamily: "Dank",
             color: "#7E8691",
