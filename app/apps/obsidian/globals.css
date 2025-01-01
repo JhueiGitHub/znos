@@ -16,3 +16,28 @@
   font-weight: normal;
   font-style: normal;
 }
+
+@font-face {
+  font-family: "Dank";
+  src: url("/fonts/DankMono-Regular.ttf") format("truetype");
+  font-feature-settings: "liga" 1;
+}
+
+.editor-content {
+  font-feature-settings: "liga" 1;
+}
+
+/* Arrow ligature styling */
+.editor-content {
+  --arrow-color: currentColor;
+}
+
+.editor-content::selection {
+  background-color: rgba(76, 79, 105, 0.2);
+}
+
+/* Custom ligature color via CSS variable */
+@font-palette-values --arrow-palette {
+  font-family: Dank;
+  override-colors: 0 var(--arrow-color);
+}
