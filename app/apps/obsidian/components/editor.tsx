@@ -1,4 +1,3 @@
-// components/editor.tsx
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import { useStyles } from "@os/hooks/useStyles";
 import { useNote } from "../contexts/note-context";
@@ -6,6 +5,53 @@ import { useDailyColor } from "../hooks/useDailyColor";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import debounce from "lodash/debounce";
+
+// Regex pattern for all special symbols we want to style
+const SYMBOL_PATTERN = /(->|"|"|"|:|;)/g;
+
+// Helper to identify symbol types
+const getSymbolType = (symbol: string) => {
+  switch (symbol) {
+    case "->":
+      return "arrow";
+    case '"':
+    case '"':
+    case '"':
+      return "quote";
+    case ":":
+    case ";":
+      return "punctuation";
+    default:
+      return "text";
+  }
+};
+
+const PreviewContent: React.FC<{ content: string; accentColor: string }> =
+  React.memo(({ content, accentColor }) => {
+    // Split content by our symbol pattern while preserving the symbols
+    const parts = content.split(SYMBOL_PATTERN).map((part, index) => {
+      const symbolType = getSymbolType(part);
+
+      if (symbolType === "text") {
+        return part;
+      }
+
+      // Style configuration based on symbol type
+      const style = {
+        color: accentColor,
+        opacity: symbolType === "punctuation" ? 0.9 : 1, // Slightly dimmed punctuation
+        fontWeight: symbolType === "quote" ? 500 : "inherit", // Slightly bolder quotes
+      };
+
+      return (
+        <span key={index} style={style}>
+          {part}
+        </span>
+      );
+    });
+
+    return <div className="whitespace-pre-wrap">{parts}</div>;
+  });
 
 const Editor: React.FC = () => {
   const { getColor } = useStyles();
@@ -75,23 +121,10 @@ const Editor: React.FC = () => {
     [activeNote?.id]
   );
 
-  // Function to highlight arrows in the content
-  const highlightArrows = (content: string) => {
-    return content.replace(
-      /->/g,
-      `<span style="color: ${accentColor}">-></span>`
-    );
-  };
-
   const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newContent = e.target.value;
     setContent(newContent);
     debouncedSave(newContent);
-
-    // Update preview with highlighted content
-    if (previewRef.current) {
-      previewRef.current.innerHTML = highlightArrows(newContent);
-    }
   };
 
   // Cleanup
@@ -138,13 +171,15 @@ const Editor: React.FC = () => {
           />
           <div
             ref={previewRef}
-            className="absolute inset-0 w-full h-full pointer-events-none prose prose-invert whitespace-pre-wrap"
+            className="absolute inset-0 w-full h-full pointer-events-none prose prose-invert"
             style={{
               fontFamily: "Dank",
               color: "#7E8691",
               zIndex: 2,
             }}
-          />
+          >
+            <PreviewContent content={content} accentColor={accentColor} />
+          </div>
         </div>
       </div>
     </div>

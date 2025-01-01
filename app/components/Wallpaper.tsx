@@ -17,6 +17,32 @@ const Wallpaper = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const loadAttempted = useRef(false);
 
+  // UPDATED: Fetch active flow config on component mount
+  const { data: activeFlowConfig } = useQuery({
+    queryKey: ["orion-active-flow"],
+    queryFn: async () => {
+      const response = await axios.get("/api/apps/orion/active-flow");
+      return response.data;
+    },
+  });
+
+  // Update wallpaper when active flow config changes
+  useEffect(() => {
+    if (activeFlowConfig?.flow) {
+      const wallpaper = activeFlowConfig.flow.components.find(
+        (c: any) => c.type === "WALLPAPER"
+      );
+      if (wallpaper) {
+        updateWallpaper({
+          mode: wallpaper.mode,
+          value: wallpaper.value,
+          tokenId: wallpaper.tokenId,
+          mediaId: wallpaper.mediaId,
+        });
+      }
+    }
+  }, [activeFlowConfig, updateWallpaper]);
+
   // NEW: Query for active flow's wallpaper
   useQuery({
     queryKey: ["active-flow-wallpaper", activeOSFlowId],

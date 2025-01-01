@@ -14,18 +14,18 @@ export interface DailyColorFlow {
   };
 }
 
-// Default color scheme for Onyx daily notes
+// Updated color scheme matching folder structure
 export const defaultDailyColors: DailyColorFlow = {
   id: "onyx-default",
   name: "Onyx Daily",
   colors: {
-    monday: "#4C4F69", // latte (existing accent)
-    tuesday: "#7287FD", // lavender
-    wednesday: "#179299", // teal
-    thursday: "#EA76CB", // pink
-    friday: "#FE640B", // peach
-    saturday: "#40A02B", // green
-    sunday: "#E64553", // red
+    monday: "#166e6a", // 02 - Stallion (deep-blue)
+    tuesday: "#1d8e86", // 03 - Dopa (light-blue)
+    wednesday: "#5770b4", // 04 - SO (blue-lilac)
+    thursday: "#455a96", // 05 - Docs (deep-blue-lilac)
+    friday: "#6a51a6", // 06 - Daily (deep-pink-lilac)
+    saturday: "#8069c4", // 07 - Flt (pink-lilac)
+    sunday: "#c45c8a", // 99 - Meta (rose)
   },
 };
 
