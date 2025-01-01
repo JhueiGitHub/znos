@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
 import { AppDefinition } from "../types/AppTypes";
@@ -13,8 +13,14 @@ interface WindowProps {
 interface DynamicAppProps {}
 
 const Window: React.FC<WindowProps> = ({ app, isActive }) => {
-  const { closeApp, setActiveApp, updateAppState, openApps } = useAppStore();
+  const { closeApp, setActiveApp, updateAppState, openApps, lastWindowState } =
+    useAppStore();
   const { getColor } = useStyles();
+
+  // Check if this window is being restored from lastWindowState
+  const isRestoredWindow =
+    lastWindowState.some((w) => w.id === app.id) &&
+    openApps.length === lastWindowState.length;
 
   const AppComponent = dynamic<DynamicAppProps>(
     () => import(`../apps/${app.id}/page`),
@@ -35,7 +41,7 @@ const Window: React.FC<WindowProps> = ({ app, isActive }) => {
 
   return (
     <motion.div
-      initial={{ scale: 0, opacity: 0 }}
+      initial={isRestoredWindow ? false : { scale: 0, opacity: 0 }}
       animate={{
         scale: isMinimized ? 0 : 1,
         opacity: isMinimized ? 0 : 1,
@@ -71,7 +77,9 @@ const Window: React.FC<WindowProps> = ({ app, isActive }) => {
         <h2
           className="text-sm font-medium"
           style={{ color: getColor("Text Primary (Hd)") }}
-        ></h2>
+        >
+          {app.name}
+        </h2>
       </div>
       <div className="flex-grow overflow-auto">
         <AppComponent />

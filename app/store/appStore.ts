@@ -1,7 +1,13 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { createJSONStorage, persist } from "zustand/middleware";
 import { AppDefinition } from "../types/AppTypes";
 import axios from "axios";
+
+interface PersistedWindow {
+  id: string;
+  isMinimized: boolean;
+  lastActive: boolean;
+}
 
 interface AppWithState extends AppDefinition {
   state: Record<string, any>;
@@ -31,6 +37,7 @@ interface AppState {
   activeAppId: string | null;
   orionConfig: OrionConfig | null;
   activeOSFlowId: string | null;
+  lastWindowState: PersistedWindow[];
 
   openApp: (app: AppDefinition) => void;
   closeApp: (appId: string) => void;
@@ -38,7 +45,6 @@ interface AppState {
   updateAppState: (appId: string, newState: Record<string, any>) => void;
   minimizeApp: (appId: string) => void;
   toggleAppMinimize: (appId: string) => void;
-
   setOrionConfig: (config: OrionConfig) => void;
   updateWallpaper: (wallpaper: NonNullable<OrionConfig["wallpaper"]>) => void;
   updateDockIcons: (icons: NonNullable<OrionConfig["dockIcons"]>) => void;
@@ -59,21 +65,28 @@ export const useAppStore = create<AppState>()(
         dockIcons: [],
       },
       activeOSFlowId: null,
+      lastWindowState: [],
 
-      // All existing methods remain exactly the same
       openApp: (app) =>
         set((state) => {
           const existingApp = state.openApps.find(
             (openApp) => openApp.id === app.id
           );
+
+          // If app exists, just reactivate it
           if (existingApp) {
             return {
               openApps: state.openApps.map((a) =>
                 a.id === app.id ? { ...a, isMinimized: false } : a
               ),
               activeAppId: app.id,
+              lastWindowState: [
+                { id: app.id, isMinimized: false, lastActive: true },
+              ],
             };
           }
+
+          // If opening new app, replace last window state entirely
           const newApp: AppWithState = {
             ...app,
             state: {},
@@ -82,19 +95,42 @@ export const useAppStore = create<AppState>()(
           return {
             openApps: [...state.openApps, newApp],
             activeAppId: app.id,
+            lastWindowState: [
+              { id: app.id, isMinimized: false, lastActive: true },
+            ],
           };
         }),
 
       closeApp: (appId) =>
-        set((state) => ({
-          openApps: state.openApps.filter((app) => app.id !== appId),
-          activeAppId:
+        set((state) => {
+          const remainingApps = state.openApps.filter(
+            (app) => app.id !== appId
+          );
+          const newActiveId =
             state.activeAppId === appId
-              ? state.openApps.length > 1
-                ? state.openApps[state.openApps.length - 2].id
+              ? remainingApps.length > 0
+                ? remainingApps[remainingApps.length - 1].id
                 : null
-              : state.activeAppId,
-        })),
+              : state.activeAppId;
+
+          // If we closed the last window, clear window state
+          if (remainingApps.length === 0) {
+            return {
+              openApps: [],
+              activeAppId: null,
+              lastWindowState: [],
+            };
+          }
+
+          // Otherwise store the new active window
+          return {
+            openApps: remainingApps,
+            activeAppId: newActiveId,
+            lastWindowState: newActiveId
+              ? [{ id: newActiveId, isMinimized: false, lastActive: true }]
+              : [],
+          };
+        }),
 
       setActiveApp: (appId) =>
         set((state) => ({
@@ -102,6 +138,9 @@ export const useAppStore = create<AppState>()(
           openApps: state.openApps.map((app) =>
             app.id === appId ? { ...app, isMinimized: false } : app
           ),
+          lastWindowState: [
+            { id: appId, isMinimized: false, lastActive: true },
+          ],
         })),
 
       updateAppState: (appId, newState) =>
@@ -111,6 +150,10 @@ export const useAppStore = create<AppState>()(
               ? { ...app, state: { ...app.state, ...newState } }
               : app
           ),
+          lastWindowState: state.lastWindowState.map((w) => ({
+            ...w,
+            isMinimized: w.id === appId ? newState.isMinimized : w.isMinimized,
+          })),
         })),
 
       minimizeApp: (appId) =>
@@ -119,6 +162,10 @@ export const useAppStore = create<AppState>()(
             app.id === appId ? { ...app, isMinimized: true } : app
           ),
           activeAppId: state.activeAppId === appId ? null : state.activeAppId,
+          lastWindowState: state.lastWindowState.map((w) => ({
+            ...w,
+            isMinimized: w.id === appId ? true : w.isMinimized,
+          })),
         })),
 
       toggleAppMinimize: (appId) =>
@@ -132,6 +179,9 @@ export const useAppStore = create<AppState>()(
                 a.id === appId ? { ...a, isMinimized: false } : a
               ),
               activeAppId: appId,
+              lastWindowState: [
+                { id: appId, isMinimized: false, lastActive: true },
+              ],
             };
           } else {
             return {
@@ -140,24 +190,18 @@ export const useAppStore = create<AppState>()(
               ),
               activeAppId:
                 state.activeAppId === appId ? null : state.activeAppId,
+              lastWindowState: [
+                {
+                  id: appId,
+                  isMinimized: true,
+                  lastActive: true,
+                },
+              ],
             };
           }
         }),
 
-      setOrionConfig: (config) =>
-        set({
-          orionConfig: {
-            ...config,
-            wallpaper: {
-              mode: config.wallpaper?.mode || "color",
-              value: config.wallpaper?.value || null,
-              tokenId: config.wallpaper?.tokenId || "Black",
-              mediaId: config.wallpaper?.mediaId,
-            },
-            dockIcons: config.dockIcons || [],
-          },
-        }),
-
+      setOrionConfig: (config) => set({ orionConfig: config }),
       updateWallpaper: (wallpaper) =>
         set((state) => ({
           orionConfig: {
@@ -165,28 +209,16 @@ export const useAppStore = create<AppState>()(
             wallpaper: {
               ...state.orionConfig?.wallpaper,
               ...wallpaper,
-              mode:
-                wallpaper.mode || state.orionConfig?.wallpaper?.mode || "color",
-              value:
-                wallpaper.value ?? state.orionConfig?.wallpaper?.value ?? null,
             },
           },
         })),
-
       updateDockIcons: (dockIcons) =>
         set((state) => ({
           orionConfig: {
             ...state.orionConfig,
-            dockIcons: dockIcons.map((icon) => ({
-              ...icon,
-              mode: icon.mode || "color",
-              value: icon.value || null,
-              tokenId: icon.tokenId || undefined,
-              mediaId: icon.mediaId || undefined,
-            })),
+            dockIcons,
           },
         })),
-
       setActiveOSFlowId: async (flowId) => {
         const response = await axios.put("/api/apps/orion/active-flow", {
           flowId,
@@ -195,10 +227,11 @@ export const useAppStore = create<AppState>()(
       },
     }),
     {
-      name: "orion-store",
+      name: "app-window-store",
+      storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
-        orionConfig: state.orionConfig,
-        activeOSFlowId: state.activeOSFlowId,
+        lastWindowState: state.lastWindowState,
+        activeAppId: state.activeAppId,
       }),
     }
   )

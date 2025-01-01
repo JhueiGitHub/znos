@@ -1,4 +1,3 @@
-// app/api/apps/orion/config/route.ts
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { currentProfile } from "@/lib/current-profile";
@@ -10,7 +9,7 @@ export async function GET() {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    // First get the profile's design system - IMPORTANT TO KEEP
+    // Get the design system
     const designSystem = await db.designSystem.findUnique({
       where: {
         profileId: profile.id,
@@ -21,7 +20,34 @@ export async function GET() {
       return new NextResponse("Design system not found", { status: 404 });
     }
 
-    // Get the Orion stream and its flows directly
+    // First check for active flow configuration
+    const activeConfig = await db.appConfig.findFirst({
+      where: {
+        appId: "orion",
+        profileId: profile.id,
+      },
+      include: {
+        flow: {
+          include: {
+            components: {
+              orderBy: {
+                order: "asc",
+              },
+            },
+          },
+        },
+      },
+    });
+
+    // If we have an active flow config, return that
+    if (activeConfig?.flow) {
+      return NextResponse.json({
+        designSystem,
+        flow: activeConfig.flow,
+      });
+    }
+
+    // Otherwise fall back to getting the first flow from the Orion stream
     const stream = await db.stream.findFirst({
       where: {
         appId: "orion",
@@ -44,16 +70,23 @@ export async function GET() {
       return new NextResponse("Stream not found", { status: 404 });
     }
 
-    // Return both design system and stream data
+    // If this is our first time, set this as the active flow
+    if (stream.flows[0]) {
+      await db.appConfig.create({
+        data: {
+          appId: "orion",
+          profileId: profile.id,
+          flowId: stream.flows[0].id,
+        },
+      });
+    }
+
     return NextResponse.json({
       designSystem,
-      flow: stream.flows[0], // The main flow containing components
+      flow: stream.flows[0],
     });
   } catch (error) {
     console.error("[ORION_CONFIG_GET]", error);
-    return NextResponse.json(
-      { error: "Failed to fetch config" },
-      { status: 500 }
-    );
+    return new NextResponse("Internal Error", { status: 500 });
   }
 }
