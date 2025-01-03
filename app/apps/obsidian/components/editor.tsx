@@ -76,7 +76,6 @@ const Editor: React.FC = () => {
   const editorRef = useRef<HTMLTextAreaElement>(null);
   const previewRef = useRef<HTMLDivElement>(null);
 
-  // Existing scroll handling
   const saveScrollDebounced = useCallback(
     debounce((position: number) => {
       if (activeNoteId) {
@@ -94,17 +93,6 @@ const Editor: React.FC = () => {
       }
     }
   }, [activeNoteId, saveScrollDebounced]);
-
-  // Restore scroll position
-  useEffect(() => {
-    if (editorRef.current && activeNoteId) {
-      const savedPosition = getScrollPosition(activeNoteId);
-      editorRef.current.scrollTop = savedPosition;
-      if (previewRef.current) {
-        previewRef.current.scrollTop = savedPosition;
-      }
-    }
-  }, [activeNoteId, getScrollPosition]);
 
   // Update content when note changes
   useEffect(() => {
@@ -137,6 +125,56 @@ const Editor: React.FC = () => {
   const { handleKeyDown: handleShorthand } = useShorthand({
     accentColor,
   });
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    const textArea = e.currentTarget;
+    const cursorPosition = textArea.selectionStart;
+    const beforeCursor = textArea.value.slice(0, cursorPosition);
+    const afterCursor = textArea.value.slice(cursorPosition);
+
+    // Handle space after hyphen (existing bullet point logic)
+    if (
+      e.key === " " &&
+      beforeCursor.endsWith("-") &&
+      !beforeCursor.endsWith("->")
+    ) {
+      handleShorthand(e);
+      return;
+    }
+
+    // Handle enter key for bullet points
+    if (e.key === "Enter") {
+      const currentLine = beforeCursor.split("\n").pop() || "";
+
+      // Check if we're in a bullet point line
+      if (currentLine.startsWith("- ") || currentLine.startsWith("• ")) {
+        // If the line only contains the bullet point with no content, remove the bullet
+        if (currentLine.trim() === "-" || currentLine.trim() === "•") {
+          e.preventDefault();
+          const newContent = beforeCursor.slice(0, -2) + "\n" + afterCursor;
+          setContent(newContent);
+          debouncedSave(newContent);
+          return;
+        }
+
+        // Otherwise, add a new bullet point
+        e.preventDefault();
+        const newContent = beforeCursor + "\n- " + afterCursor;
+        setContent(newContent);
+
+        // Set cursor position after the new bullet point
+        requestAnimationFrame(() => {
+          if (textArea) {
+            const newPosition = cursorPosition + 3; // \n-
+            textArea.selectionStart = newPosition;
+            textArea.selectionEnd = newPosition;
+          }
+        });
+
+        debouncedSave(newContent);
+      }
+    }
+  };
 
   const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newContent = e.target.value;
@@ -179,12 +217,12 @@ const Editor: React.FC = () => {
             value={content}
             onChange={handleContentChange}
             onScroll={handleScroll}
-            onKeyDown={handleShorthand}
+            onKeyDown={handleKeyDown}
             className="absolute inset-0 w-full h-full bg-transparent resize-none outline-none prose prose-invert"
             style={{
               fontFamily: "Dank",
-              color: "transparent", // Make the text transparent instead of #7E8691
-              caretColor: "#7E8691", // Keep the cursor visible
+              color: "transparent",
+              caretColor: "#7E8691",
               zIndex: 1,
             }}
           />

@@ -64,7 +64,7 @@ export const useShorthand = ({ accentColor }: UseShorthandProps) => {
         const cursorPosition = textArea.selectionStart;
         const beforeCursor = textArea.value.slice(0, cursorPosition - 1);
 
-        if (beforeCursor.endsWith("-")) {
+        if (beforeCursor.endsWith("-") && !beforeCursor.endsWith("->")) {
           console.log("Space after hyphen detected, preventing default");
           e.preventDefault();
 
