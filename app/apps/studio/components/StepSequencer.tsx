@@ -131,7 +131,11 @@ export const StepSequencer: React.FC<StepSequencerProps> = ({
           <div key={note} className="flex">
             {Array.from({ length: STEP_COUNT }).map((_, stepIndex) => {
               const step = track.steps[stepIndex];
-              const isNoteActive = Array.isArray(step) && step.includes(note);
+              const isNoteActive =
+                Array.isArray(step) &&
+                step.some((n) =>
+                  typeof n === "string" ? n === note : n.name === note
+                );
 
               return (
                 <div

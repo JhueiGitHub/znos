@@ -1,9 +1,8 @@
-// /root/app/apps/studio/App.tsx
 import React, { useState, useCallback } from "react";
 import { Song, Track, Instrument, Effect } from "reactronica";
 import { StepSequencer } from "./components/StepSequencer";
 import { TrackControls } from "./components/TrackControls";
-import type { StepType } from "reactronica";
+import type { StepType, StepNoteType } from "reactronica"; // Added StepNoteType import
 import { cn } from "@/lib/utils";
 import { PianoRoll } from "./components/PianoRoll";
 
@@ -21,6 +20,18 @@ const NOTES = [
   "C#3",
   "C3",
 ];
+
+// Define proper types for tracks
+interface TrackData {
+  name: string;
+  steps: StepType[]; // Changed from (string[] | null)[]
+  volume: number;
+  pan: number;
+  isMuted: boolean;
+  isSolo: boolean;
+  instrumentType: string;
+  effects: Array<{ id: string; type: string }>;
+}
 
 const StudioApp = () => {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -46,8 +57,20 @@ const StudioApp = () => {
                 steps: track.steps.map((step, j) =>
                   j === stepIndex
                     ? value
-                      ? [...(step || []), value]
-                      : step?.filter((note) => note !== value) || null
+                      ? Array.isArray(step)
+                        ? step.some((note) =>
+                            typeof note === "string"
+                              ? note === value
+                              : note.name === value
+                          )
+                          ? (step.filter((note) =>
+                              typeof note === "string"
+                                ? note !== value
+                                : note.name !== value
+                            ) as StepType)
+                          : ([...step, { name: value }] as StepType)
+                        : ([{ name: value }] as StepType)
+                      : step
                     : step
                 ),
               }
@@ -58,8 +81,8 @@ const StudioApp = () => {
     []
   );
 
-  // Preserve the exact working track structure
-  const [tracks, setTracks] = useState([
+  // Properly typed tracks state
+  const [tracks, setTracks] = useState<TrackData[]>([
     {
       name: "Synth",
       steps: [
@@ -71,7 +94,7 @@ const StudioApp = () => {
         null,
         ["E3", "G3", "B3"],
         null,
-      ] as StepType[],
+      ],
       volume: -12,
       pan: 0,
       isMuted: false,
@@ -81,22 +104,13 @@ const StudioApp = () => {
     },
     {
       name: "Drums",
-      steps: [
-        ["C2"],
-        ["E2"],
-        ["D2"],
-        ["E2"],
-        null,
-        null,
-        null,
-        null,
-      ] as StepType[],
+      steps: [["C2"], ["E2"], ["D2"], ["E2"], null, null, null, null],
       volume: -12,
       pan: 0,
       isMuted: false,
       isSolo: false,
       instrumentType: "sampler",
-      effects: [] as Array<{ id: string; type: string }>,
+      effects: [],
     },
   ]);
 
@@ -215,7 +229,6 @@ const StudioApp = () => {
             />
             {selectedTrackIndex !== null && (
               <PianoRoll
-                notes={NOTES}
                 steps={tracks[selectedTrackIndex].steps as StepType[][]}
                 onNoteChange={(stepIndex, noteIndex, value) =>
                   handleNoteChange(

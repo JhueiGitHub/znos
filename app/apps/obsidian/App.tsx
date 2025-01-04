@@ -8,6 +8,7 @@ import Editor from "./components/editor";
 import { NoteProvider } from "./contexts/note-context";
 import { AnimatePresence, motion } from "framer-motion";
 import "./globals.css";
+import { ShorthandDropdown } from "./components/shorthand-dropdown";
 
 interface AppProps {
   initialNoteId?: string;
@@ -83,6 +84,7 @@ const AppContent = ({
           Press ⌘ X to toggle sidebar
         </div>
       </div>
+      <ShorthandDropdown />
     </div>
   );
 };
