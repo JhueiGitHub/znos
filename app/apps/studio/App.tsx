@@ -1,277 +1,263 @@
-"use client";
-
-import React, { useState } from "react";
+// /root/app/apps/studio/App.tsx
+import React, { useState, useCallback } from "react";
 import { Song, Track, Instrument, Effect } from "reactronica";
-import { useStyles } from "@/app/hooks/useStyles";
+import { StepSequencer } from "./components/StepSequencer";
+import { TrackControls } from "./components/TrackControls";
 import type { StepType } from "reactronica";
-import { StepSequencer } from "./components/StepSequencer"; // Added component import
+import { cn } from "@/lib/utils";
+import { PianoRoll } from "./components/PianoRoll";
+
+const NOTES = [
+  "B3",
+  "A#3",
+  "A3",
+  "G#3",
+  "G3",
+  "F#3",
+  "F3",
+  "E3",
+  "D#3",
+  "D3",
+  "C#3",
+  "C3",
+];
 
 const StudioApp = () => {
-  const { getColor, getFont } = useStyles();
   const [isPlaying, setIsPlaying] = useState(false);
-
-  // PRESERVED: All existing state
-  const [synthSteps, setSynthSteps] = useState<StepType[]>([
-    ["A3", "E3", "C3"],
-    null,
-    ["F3", "A3", "C3"],
-    null,
-    ["D3", "F3", "A3"],
-    null,
-    ["E3", "G3", "B3"],
-    null,
-  ]);
-
-  // PRESERVED: Sample steps with duration
-  const [sampleSteps, setSampleSteps] = useState<StepType[]>([
-    [
-      { name: "C3", duration: 2 },
-      { name: "E3", duration: 4 },
-      { name: "F3", duration: 2 },
-    ],
-    { name: "D3", duration: 1 },
-    { name: "C3", duration: 2 },
-    { name: "D3", duration: 1 },
-  ]);
-
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
-  const allNotes = [
-    "C3",
-    "C#3",
-    "D3",
-    "D#3",
-    "E3",
-    "F3",
-    "F#3",
-    "G3",
-    "G#3",
-    "A3",
-    "A#3",
-    "B3",
-  ].reverse();
+  const [selectedTrackIndex, setSelectedTrackIndex] = useState<number | null>(
+    null
+  );
 
-  // EVOLVED: Handle step toggling for both sequencer and piano roll
-  const handleStepToggle = (trackIndex: number, stepIndex: number) => {
-    if (trackIndex === 0) {
-      const newSteps = [...synthSteps];
-      if (Array.isArray(newSteps[stepIndex])) {
-        newSteps[stepIndex] = null;
-      } else {
-        newSteps[stepIndex] = ["C3"];
-      }
-      setSynthSteps(newSteps);
-    } else {
-      const newSteps = [...sampleSteps];
-      if (Array.isArray(newSteps[stepIndex])) {
-        newSteps[stepIndex] = null;
-      } else {
-        newSteps[stepIndex] = [{ name: "C3", duration: 2 }];
-      }
-      setSampleSteps(newSteps);
-    }
-  };
+  const handleNoteChange = useCallback(
+    (
+      trackIndex: number | null,
+      stepIndex: number,
+      noteIndex: number,
+      value: string | null
+    ) => {
+      if (trackIndex === null) return;
+
+      setTracks((prev) =>
+        prev.map((track, i) =>
+          i === trackIndex
+            ? {
+                ...track,
+                steps: track.steps.map((step, j) =>
+                  j === stepIndex
+                    ? value
+                      ? [...(step || []), value]
+                      : step?.filter((note) => note !== value) || null
+                    : step
+                ),
+              }
+            : track
+        )
+      );
+    },
+    []
+  );
+
+  // Preserve the exact working track structure
+  const [tracks, setTracks] = useState([
+    {
+      name: "Synth",
+      steps: [
+        ["A3", "E3", "C3"],
+        null,
+        ["F3", "A3", "C3"],
+        null,
+        ["D3", "F3", "A3"],
+        null,
+        ["E3", "G3", "B3"],
+        null,
+      ] as StepType[],
+      volume: -12,
+      pan: 0,
+      isMuted: false,
+      isSolo: false,
+      instrumentType: "amSynth",
+      effects: [{ id: "effect-1", type: "freeverb" }],
+    },
+    {
+      name: "Drums",
+      steps: [
+        ["C2"],
+        ["E2"],
+        ["D2"],
+        ["E2"],
+        null,
+        null,
+        null,
+        null,
+      ] as StepType[],
+      volume: -12,
+      pan: 0,
+      isMuted: false,
+      isSolo: false,
+      instrumentType: "sampler",
+      effects: [] as Array<{ id: string; type: string }>,
+    },
+  ]);
+
+  const handleVolumeChange = useCallback((index: number, value: number) => {
+    setTracks((prev) =>
+      prev.map((track, i) =>
+        i === index ? { ...track, volume: value } : track
+      )
+    );
+  }, []);
+
+  const handlePanChange = useCallback((index: number, value: number) => {
+    setTracks((prev) =>
+      prev.map((track, i) => (i === index ? { ...track, pan: value } : track))
+    );
+  }, []);
+
+  const handleMuteToggle = useCallback((index: number) => {
+    setTracks((prev) =>
+      prev.map((track, i) =>
+        i === index
+          ? { ...track, isMuted: !track.isMuted, isSolo: false }
+          : track
+      )
+    );
+  }, []);
+
+  const handleSoloToggle = useCallback((index: number) => {
+    setTracks((prev) =>
+      prev.map((track, i) =>
+        i === index
+          ? { ...track, isSolo: !track.isSolo, isMuted: false }
+          : { ...track, isMuted: true }
+      )
+    );
+  }, []);
 
   return (
     <div className="h-full w-full flex flex-col bg-black/80">
-      {/* PRESERVED: DAW Header */}
+      {/* Header */}
       <div className="h-16 flex items-center justify-between px-6 border-b border-white/10">
         <div className="flex items-center gap-4">
-          <span className="text-xl font-bold bg-gradient-to-r from-purple-500 to-blue-500 text-transparent bg-clip-text">
+          <span className="text-xl font-bold bg-gradient-to-r from-[#7B6CBD] to-[#003431] text-transparent bg-clip-text">
             REACTRONICA
           </span>
-          <span className="text-sm text-white/40">DAW DEMO</span>
+          <span className="text-sm text-[#626581]">DAW DEMO</span>
         </div>
 
-        {/* PRESERVED: Play control */}
+        {/* Transport Controls */}
         <div className="flex items-center gap-6">
           <button
             onClick={() => setIsPlaying(!isPlaying)}
-            className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/10"
+            className="w-12 h-12 rounded-full bg-[#4C4F69]/10 flex items-center justify-center hover:bg-[#4C4F69]/20"
           >
             <div
-              className={
+              className={cn(
+                "transition-all",
                 isPlaying
                   ? "w-4 h-4 bg-white/80"
                   : "w-0 h-0 border-t-8 border-t-transparent border-l-12 border-l-white/80 border-b-8 border-b-transparent"
-              }
+              )}
             />
           </button>
           <div className="flex items-center gap-2">
-            <span>70 bpm</span>
+            <span className="text-[#626581]">70 bpm</span>
           </div>
         </div>
 
         <div className="flex items-center gap-4">
-          <a href="#" className="text-white/60 hover:text-white">
+          <span className="text-[#626581] hover:text-white/80 transition-colors">
             DOCS
-          </a>
-          <a href="#" className="text-white/60 hover:text-white">
+          </span>
+          <span className="text-[#626581] hover:text-white/80 transition-colors">
             @UNKLEHQ
-          </a>
+          </span>
         </div>
       </div>
 
       {/* Main Content */}
       <div className="flex-1 flex">
-        {/* PRESERVED: Track List */}
-        <div className="w-60 border-r border-white/10">
-          {/* Track list content preserved... */}
-          <div className="h-12 border-b border-white/10 flex items-center px-4">
-            <span className="text-sm">TRACK</span>
-          </div>
-
-          <div className="h-32 border-b border-white/10 px-4 py-2">
-            <div className="text-sm mb-2">Synth</div>
-            <div className="flex gap-2">
-              <button className="w-8 h-8 bg-white/5 rounded hover:bg-white/10">
-                M
-              </button>
-              <button className="w-8 h-8 bg-white/5 rounded hover:bg-white/10">
-                S
-              </button>
+        {/* Track Controls - Left Sidebar */}
+        <div className="w-[240px] border-r border-[#4C4F69]/20 bg-[#010203]/30">
+          {selectedTrackIndex !== null ? (
+            <TrackControls
+              trackId={selectedTrackIndex.toString()}
+              name={tracks[selectedTrackIndex].name}
+              instrumentType={tracks[selectedTrackIndex].instrumentType}
+              volume={tracks[selectedTrackIndex].volume}
+              pan={tracks[selectedTrackIndex].pan}
+              effects={tracks[selectedTrackIndex].effects}
+              onVolumeChange={(value) =>
+                handleVolumeChange(selectedTrackIndex, value)
+              }
+              onPanChange={(value) =>
+                handlePanChange(selectedTrackIndex, value)
+              }
+              onInstrumentChange={() => {}}
+              onAddEffect={() => {}}
+              onRemoveEffect={() => {}}
+            />
+          ) : (
+            <div className="h-full flex items-center justify-center text-[#CCCCCC]/72">
+              Select a track to view controls
             </div>
-          </div>
-          <div className="h-32 border-b border-white/10 px-4 py-2">
-            <div className="text-sm mb-2">Drums</div>
-            <div className="flex gap-2">
-              <button className="w-8 h-8 bg-white/5 rounded hover:bg-white/10">
-                M
-              </button>
-              <button className="w-8 h-8 bg-white/5 rounded hover:bg-white/10">
-                S
-              </button>
-            </div>
-          </div>
+          )}
         </div>
 
-        {/* Main Grid Area */}
-        <div className="flex-1 relative">
-          {/* Timeline */}
-          <div className="h-12 border-b border-white/10 flex">
-            {[...Array(8)].map((_, i) => (
-              <div
-                key={i}
-                className="w-16 h-full flex items-center justify-center border-r border-white/10 text-white/40 text-sm"
-              >
-                {i + 1}
-              </div>
-            ))}
-          </div>
-
-          {/* EVOLVED: Added Step Sequencer */}
-          <StepSequencer
-            tracks={[
-              {
-                name: "Synth",
-                steps: synthSteps,
-              },
-              {
-                name: "Drums",
-                steps: sampleSteps,
-              },
-            ]}
-            currentStepIndex={currentStepIndex}
-            onStepClick={handleStepToggle}
-          />
-
-          {/* PRESERVED: Piano Roll */}
-          <div className="flex-1 p-4">
-            <div className="flex">
-              <div className="w-16 flex flex-col border-r border-white/10">
-                {allNotes.map((note) => (
-                  <div
-                    key={note}
-                    className="h-8 flex items-center justify-center text-white/50 text-sm"
-                  >
-                    {note}
-                  </div>
-                ))}
-              </div>
-
-              <div className="flex-1 relative">
-                {allNotes.map((_, i) => (
-                  <div key={i} className="h-8 border-b border-white/10" />
-                ))}
-
-                <div className="absolute inset-0 grid grid-cols-8 gap-px">
-                  {synthSteps.map((step, stepIndex) => (
-                    <div
-                      key={stepIndex}
-                      className={`relative ${
-                        currentStepIndex === stepIndex
-                          ? "bg-white/10"
-                          : "bg-transparent"
-                      }`}
-                    >
-                      {Array.isArray(step) &&
-                        step.map((note, noteIndex) => {
-                          const noteY =
-                            allNotes.indexOf(
-                              typeof note === "string" ? note : note.name
-                            ) * 32;
-                          return (
-                            <div
-                              key={`${stepIndex}-${noteIndex}`}
-                              className="absolute h-7 left-0 right-0 bg-blue-500/50"
-                              style={{ top: `${noteY}px` }}
-                            />
-                          );
-                        })}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* PRESERVED: Track Controls */}
-        <div className="w-60 border-l border-white/10">
-          <div className="h-12 border-b border-white/10 flex items-center px-4">
-            <span className="text-sm">CONTROLS</span>
-          </div>
-
-          <div className="p-4 space-y-4">
-            <div className="space-y-2">
-              <label className="text-xs text-white/60">INSTRUMENT</label>
-              <select className="w-full bg-white/5 p-2 rounded">
-                <option>AM Synth</option>
-              </select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-xs text-white/60">VOLUME</label>
-              <div className="h-2 bg-white/10 rounded">
-                <div className="h-full w-1/2 bg-blue-500 rounded" />
-              </div>
-            </div>
+        {/* Step Sequencer */}
+        <div className="flex-1">
+          <div className="w-full h-full flex flex-col bg-rose-500/0">
+            <StepSequencer
+              tracks={tracks}
+              currentStepIndex={currentStepIndex}
+              selectedTrackIndex={selectedTrackIndex}
+              onTrackSelect={setSelectedTrackIndex}
+            />
+            {selectedTrackIndex !== null && (
+              <PianoRoll
+                notes={NOTES}
+                steps={tracks[selectedTrackIndex].steps as StepType[][]}
+                onNoteChange={(stepIndex, noteIndex, value) =>
+                  handleNoteChange(
+                    selectedTrackIndex,
+                    stepIndex,
+                    noteIndex,
+                    value
+                  )
+                }
+              />
+            )}
           </div>
         </div>
       </div>
 
-      {/* PRESERVED: Reactronica engine */}
+      {/* Reactronica Engine */}
       <Song isPlaying={isPlaying} bpm={70}>
         <Track
-          steps={synthSteps}
-          onStepPlay={(_, index) => {
-            setCurrentStepIndex(index);
-          }}
+          steps={tracks[0].steps}
+          volume={tracks[0].volume}
+          pan={tracks[0].pan}
+          mute={tracks[0].isMuted}
+          solo={tracks[0].isSolo}
+          onStepPlay={(_, index) => setCurrentStepIndex(index)}
         >
           <Instrument type="amSynth" />
           <Effect type="freeverb" />
         </Track>
 
-        <Track steps={sampleSteps}>
+        <Track
+          steps={tracks[1].steps}
+          volume={tracks[1].volume}
+          pan={tracks[1].pan}
+          mute={tracks[1].isMuted}
+          solo={tracks[1].isSolo}
+        >
           <Instrument
             type="sampler"
             samples={{
-              C3: "/apps/studio/audio/kick.wav",
-              D3: "/apps/studio/audio/snare.wav",
-              E3: "/apps/studio/audio/hihat-loop.wav",
-              F3: "/apps/studio/audio/sub.wav",
-            }}
-            onLoad={() => {
-              console.log("Samples loaded");
+              C2: "/apps/studio/audio/kick.wav",
+              D2: "/apps/studio/audio/snare.wav",
+              E2: "/apps/studio/audio/hihat-loop.wav",
             }}
           />
         </Track>
