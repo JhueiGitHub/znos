@@ -1,6 +1,6 @@
-// /root/app/apps/onyx/stores/shorthand-store.ts
 import { create } from "zustand";
 
+// First, let's update shorthand-store.ts to include a handler function
 interface TextStyle {
   isActive: boolean;
   font?: string;
@@ -11,6 +11,8 @@ interface ShorthandOption {
   id: string;
   label: string;
   icon?: React.ComponentType;
+  shortcode: string;
+  insertText: string;
   action: () => void;
 }
 
@@ -19,18 +21,24 @@ interface ShorthandState {
   position: { x: number; y: number };
   selectedOptionIndex: number;
   textStyle: TextStyle;
+  filterText: string;
   shorthandOptions: ShorthandOption[];
   setIsOpen: (isOpen: boolean) => void;
   setPosition: (position: { x: number; y: number }) => void;
   setSelectedOptionIndex: (index: number) => void;
   setTextStyle: (style: TextStyle) => void;
+  setFilterText: (text: string) => void;
   cycleSelectedOption: (direction: "up" | "down") => void;
+  selectedOptionText: string | null;
+  setSelectedOptionText: (text: string | null) => void;
 }
 
 export const useShorthandStore = create<ShorthandState>((set) => ({
   isOpen: false,
   position: { x: 0, y: 0 },
   selectedOptionIndex: 0,
+  filterText: "",
+  selectedOptionText: null,
   textStyle: {
     isActive: false,
   },
@@ -38,26 +46,10 @@ export const useShorthandStore = create<ShorthandState>((set) => ({
     {
       id: "heading1",
       label: "Heading 1",
+      shortcode: "h1",
+      insertText: "# ",
       action: () => {
-        // Implementation
-      },
-    },
-    {
-      id: "exemplarPro",
-      label: "Exemplar Pro",
-      action: () => {
-        useShorthandStore.getState().setTextStyle({
-          isActive: true,
-          font: "Exemplar Pro",
-          color: useShorthandStore.getState().textStyle.color,
-        });
-      },
-    },
-    {
-      id: "separator",
-      label: "Separator",
-      action: () => {
-        // Implementation
+        // This will be handled in the editor component
       },
     },
   ],
@@ -66,6 +58,9 @@ export const useShorthandStore = create<ShorthandState>((set) => ({
   setSelectedOptionIndex: (index: number) =>
     set({ selectedOptionIndex: index }),
   setTextStyle: (style: TextStyle) => set({ textStyle: style }),
+  setFilterText: (text: string) => set({ filterText: text }),
+  setSelectedOptionText: (text: string | null) =>
+    set({ selectedOptionText: text }),
   cycleSelectedOption: (direction: "up" | "down") =>
     set((state) => {
       const totalOptions = state.shorthandOptions.length;

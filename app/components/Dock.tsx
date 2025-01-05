@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback } from "react";
+// Dock.tsx
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { appDefinitions } from "../types/AppTypes";
 import { useAppStore } from "../store/appStore";
@@ -7,7 +8,6 @@ import { useStyles } from "../hooks/useStyles";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 
-// PRESERVED: Original interfaces
 interface DockIcon {
   id: string;
   name: string;
@@ -23,31 +23,28 @@ interface DockItem {
   href: string;
 }
 
-// PRESERVED: Original constants
 const DOCK_HEIGHT = 70;
+const DOCK_WIDTH = 450;
 const TRIGGER_AREA_HEIGHT = 60;
 const DOCK_BOTTOM_MARGIN = 9;
 
 const Dock: React.FC = () => {
-  // PRESERVED: Original hooks and state
   const appStore = useAppStore();
   const { getColor } = useStyles();
   const [isDockVisible, setIsDockVisible] = useState(false);
   const dockIcons = useAppStore((state) => state.orionConfig?.dockIcons);
   const updateDockIcons = useAppStore((state) => state.updateDockIcons);
-  
-  // NEW: Get active flow ID
+  const openApps = useAppStore((state) => state.openApps);
+  const dockRef = useRef<HTMLDivElement>(null);
   const activeOSFlowId = useAppStore((state) => state.activeOSFlowId);
 
-  // NEW: Query for active flow's dock icons
   useQuery({
     queryKey: ["active-flow-dock", activeOSFlowId],
     queryFn: async () => {
       if (!activeOSFlowId) return null;
-      // AFTER (correct):
-const { data } = await axios.get(
-  `/api/flows/${activeOSFlowId}/components`
-);
+      const { data } = await axios.get(
+        `/api/flows/${activeOSFlowId}/components`
+      );
       const icons = data?.components
         ?.filter((c: any) => c.type === "DOCK_ICON")
         ?.sort((a: any, b: any) => a.order - b.order);
@@ -59,18 +56,54 @@ const { data } = await axios.get(
     enabled: !!activeOSFlowId,
   });
 
-  // PRESERVED: Original app click handler
-  const handleAppClick = useCallback((app: (typeof appDefinitions)[number]) => {
-    const openApp = appStore.openApps?.find((a) => a.id === app.id);
-    if (openApp) {
-      appStore.toggleAppMinimize?.(app.id);
-    } else {
-      appStore.openApp?.(app);
-    }
-  }, [appStore]);
+  const handleAppClick = useCallback(
+    (app: (typeof appDefinitions)[number]) => {
+      const openApp = appStore.openApps?.find((a) => a.id === app.id);
+      if (openApp) {
+        appStore.toggleAppMinimize?.(app.id);
+      } else {
+        appStore.openApp?.(app);
+      }
+    },
+    [appStore]
+  );
 
-  // PRESERVED: Original dock items mapping
-  const dockItems: DockItem[] = appDefinitions.map((app, index) => {
+  const handleMouseMove = useCallback(
+    (e: MouseEvent) => {
+      const { clientX, clientY } = e;
+      const windowHeight = window.innerHeight;
+      const windowWidth = window.innerWidth;
+      const hasOpenApps = openApps.length > 0;
+
+      if (hasOpenApps) {
+        const triggerLeft = (windowWidth - DOCK_WIDTH) / 2;
+        const triggerRight = triggerLeft + DOCK_WIDTH;
+        const triggerTop = windowHeight - DOCK_HEIGHT;
+
+        const isInTriggerArea =
+          clientY > triggerTop &&
+          clientY <= windowHeight &&
+          clientX >= triggerLeft &&
+          clientX <= triggerRight;
+
+        setIsDockVisible(isInTriggerArea);
+      } else {
+        const shouldShowDock =
+          clientY > windowHeight - DOCK_HEIGHT - TRIGGER_AREA_HEIGHT;
+        setIsDockVisible(shouldShowDock);
+      }
+    },
+    [openApps.length]
+  );
+
+  useEffect(() => {
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+    };
+  }, [handleMouseMove]);
+
+  const dockItems = appDefinitions.map((app, index) => {
     const openApp = appStore.openApps?.find((a) => a.id === app.id);
     const isOpen = !!openApp;
     const isMinimized = openApp?.isMinimized || false;
@@ -115,29 +148,17 @@ const { data } = await axios.get(
     };
   });
 
-  // PRESERVED: Original mouse move handler
-  const handleMouseMove = useCallback((e: MouseEvent) => {
-    const { clientY } = e;
-    const windowHeight = window.innerHeight;
-    const shouldShowDock =
-      clientY > windowHeight - DOCK_HEIGHT - TRIGGER_AREA_HEIGHT;
-    setIsDockVisible(shouldShowDock);
-  }, []);
-
-  // PRESERVED: Original mouse move effect
-  useEffect(() => {
-    window.addEventListener("mousemove", handleMouseMove);
-    return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-    };
-  }, [handleMouseMove]);
-
-  // PRESERVED: Original render with exact animation
   return (
     <>
       <div
-        className="fixed bottom-0 left-0 right-0"
-        style={{ height: TRIGGER_AREA_HEIGHT, zIndex: 9999 }}
+        ref={dockRef}
+        className="fixed bottom-0 left-1/2 transform -translate-x-1/2"
+        style={{
+          height: DOCK_HEIGHT,
+          width: DOCK_WIDTH,
+          zIndex: 9999,
+          pointerEvents: "none",
+        }}
       />
       <div
         className="fixed inset-x-0 bottom-0 grid place-items-center"

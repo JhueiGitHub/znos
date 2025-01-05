@@ -1,10 +1,8 @@
-// components/ui/floating-dock.tsx
+// floating-dock.tsx
 "use client";
 
 import { cn } from "@/lib/utils";
-import { IconLayoutNavbarCollapse } from "@tabler/icons-react";
 import {
-  AnimatePresence,
   MotionValue,
   motion,
   useMotionValue,
@@ -13,112 +11,14 @@ import {
 } from "framer-motion";
 import Link from "next/link";
 import { useRef, useState } from "react";
+import { AnimatePresence } from "framer-motion";
 
 export const FloatingDock = ({
   items,
-  desktopClassName,
-  mobileClassName,
   backgroundColor,
   borderColor,
 }: {
   items: { title: string; icon: React.ReactNode; href: string }[];
-  desktopClassName?: string;
-  mobileClassName?: string;
-  backgroundColor: string;
-  borderColor: string;
-}) => {
-  return (
-    <>
-      <FloatingDockDesktop
-        items={items}
-        className={desktopClassName}
-        backgroundColor={backgroundColor}
-        borderColor={borderColor}
-      />
-      <FloatingDockMobile
-        items={items}
-        className={mobileClassName}
-        backgroundColor={backgroundColor}
-        borderColor={borderColor}
-      />
-    </>
-  );
-};
-
-const FloatingDockMobile = ({
-  items,
-  className,
-  backgroundColor,
-  borderColor,
-}: {
-  items: { title: string; icon: React.ReactNode; href: string }[];
-  className?: string;
-  backgroundColor: string;
-  borderColor: string;
-}) => {
-  const [open, setOpen] = useState(false);
-
-  return (
-    <div className={cn("relative block md:hidden", className)}>
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            layoutId="nav"
-            className="absolute bottom-full mb-2 inset-x-0 flex flex-col gap-2"
-          >
-            {items.map((item, idx) => (
-              <motion.div
-                key={item.title}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{
-                  opacity: 0,
-                  y: 10,
-                  transition: { delay: idx * 0.05 },
-                }}
-                transition={{ delay: (items.length - 1 - idx) * 0.05 }}
-              >
-                <Link
-                  href={item.href}
-                  key={item.title}
-                  className="h-10 w-10 rounded-[19px] flex items-center justify-center"
-                  style={{
-                    backgroundColor,
-                    border: `0.6px solid rgba(255, 255, 255, 0.09)`,
-                  }}
-                >
-                  <div className="h-4 w-4">{item.icon}</div>
-                </Link>
-              </motion.div>
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
-      <button
-        onClick={() => setOpen(!open)}
-        className="h-10 w-10 rounded-[19px] flex items-center justify-center"
-        style={{
-          backgroundColor,
-          border: `0.6px solid rgba(255, 255, 255, 0.09)`,
-        }}
-      >
-        <IconLayoutNavbarCollapse
-          className="h-5 w-5"
-          style={{ color: borderColor }}
-        />
-      </button>
-    </div>
-  );
-};
-
-const FloatingDockDesktop = ({
-  items,
-  className,
-  backgroundColor,
-  borderColor,
-}: {
-  items: { title: string; icon: React.ReactNode; href: string }[];
-  className?: string;
   backgroundColor: string;
   borderColor: string;
 }) => {
@@ -128,10 +28,7 @@ const FloatingDockDesktop = ({
     <motion.div
       onMouseMove={(e) => mouseX.set(e.pageX)}
       onMouseLeave={() => mouseX.set(Infinity)}
-      className={cn(
-        "mx-auto hidden md:flex h-16 items-end rounded-[19px] px-4 pb-3",
-        className
-      )}
+      className="flex h-16 items-end rounded-[19px] px-4 pb-3"
       style={{
         backgroundColor,
         border: `0.6px solid rgba(255, 255, 255, 0.09)`,
@@ -174,7 +71,6 @@ function IconContainer({
 
   let widthTransform = useTransform(distance, [-150, 0, 150], [40, 80, 40]);
   let heightTransform = useTransform(distance, [-150, 0, 150], [40, 80, 40]);
-
   let widthTransformIcon = useTransform(distance, [-150, 0, 150], [20, 40, 20]);
   let heightTransformIcon = useTransform(
     distance,

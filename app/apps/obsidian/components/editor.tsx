@@ -6,6 +6,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import debounce from "lodash/debounce";
 import { useShorthand } from "../hooks/useShorthand";
+import { useShorthandStore } from "../stores/shorthand-store";
 
 // Updated regex pattern to include both arrows and bullet points while preserving their original form
 const SYMBOL_PATTERN = /(->|- |"|"|"|:|;)/g;
@@ -131,6 +132,70 @@ const Editor: React.FC = () => {
     const cursorPosition = textArea.selectionStart;
     const beforeCursor = textArea.value.slice(0, cursorPosition);
     const afterCursor = textArea.value.slice(cursorPosition);
+
+    // Handle § key
+    if (e.key === "§") {
+      e.preventDefault();
+      const rect = textArea.getBoundingClientRect();
+      const lineHeight = parseInt(getComputedStyle(textArea).lineHeight);
+      const lines = textArea.value.slice(0, cursorPosition).split("\n");
+      const currentLineNumber = lines.length - 1;
+
+      useShorthandStore.getState().setPosition({
+        x: rect.left + 20,
+        y: rect.top + currentLineNumber * lineHeight + 30,
+      });
+      useShorthandStore.getState().setIsOpen(true);
+      useShorthandStore.getState().setFilterText("");
+      return;
+    }
+
+    // Handle filtering when shorthand menu is open
+    if (useShorthandStore.getState().isOpen) {
+      if (e.key === "Backspace") {
+        const currentFilter = useShorthandStore.getState().filterText;
+        useShorthandStore.getState().setFilterText(currentFilter.slice(0, -1));
+        return;
+      }
+
+      if (e.key.length === 1) {
+        // Single character key
+        useShorthandStore
+          .getState()
+          .setFilterText(useShorthandStore.getState().filterText + e.key);
+        return;
+      }
+    }
+
+    if (useShorthandStore.getState().isOpen && e.key === "Enter") {
+      e.preventDefault();
+      const selectedOption =
+        useShorthandStore.getState().shorthandOptions[
+          useShorthandStore.getState().selectedOptionIndex
+        ];
+
+      if (selectedOption) {
+        const beforeCursor = textArea.value.slice(0, cursorPosition);
+        const afterCursor = textArea.value.slice(cursorPosition);
+        const newLine = beforeCursor.endsWith("\n") ? "" : "\n";
+
+        // Insert the heading with proper spacing
+        const headingText = `${beforeCursor}${newLine}${selectedOption.insertText}`;
+        setContent(headingText + afterCursor);
+
+        // Position cursor after the heading marker
+        requestAnimationFrame(() => {
+          if (textArea) {
+            const newPosition = headingText.length;
+            textArea.selectionStart = newPosition;
+            textArea.selectionEnd = newPosition;
+            textArea.focus(); // Ensure the textarea keeps focus
+          }
+        });
+
+        useShorthandStore.getState().setIsOpen(false);
+      }
+    }
 
     // Handle space after hyphen (existing bullet point logic)
     if (

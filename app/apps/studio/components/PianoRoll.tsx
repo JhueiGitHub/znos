@@ -142,3 +142,4 @@ export const PianoRoll: React.FC<PianoRollProps> = ({
 };
 
 export default PianoRoll;
+

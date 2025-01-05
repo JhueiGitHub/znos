@@ -1,4 +1,4 @@
-// /root/app/apps/onyx/components/shorthand-dropdown.tsx
+// 2. Update the shorthand dropdown component (components/shorthand-dropdown.tsx)
 import React, { useEffect, useRef } from "react";
 import {
   DropdownMenu,
@@ -14,9 +14,15 @@ export const ShorthandDropdown: React.FC = () => {
     position,
     selectedOptionIndex,
     shorthandOptions,
+    filterText,
     setIsOpen,
     cycleSelectedOption,
   } = useShorthandStore();
+
+  // Filter options based on filterText
+  const filteredOptions = shorthandOptions.filter((option) =>
+    option.shortcode.toLowerCase().includes(filterText.toLowerCase())
+  );
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -33,7 +39,7 @@ export const ShorthandDropdown: React.FC = () => {
           break;
         case "Enter":
           e.preventDefault();
-          shorthandOptions[selectedOptionIndex]?.action();
+          filteredOptions[selectedOptionIndex]?.action();
           setIsOpen(false);
           break;
         case "Escape":
@@ -48,7 +54,7 @@ export const ShorthandDropdown: React.FC = () => {
   }, [
     isOpen,
     selectedOptionIndex,
-    shorthandOptions,
+    filteredOptions,
     cycleSelectedOption,
     setIsOpen,
   ]);
@@ -66,7 +72,7 @@ export const ShorthandDropdown: React.FC = () => {
         }}
         className="w-64 bg-[#01020372] border border-[#29292981] backdrop-blur-md rounded-md"
       >
-        {shorthandOptions.map((option, index) => (
+        {filteredOptions.map((option, index) => (
           <DropdownMenuItem
             key={option.id}
             className={`flex items-center gap-2 px-[12px] py-1.5 text-sm rounded-md cursor-pointer select-none transition-colors
@@ -74,7 +80,7 @@ export const ShorthandDropdown: React.FC = () => {
                 index === selectedOptionIndex
                   ? "bg-[#4C4F6920] text-[#cccccc95]"
                   : "text-[#cccccc81]"
-              } 
+              }
               hover:bg-[#4C4F6920] hover:text-[#cccccc95]`}
             onClick={() => {
               option.action();
