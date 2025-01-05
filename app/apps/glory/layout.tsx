@@ -15,7 +15,7 @@ export default function GloryLayout({
   return (
     <DesignSystemProvider>
       <div className="h-full">
-        <div className="flex h-screen overflow-hidden">{children}</div>
+        <div className="flex h-full overflow-hidden">{children}</div>
       </div>
     </DesignSystemProvider>
   );

@@ -1,4 +1,3 @@
-// /root/app/apps/glory/components/Sidebar.tsx
 "use client";
 
 import { useStyles } from "@/app/hooks/useStyles";
@@ -6,9 +5,10 @@ import { useVideo } from "../context/VideoContext";
 
 export function Sidebar() {
   const { getColor } = useStyles();
-  const { currentSeries, setCurrentEpisode, currentEpisode } = useVideo();
+  const { currentContent, setCurrentEpisode, currentEpisode } = useVideo();
 
-  if (!currentSeries) return null;
+  // Only show sidebar for series content
+  if (!currentContent || currentContent.type !== "series") return null;
 
   return (
     <div
@@ -21,10 +21,10 @@ export function Sidebar() {
         className="text-lg font-semibold mb-4"
         style={{ color: getColor("Text Primary (Hd)") }}
       >
-        {currentSeries.title} - Episodes
+        {currentContent.title} - Episodes
       </h2>
       <div className="space-y-2">
-        {currentSeries.episodes.map((episode, index) => (
+        {currentContent.episodes.map((episode, index) => (
           <button
             key={episode.videoId}
             onClick={() => setCurrentEpisode(episode)}

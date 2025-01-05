@@ -1,4 +1,3 @@
-// /root/app/apps/glory/App.tsx
 "use client";
 
 import { useState } from "react";
@@ -8,16 +7,15 @@ import { Dashboard } from "./components/Dashboard";
 import { VideoProvider } from "./context/VideoContext";
 
 export default function App() {
-  const [view, setView] = useState<"dashboard" | "series">("dashboard");
+  const [view, setView] = useState<"dashboard" | "player">("dashboard");
 
   return (
     <VideoProvider>
       <div className="flex h-full bg-black/80">
         {view === "dashboard" ? (
-          <Dashboard onSeriesSelect={() => setView("series")} />
+          <Dashboard onContentSelect={() => setView("player")} />
         ) : (
           <>
-            <Sidebar />
             <MainContent />
           </>
         )}
