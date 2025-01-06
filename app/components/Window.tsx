@@ -13,14 +13,8 @@ interface WindowProps {
 interface DynamicAppProps {}
 
 const Window: React.FC<WindowProps> = ({ app, isActive }) => {
-  const { closeApp, setActiveApp, updateAppState, openApps, lastWindowState } =
-    useAppStore();
+  const { closeApp, setActiveApp, updateAppState, openApps } = useAppStore();
   const { getColor } = useStyles();
-
-  // Check if this window is being restored from lastWindowState
-  const isRestoredWindow =
-    lastWindowState.some((w) => w.id === app.id) &&
-    openApps.length === lastWindowState.length;
 
   const AppComponent = dynamic<DynamicAppProps>(
     () => import(`../apps/${app.id}/page`),
@@ -41,7 +35,7 @@ const Window: React.FC<WindowProps> = ({ app, isActive }) => {
 
   return (
     <motion.div
-      initial={isRestoredWindow ? false : { scale: 0, opacity: 0 }}
+      initial={{ scale: 0, opacity: 0 }}
       animate={{
         scale: isMinimized ? 0 : 1,
         opacity: isMinimized ? 0 : 1,

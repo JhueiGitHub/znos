@@ -12,7 +12,6 @@ import { SpotlightSearch } from "./SpotlightSearch";
 import axios from "axios";
 import { FlowComponent } from "@prisma/client";
 import { MusicProvider } from "../apps/music/context/MusicContext";
-import { appDefinitions } from "../types/AppTypes";
 
 const Desktop: React.FC = () => {
   const {
@@ -22,27 +21,12 @@ const Desktop: React.FC = () => {
     updateDockIcons,
     setActiveOSFlowId,
     setOrionConfig,
-    openApp,
-    lastWindowState,
   } = useAppStore();
 
   const { getColor, getFont } = useStyles();
   const [isLoading, setIsLoading] = useState(true);
   const [isSpotlightOpen, setIsSpotlightOpen] = useState(false);
 
-  // Restore window states
-  useEffect(() => {
-    if (lastWindowState.length > 0 && openApps.length === 0) {
-      lastWindowState.forEach((window) => {
-        const app = appDefinitions.find((app) => app.id === window.id);
-        if (app) {
-          openApp(app);
-        }
-      });
-    }
-  }, [lastWindowState, openApps.length, openApp]);
-
-  // Initialize desktop (your existing effect)
   useEffect(() => {
     const initializeDesktop = async () => {
       const timer = setTimeout(() => {
@@ -95,7 +79,6 @@ const Desktop: React.FC = () => {
     initializeDesktop();
   }, [updateWallpaper, updateDockIcons, setActiveOSFlowId, setOrionConfig]);
 
-  // Spotlight handler remains the same
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (
