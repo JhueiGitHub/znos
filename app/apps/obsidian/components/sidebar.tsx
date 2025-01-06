@@ -1,5 +1,5 @@
 // components/sidebar.tsx
-import React from "react";
+import React from "react"; // Removed unused imports
 import { Tree, Folder, File } from "./ui/file-tree";
 import { useStyles } from "@os/hooks/useStyles";
 import Image from "next/image";
@@ -109,7 +109,6 @@ const Sidebar: React.FC = () => {
     />
   );
 
-  // Enhanced recursive rendering with proper typing and null checks
   const renderTreeItems = (items: any[]) => {
     if (!Array.isArray(items)) {
       console.error("Items is not an array:", items);

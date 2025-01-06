@@ -1,7 +1,7 @@
 // App.tsx
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { useStyles } from "@os/hooks/useStyles";
 import Sidebar from "./components/sidebar";
 import Editor from "./components/editor";
@@ -9,25 +9,26 @@ import { NoteProvider } from "./contexts/note-context";
 import { AnimatePresence, motion } from "framer-motion";
 import "./globals.css";
 import { ShorthandDropdown } from "./components/shorthand-dropdown";
+import { useSidebarPersistence } from "./hooks/useSidebarPersistence";
 
 interface AppProps {
   initialNoteId?: string;
 }
 
 const App = ({ initialNoteId }: AppProps) => {
-  const [areSidebarsVisible, setAreSidebarsVisible] = useState(true);
+  const { isVisible, toggleSidebar } = useSidebarPersistence();
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.metaKey && e.key.toLowerCase() === "x") {
         e.preventDefault();
-        setAreSidebarsVisible((prev) => !prev);
+        toggleSidebar();
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  }, [toggleSidebar]);
 
   const sidebarAnimation = {
     initial: { width: 0, opacity: 0 },
@@ -35,14 +36,14 @@ const App = ({ initialNoteId }: AppProps) => {
     exit: { width: 0, opacity: 0 },
     transition: {
       duration: 0.2,
-      ease: [0.4, 0.0, 0.2, 1], // easeInOut
+      ease: [0.4, 0.0, 0.2, 1],
     },
   };
 
   return (
     <NoteProvider initialNoteId={initialNoteId}>
       <AppContent
-        areSidebarsVisible={areSidebarsVisible}
+        areSidebarsVisible={isVisible}
         sidebarAnimation={sidebarAnimation}
       />
     </NoteProvider>
