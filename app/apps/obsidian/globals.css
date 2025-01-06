@@ -17,12 +17,6 @@
   font-style: normal;
 }
 
-@font-face {
-  font-family: "Dank";
-  src: url("/fonts/DankMono-Regular.ttf") format("truetype");
-  font-feature-settings: "liga" 1;
-}
-
 .editor-content {
   font-feature-settings: "liga" 1;
 }

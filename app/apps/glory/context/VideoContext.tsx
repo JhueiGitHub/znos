@@ -557,6 +557,182 @@ const CATEGORIES_DATA: Category[] = [
       },
     ],
   },
+  {
+    id: "magna",
+    name: "Magna",
+    content: [
+      {
+        type: "series",
+        id: "fonejacker",
+        title: "Fonejacker",
+        rating: "90% Google User Review",
+        thumbnail: "/apps/glory/fonejacker_thumbnail.jpeg",
+        description:
+          "A young man becomes involved in a dramatic series of events at an ice factory which turns out to be front for a drug trafficking ring.",
+        maturityRating: "18+",
+        episodeCount: 12,
+        episodes: [
+          {
+            title: "Fonejacker S1 E1",
+            videoId: "x83bwla",
+            description: "Episode 1 of Taxi Driver series",
+            duration: "59:00",
+          },
+          {
+            title: "Fonejacker S1 E2",
+            videoId: "x83bwlc",
+            description: "Episode 2 of Taxi Driver series",
+            duration: "59:00",
+          },
+          {
+            title: "Fonejacker S1 E3",
+            videoId: "x6oitp9",
+            description: "Episode 1 of Taxi Driver series",
+            duration: "59:00",
+          },
+          {
+            title: "Fonejacker S1 E4",
+            videoId: "x83bwlg",
+            description: "Episode 2 of Taxi Driver series",
+            duration: "59:00",
+          },
+          {
+            title: "Fonejacker S1 E5",
+            videoId: "x83bwlk",
+            description: "Episode 1 of Taxi Driver series",
+            duration: "59:00",
+          },
+          {
+            title: "Fonejacker S1 E6",
+            videoId: "x6oiuhr",
+            description: "Episode 2 of Taxi Driver series",
+            duration: "59:00",
+          },
+          {
+            title: "Fonejacker S2 E1",
+            videoId: "x83d68h",
+            description: "Episode 1 of Taxi Driver series",
+            duration: "59:00",
+          },
+          {
+            title: "Fonejacker S2 E2",
+            videoId: "x83d6cj",
+            description: "Episode 2 of Taxi Driver series",
+            duration: "59:00",
+          },
+          {
+            title: "Fonejacker S2 E3",
+            videoId: "x83d6fl",
+            description: "Episode 1 of Taxi Driver series",
+            duration: "59:00",
+          },
+          {
+            title: "Fonejacker S2 E4",
+            videoId: "x83d7as",
+            description: "Episode 2 of Taxi Driver series",
+            duration: "59:00",
+          },
+          {
+            title: "Fonejacker S2 E5",
+            videoId: "x2am9k0",
+            description: "Episode 2 of Taxi Driver series",
+            duration: "59:00",
+          },
+          {
+            title: "Fonejacker S2 E6",
+            videoId: "x83e1i9",
+            description: "Episode 2 of Taxi Driver series",
+            duration: "59:00",
+          },
+        ],
+      },
+      {
+        type: "series",
+        id: "facejacker",
+        title: "Facejacker",
+        rating: "86% Google User Review",
+        thumbnail: "/apps/glory/facejacker_thumbnail.jpeg",
+        description:
+          "A young man becomes involved in a dramatic series of events at an ice factory which turns out to be front for a drug trafficking ring.",
+        maturityRating: "18+",
+        episodeCount: 12,
+        episodes: [
+          {
+            title: "Facejacker S1 E1",
+            videoId: "x2am8jk",
+            description: "Episode 1 of Taxi Driver series",
+            duration: "59:00",
+          },
+          {
+            title: "Facejacker S1 E2",
+            videoId: "x6sgwf9",
+            description: "Episode 2 of Taxi Driver series",
+            duration: "59:00",
+          },
+          {
+            title: "Facejacker S1 E3",
+            videoId: "x6ci87s",
+            description: "Episode 2 of Taxi Driver series",
+            duration: "59:00",
+          },
+          {
+            title: "Facejacker S1 E4",
+            videoId: "x6ci84j",
+            description: "Episode 2 of Taxi Driver series",
+            duration: "59:00",
+          },
+          {
+            title: "Facejacker S1 E5",
+            videoId: "x6ci860",
+            description: "Episode 2 of Taxi Driver series",
+            duration: "59:00",
+          },
+          {
+            title: "Facejacker S1 E6",
+            videoId: "x6oiuhr",
+            description: "Episode 2 of Taxi Driver series",
+            duration: "59:00",
+          },
+          {
+            title: "Facejacker S2 E1",
+            videoId: "x6sgwhu",
+            description: "Episode 1 of Taxi Driver series",
+            duration: "59:00",
+          },
+          {
+            title: "Facejacker S2 E2",
+            videoId: "x6ci870",
+            description: "Episode 2 of Taxi Driver series",
+            duration: "59:00",
+          },
+          {
+            title: "Facejacker S2 E3",
+            videoId: "x83d6fl",
+            description: "Episode 2 of Taxi Driver series",
+            duration: "59:00",
+          },
+          {
+            title: "Facejacker S2 E4",
+            videoId: "x2am9hg",
+            description: "Episode 2 of Taxi Driver series",
+            duration: "59:00",
+          },
+          {
+            title: "Facejacker S2 E5",
+            videoId: "x2am9k0",
+            description: "Episode 2 of Taxi Driver series",
+            duration: "59:00",
+          },
+          {
+            title: "Facejacker S2 E6",
+            videoId: "x6ci872",
+            description: "Episode 2 of Taxi Driver series",
+            duration: "59:00",
+          },
+        ],
+      },
+    ],
+  },
 ];
 
 export function VideoProvider({ children }: { children: React.ReactNode }) {
