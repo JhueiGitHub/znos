@@ -184,6 +184,75 @@ const CATEGORIES_DATA: Category[] = [
       },
       {
         type: "series",
+        id: "weakheroclass1",
+        title: "약한영웅 Class 1",
+        rating: "97% Google User Review",
+        thumbnail: "/apps/glory/weakhero_thumbnail.jpeg",
+        description:
+          "A woman puts a carefully crafted revenge plan in motion after suffering traumatic abuse in high school.",
+        maturityRating: "18+",
+        episodeCount: 8,
+        episodes: [
+          {
+            title: "약한영웅 Class 1 Episode 1",
+            videoId: "x8fpxo0",
+            description:
+              "Moon Dong-eun becomes a homeroom teacher at a high school to carry out her revenge plot.",
+            duration: "47:18",
+          },
+          {
+            title: "약한영웅 Class 1 Episode 2",
+            videoId: "x8fpye8",
+            description:
+              "Dong-eun's past is revealed as she meticulously plans her vengeance.",
+            duration: "48:22",
+          },
+          {
+            title: "약한영웅 Class 1 Episode 3",
+            videoId: "x8fpzws",
+            description:
+              "Dong-eun's past is revealed as she meticulously plans her vengeance.",
+            duration: "48:22",
+          },
+          {
+            title: "약한영웅 Class 1 Episode 4",
+            videoId: "x8fq1fz",
+            description:
+              "Dong-eun's past is revealed as she meticulously plans her vengeance.",
+            duration: "48:22",
+          },
+          {
+            title: "약한영웅 Class 1 Episode 5",
+            videoId: "x8fr5mm",
+            description:
+              "Dong-eun's past is revealed as she meticulously plans her vengeance.",
+            duration: "48:22",
+          },
+          {
+            title: "약한영웅 Class 1 Episode 6",
+            videoId: "x8fr6a0",
+            description:
+              "Dong-eun's past is revealed as she meticulously plans her vengeance.",
+            duration: "48:22",
+          },
+          {
+            title: "약한영웅 Class 1 Episode 7",
+            videoId: "x8fr6hf",
+            description:
+              "Dong-eun's past is revealed as she meticulously plans her vengeance.",
+            duration: "48:22",
+          },
+          {
+            title: "약한영웅 Class 1 Episode 8",
+            videoId: "x8grnwr",
+            description:
+              "Dong-eun's past is revealed as she meticulously plans her vengeance.",
+            duration: "48:22",
+          },
+        ],
+      },
+      {
+        type: "series",
         id: "bloodhounds",
         title: "Bloodhounds",
         rating: "95% Google User Review",
@@ -249,6 +318,43 @@ const CATEGORIES_DATA: Category[] = [
         title: "Taxi Driver",
         rating: "94% Google User Review",
         thumbnail: "/apps/glory/taxi_thumbnail.png",
+        description:
+          "A mysterious taxi service helps victims of crime get revenge on their aggressors, with an ex-special forces officer serving as the service's chief operator.",
+        maturityRating: "18+",
+        episodeCount: 16,
+        episodes: [
+          {
+            title: "Taxi Driver Episode 1",
+            videoId: "x9bb40a",
+            description: "Episode 1 of Taxi Driver series",
+            duration: "59:00",
+          },
+          {
+            title: "Taxi Driver Episode 2",
+            videoId: "x9bbq3e",
+            description: "Episode 2 of Taxi Driver series",
+            duration: "59:00",
+          },
+          {
+            title: "Taxi Driver Episode 3",
+            videoId: "x9bbvu4",
+            description: "Episode 2 of Taxi Driver series",
+            duration: "59:00",
+          },
+          ...Array.from({ length: 13 }, (_, i) => ({
+            title: `Taxi Driver Episode ${i + 3}`,
+            videoId: `placeholder-td${i + 3}`,
+            description: `Episode ${i + 3} of Taxi Driver series`,
+            duration: "59:00",
+          })),
+        ],
+      },
+      {
+        type: "series",
+        id: "move-to-heaven",
+        title: "Move To Heaven",
+        rating: "93% Google User Review",
+        thumbnail: "/apps/glory/movetoheaven_thumbnail.jpeg",
         description:
           "A mysterious taxi service helps victims of crime get revenge on their aggressors, with an ex-special forces officer serving as the service's chief operator.",
         maturityRating: "18+",
