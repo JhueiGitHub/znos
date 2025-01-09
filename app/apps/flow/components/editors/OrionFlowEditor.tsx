@@ -279,10 +279,58 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
       return token?.value || "#000000";
     };
 
+    // EVOLVED: Type-safe pattern creation for video and images
+    const createVideoPattern = (
+      video: HTMLVideoElement,
+      circle: fabric.Circle
+    ) => {
+      const tempCanvas = document.createElement("canvas");
+      const ctx = tempCanvas.getContext("2d")!;
+      tempCanvas.width = video.videoWidth;
+      tempCanvas.height = video.videoHeight;
+      ctx.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
+
+      const pattern = new fabric.Pattern({
+        source: tempCanvas.toDataURL(),
+        repeat: "no-repeat",
+        crossOrigin: "anonymous",
+      });
+
+      circle.set({ fill: pattern, dirty: true });
+      return { tempCanvas, pattern };
+    };
+
+    // EVOLVED: Separate image pattern creation for type safety
+    const createImagePattern = (
+      img: HTMLImageElement,
+      circle: fabric.Circle,
+      padding: number = 15
+    ) => {
+      const maxSize = circle.radius! * 2 - padding * 2;
+      const scaleX = maxSize / img.width;
+      const scaleY = maxSize / img.height;
+      const scale = Math.min(scaleX, scaleY);
+
+      const pattern = new fabric.Pattern({
+        source: img,
+        repeat: "no-repeat",
+        offsetX: circle.radius!,
+        offsetY: circle.radius!,
+        patternTransform: [scale, 0, 0, scale, -maxSize / 2, -maxSize / 2],
+      });
+
+      circle.set({ fill: pattern, dirty: true });
+      return pattern;
+    };
+
+    // EVOLVED: Modified component initialization with fixed pattern handling
     const initializeComponent = (
       component: OrionFlowComponent,
       index: number
     ) => {
+      // EVOLVED: Pattern cache reference
+      const patternCache = new Map();
+
       const baseCircleProps = {
         left: 100 + index * 120,
         top: 100,
@@ -296,27 +344,223 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
       const circle = new fabric.Circle({
         ...baseCircleProps,
         fill:
-          component.mode === "media" && component.value
+          component.mode === "media"
             ? "rgba(0,0,0,0)"
             : getTokenColor(component.tokenId || null),
       });
 
+      // EVOLVED: Cache the circle reference
+      if (circle.cacheProperties) {
+        circle.cacheProperties = circle.cacheProperties.concat([
+          "fill",
+          "dirty",
+        ]);
+      } else {
+        circle.cacheProperties = ["fill", "dirty"];
+      }
+      circle.objectCaching = true;
+
       canvas.add(circle);
 
       if (component.mode === "media" && component.value) {
-        const img = new Image();
-        img.crossOrigin = "anonymous";
-        img.onload = () => {
-          const pattern = new fabric.Pattern({
-            source: img,
-            repeat: "no-repeat",
-          });
-          circle.set("fill", pattern);
-          canvas.renderAll();
-        };
-        img.src = component.value;
+        if (component.type === "DOCK_ICON") {
+          const img = new Image();
+          img.crossOrigin = "anonymous";
+          img.src = component.value;
+
+          img.onload = () => {
+            // EVOLVED: Create and cache pattern
+            const maxSize = circle.radius! * 2 - 30; // 15px padding on each side
+            const scaleX = maxSize / img.width;
+            const scaleY = maxSize / img.height;
+            const scale = Math.min(scaleX, scaleY);
+
+            const pattern = new fabric.Pattern({
+              source: img,
+              repeat: "no-repeat",
+              crossOrigin: "anonymous",
+              offsetX: circle.radius!,
+              offsetY: circle.radius!,
+              patternTransform: [
+                scale,
+                0,
+                0,
+                scale,
+                -maxSize / 2,
+                -maxSize / 2,
+              ],
+            });
+
+            // EVOLVED: Cache the pattern
+            patternCache.set(component.id, {
+              pattern,
+              image: img,
+              scale,
+              maxSize,
+            });
+
+            // Set initial fill
+            circle.set({
+              fill: pattern,
+              dirty: true,
+              data: { ...circle.data, cacheKey: component.id },
+            });
+
+            // EVOLVED: Ensure pattern stays stable during pan/zoom
+            circle.on("moving", () => {
+              const cached = patternCache.get(component.id);
+              if (cached) {
+                circle.set("fill", cached.pattern);
+              }
+            });
+
+            circle.on("scaling", () => {
+              const cached = patternCache.get(component.id);
+              if (cached) {
+                circle.set("fill", cached.pattern);
+              }
+            });
+
+            canvas.requestRenderAll();
+          };
+
+          img.onerror = () => {
+            console.error(`Failed to load dock icon: ${component.value}`);
+            circle.set("fill", getTokenColor(component.tokenId || null));
+            canvas.requestRenderAll();
+          };
+        } else if (component.type === "WALLPAPER") {
+          const video = document.createElement("video");
+          video.crossOrigin = "anonymous";
+          video.src = component.value;
+          video.muted = true;
+          video.loop = true;
+          video.autoplay = true;
+
+          // EVOLVED: Create a persisted canvas for video frames
+          const videoCanvas = document.createElement("canvas");
+          const videoCtx = videoCanvas.getContext("2d")!;
+
+          video.oncanplay = () => {
+            videoCanvas.width = video.videoWidth;
+            videoCanvas.height = video.videoHeight;
+
+            // Initial frame render
+            videoCtx.drawImage(
+              video,
+              0,
+              0,
+              video.videoWidth,
+              video.videoHeight
+            );
+
+            // Create initial pattern with the first frame
+            const pattern = new fabric.Pattern({
+              source: videoCanvas.toDataURL("image/png"), // Convert canvas to data URL
+              repeat: "no-repeat",
+            });
+
+            circle.set({ fill: pattern, dirty: true });
+
+            // EVOLVED: More efficient video frame updates using requestAnimationFrame
+            let frameId: number;
+            const updateVideoFrame = () => {
+              videoCtx.drawImage(
+                video,
+                0,
+                0,
+                video.videoWidth,
+                video.videoHeight
+              );
+              // Update pattern with new frame
+              pattern.source = videoCanvas.toDataURL("image/png");
+              circle.dirty = true;
+              canvas.requestRenderAll();
+              frameId = requestAnimationFrame(updateVideoFrame);
+            };
+
+            video
+              .play()
+              .then(() => {
+                frameId = requestAnimationFrame(updateVideoFrame);
+              })
+              .catch(console.error);
+
+            // EVOLVED: Cleanup on circle removal
+            circle.on("removed", () => {
+              cancelAnimationFrame(frameId);
+              video.pause();
+              video.remove();
+            });
+          };
+
+          video.onerror = () => {
+            console.error(`Failed to load wallpaper video: ${component.value}`);
+            circle.set("fill", getTokenColor(component.tokenId || null));
+            canvas.requestRenderAll();
+          };
+        }
       }
+
+      // EVOLVED: Better pattern stability during modifications
+      circle.on("modified", () => {
+        const cached = patternCache.get(component.id);
+        if (cached && component.type === "DOCK_ICON") {
+          const { image, maxSize } = cached;
+          const scaleX = maxSize / image.width;
+          const scaleY = maxSize / image.height;
+          const scale = Math.min(scaleX, scaleY);
+
+          cached.pattern.patternTransform = [
+            scale,
+            0,
+            0,
+            scale,
+            -maxSize / 2,
+            -maxSize / 2,
+          ];
+
+          circle.set("fill", cached.pattern);
+          canvas.requestRenderAll();
+        }
+      });
+
+      return circle;
     };
+
+    // EVOLVED: Enhanced canvas event handling
+    canvas.on("before:render", () => {
+      canvas.getObjects().forEach((obj: any) => {
+        if (obj.cacheKey && obj.fill instanceof fabric.Pattern) {
+          obj.dirty = true;
+        }
+      });
+    });
+
+    // EVOLVED: Optimize canvas rendering
+    canvas.on("mouse:wheel", (opt) => {
+      const e = opt.e as WheelEvent;
+      e.preventDefault();
+
+      if (e.ctrlKey || e.metaKey) {
+        const delta = e.deltaY;
+        let zoom = canvas.getZoom();
+        zoom = zoom * 0.999 ** delta;
+        zoom = Math.min(Math.max(0.1, zoom), 20);
+        const point = new fabric.Point(e.offsetX, e.offsetY);
+        canvas.zoomToPoint(point, zoom);
+      } else {
+        if (canvas.viewportTransform) {
+          canvas.viewportTransform[4] -= e.deltaX;
+          canvas.viewportTransform[5] -= e.deltaY;
+        }
+      }
+
+      // EVOLVED: More efficient render
+      requestAnimationFrame(() => {
+        canvas.requestRenderAll();
+      });
+    });
 
     flow.components.forEach((component: OrionFlowComponent, index: number) => {
       initializeComponent(component, index);
