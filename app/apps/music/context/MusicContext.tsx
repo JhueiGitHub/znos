@@ -51,6 +51,36 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
       artist: "Unknown Artist",
       path: "/audio/songs/song3.mp4",
     },
+    {
+      title: "song4",
+      artist: "Unknown Artist",
+      path: "/audio/songs/song4.mp4",
+    },
+    {
+      title: "song5",
+      artist: "Unknown Artist",
+      path: "/audio/songs/song5.mp4",
+    },
+    {
+      title: "song6",
+      artist: "Unknown Artist",
+      path: "/audio/songs/song6.mp4",
+    },
+    {
+      title: "song7",
+      artist: "Unknown Artist",
+      path: "/audio/songs/song7.mp4",
+    },
+    {
+      title: "song8",
+      artist: "Unknown Artist",
+      path: "/audio/songs/song8.mp4",
+    },
+    {
+      title: "song9",
+      artist: "Unknown Artist",
+      path: "/audio/songs/song9.mp4",
+    },
   ]);
   const [currentSongIndex, setCurrentSongIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
