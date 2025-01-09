@@ -1,10 +1,10 @@
-// app/apps/flow/components/UploadedFlowsGrid.tsx
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { motion } from "framer-motion";
 import { useStyles } from "@os/hooks/useStyles";
 import { Card, CardContent } from "@/components/ui/card";
 import { XPProfile } from "@/app/types/xp";
+import { useRef } from "react";
 
 interface UploadedFlowsGridProps {
   profile: XPProfile;
@@ -25,6 +25,7 @@ export const UploadedFlowsGrid = ({
   onPublicationSelect,
 }: UploadedFlowsGridProps) => {
   const { getColor, getFont } = useStyles();
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   const { data: publications, isLoading } = useQuery({
     queryKey: ["published-flows", profile.id],
@@ -64,7 +65,14 @@ export const UploadedFlowsGrid = ({
   }
 
   return (
-    <div className="grid grid-cols-3 gap-6">
+    <motion.div
+      ref={scrollRef}
+      className="grid grid-cols-3 gap-6 max-h-[calc(100vh-306px)] overflow-y-auto scrollbar-hide"
+      style={{
+        backgroundColor: getColor("Glass"),
+        scrollBehavior: "smooth",
+      }}
+    >
       {publications.map((pub: Publication, index: number) => (
         <motion.div
           key={pub.id}
@@ -136,6 +144,6 @@ export const UploadedFlowsGrid = ({
           </Card>
         </motion.div>
       ))}
-    </div>
+    </motion.div>
   );
 };

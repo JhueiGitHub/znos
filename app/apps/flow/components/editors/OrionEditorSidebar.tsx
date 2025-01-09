@@ -1,3 +1,4 @@
+// PRESERVED: Original imports
 import { OrionSidebarProps } from "./orion-flow-types";
 import { useStyles } from "@os/hooks/useStyles";
 import {
@@ -7,6 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { VideoPreview } from "@/app/components/media/previews/VideoPreview";
 
 const OrionEditorSidebar = ({
   selectedComponent,
@@ -51,11 +53,10 @@ const OrionEditorSidebar = ({
     );
   }
 
-  // EVOLVED: Media content renderer as a separate function for cleaner logic
+  // EVOLVED: Enhanced media content renderer with video support
   const renderMediaContent = () => {
-    // EVOLVED: Explicit null to undefined conversion for React props
-    const mediaValue =
-      selectedComponent.value === null ? undefined : selectedComponent.value;
+    // EVOLVED: Add explicit video detection
+    const isVideo = selectedComponent.value?.match(/\.(mp4|webm|mov)$/i);
 
     return (
       <div className="space-y-2">
@@ -72,11 +73,23 @@ const OrionEditorSidebar = ({
           className="aspect-video rounded border overflow-hidden"
           style={{ borderColor: getColor("Brd") }}
         >
-          <img
-            src={mediaValue || "/media/system/_empty_image.png"}
-            className="w-full h-full object-cover"
-            alt={mediaValue ? "Selected media" : "Empty media state"}
-          />
+          {selectedComponent.mode === "media" && selectedComponent.value ? (
+            isVideo ? (
+              <VideoPreview url={selectedComponent.value} />
+            ) : (
+              <img
+                src={selectedComponent.value}
+                className="w-full h-full object-cover"
+                alt="Selected media"
+              />
+            )
+          ) : (
+            <img
+              src="/media/system/_empty_image.png"
+              className="w-full h-full object-cover"
+              alt="Empty media state"
+            />
+          )}
         </div>
         <div className="flex flex-col gap-2">
           <button
@@ -87,7 +100,13 @@ const OrionEditorSidebar = ({
               fontFamily: getFont("Text Primary"),
             }}
           >
-            {mediaValue ? "Change media..." : "Choose media..."}
+            {selectedComponent.type === "WALLPAPER"
+              ? selectedComponent.value
+                ? "Change wallpaper..."
+                : "Choose wallpaper..."
+              : selectedComponent.value
+                ? "Change icon..."
+                : "Choose icon..."}
           </button>
           {selectedComponent.type === "DOCK_ICON" && (
             <button
@@ -106,7 +125,7 @@ const OrionEditorSidebar = ({
     );
   };
 
-  // EVOLVED: Color content renderer for cleaner organization
+  // PRESERVED: Original color content renderer
   const renderColorContent = () => (
     <div className="space-y-2">
       <label
@@ -150,7 +169,7 @@ const OrionEditorSidebar = ({
     </div>
   );
 
-  // PRESERVED: Main component structure with improved organization
+  // PRESERVED: Main component structure
   return (
     <div
       className="absolute right-0 top-0 bottom-0 w-[264px] border-l flex flex-col bg-[#010203]/80 backdrop-blur-sm"

@@ -22,12 +22,12 @@ export default function RootLayout({
 }) {
   return (
     <ClerkProvider>
-      <html lang="en">
+      <html lang="en" className="overflow-hidden">
         <SocketProvider>
           <QueryProvider>
             <ReduxProvider>
               <DesignSystemProvider>
-                <body className="h-screen w-screen bg-black">
+                <body className="h-screen w-screen bg-black overflow-hidden">
                   <OTPWrapper>
                     {children}
                     <Analytics />

@@ -60,7 +60,7 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
       return response.data;
     },
     staleTime: Infinity,
-    cacheTime: 30 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
   });
 
   const handleMacOSIconSelect = async (iconUrl: string) => {

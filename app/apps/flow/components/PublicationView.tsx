@@ -167,9 +167,11 @@ export const PublicationView = ({
       <motion.div
         className="flex items-center justify-between px-[33px] h-[70px] border-b scrollbar scrollbar-thumb-rose-500"
         style={{ borderColor: getColor("Brd") }}
-        {...itemAnimation}
       >
-        <Button variant="ghost" className="gap-2" onClick={onBack}>
+        <Button
+          className="gap-2 bg-black/0 hover:bg-[#4c4f693e] text-[11px] text-[#cccccc]/90  hover:text-[#ccccccf3]"
+          onClick={onBack}
+        >
           <ArrowLeft className="w-4 h-4" />
           Back
         </Button>

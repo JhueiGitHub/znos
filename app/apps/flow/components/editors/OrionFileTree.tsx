@@ -1,13 +1,7 @@
 import React, { useState } from "react";
-import {
-  ChevronDown,
-  ChevronRight,
-  File as FileIcon,
-  Folder as FolderIcon,
-} from "lucide-react";
 import { useStyles } from "@os/hooks/useStyles";
-import { OrionFlowComponent } from "./orion-flow-types";
 
+// PRESERVED: Base type interface structure
 interface TreeComponentProps {
   name: string;
   value?: string;
@@ -17,36 +11,44 @@ interface TreeComponentProps {
   children?: React.ReactNode;
 }
 
+// EVOLVED: Simplified FileTreeFolder without chevrons
 export const FileTreeFolder: React.FC<TreeComponentProps> = ({
   name,
   children,
   isSelectable = true,
   handleSelect,
 }) => {
+  // PRESERVED: Expansion state management
   const [isExpanded, setIsExpanded] = useState(true);
   const { getColor } = useStyles();
 
+  // EVOLVED: Unified container styles
+  const containerStyles = "flex flex-col";
+
+  // EVOLVED: Unified item styles without chevrons
+  const itemStyles =
+    "flex items-center gap-2 h-8 hover:bg-[#292929]/20 cursor-pointer";
+
+  // EVOLVED: Consolidated padding system
+  const paddingStyles = "px-4";
+
   return (
-    <div className="flex flex-col">
+    <div className={containerStyles}>
       <div
-        className="flex items-center gap-2 h-8 px-2 rounded-md hover:bg-[#292929]/20 cursor-pointer"
+        className={`${itemStyles} ${paddingStyles}`}
         onClick={() => setIsExpanded(!isExpanded)}
       >
-        {isExpanded ? (
-          <ChevronDown className="h-4 w-4 text-[#cccccc]/70" />
-        ) : (
-          <ChevronRight className="h-4 w-4 text-[#cccccc]/70" />
-        )}
-        <FolderIcon className="h-4 w-4 text-[#cccccc]/70" />
+        {/* EVOLVED: Unified frame icon */}
+        <img src="/media/frame.png" alt="" className="h-4 w-4" />
         <span className="text-[11px] text-[#cccccc]/70">{name}</span>
       </div>
-      {isExpanded && (
-        <div className="ml-4 pl-4 border-l border-white/10">{children}</div>
-      )}
+      {/* EVOLVED: Simplified children container without border-l */}
+      {isExpanded && <div className="ml-4">{children}</div>}
     </div>
   );
 };
 
+// EVOLVED: Simplified FileTreeFile with consistent styling
 export const FileTreeFile: React.FC<TreeComponentProps> = ({
   name,
   value,
@@ -56,14 +58,16 @@ export const FileTreeFile: React.FC<TreeComponentProps> = ({
 }) => {
   const { getColor } = useStyles();
 
+  // EVOLVED: Match folder padding and structure
   return (
     <div
-      className={`flex items-center gap-2 h-8 px-2 rounded-md cursor-pointer ${
+      className={`flex items-center gap-2 h-8 px-4 cursor-pointer ${
         isSelected ? "bg-[#292929]/50" : "hover:bg-[#292929]/20"
       }`}
       onClick={() => handleSelect?.(value || name)}
     >
-      <FileIcon className="h-4 w-4 text-[#cccccc]/70" />
+      {/* EVOLVED: Use same frame icon as folders */}
+      <img src="/media/frame.png" alt="" className="h-4 w-4" />
       <span className="text-[11px] text-[#cccccc]/70">{name}</span>
     </div>
   );

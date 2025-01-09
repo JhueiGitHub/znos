@@ -102,11 +102,11 @@ const Desktop: React.FC = () => {
 
   return (
     <MusicProvider>
-      <div className="h-screen w-screen overflow-hidden relative">
+      <div className="h-full w-full overflow-hidden fixed inset-0">
         <Wallpaper />
         <MenuBar />
         <div
-          className="relative z-10 h-full"
+          className="relative z-10 h-full overflow-hidden"
           style={{
             color: getColor("Text Primary (Hd)"),
             fontFamily: getFont("Text Primary"),

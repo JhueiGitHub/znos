@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { Card, CardContent } from "@/components/ui/card";
-import { motion } from "framer-motion";
+import { motion, useScroll, useSpring } from "framer-motion";
 import { useStyles } from "@/app/hooks/useStyles";
 import { FlowSkeletonGrid } from "@/app/components/skeletons/FlowSkeletons";
 import { useEffect, useRef, useState } from "react";
@@ -53,6 +53,7 @@ export const StreamView = ({ streamId, onFlowSelect }: StreamViewProps) => {
   const [isPublishing, setIsPublishing] = useState<string | null>(null);
   const [renamingFlowId, setRenamingFlowId] = useState<string | null>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   // PRESERVED: Original query
   const { data: stream, isLoading } = useQuery<Stream>({
@@ -218,7 +219,14 @@ export const StreamView = ({ streamId, onFlowSelect }: StreamViewProps) => {
   // PRESERVED: Original render
   return (
     <div className="flex-1 min-w-0 px-[33px] py-5">
-      <div className="flex flex-wrap gap-8">
+      <motion.div
+        ref={scrollRef}
+        className="flex flex-wrap gap-8 max-h-[calc(100vh-240px)] overflow-y-auto scrollbar-hide"
+        style={{
+          backgroundColor: getColor("Glass"),
+          scrollBehavior: "smooth",
+        }}
+      >
         {stream.flows.map((flow) => (
           <ContextMenu key={flow.id}>
             <ContextMenuTrigger>
@@ -339,7 +347,7 @@ export const StreamView = ({ streamId, onFlowSelect }: StreamViewProps) => {
             </ContextMenuContent>
           </ContextMenu>
         ))}
-      </div>
+      </motion.div>
     </div>
   );
 };

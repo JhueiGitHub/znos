@@ -15,7 +15,7 @@ export default function FlowLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const isEditor = pathname.includes("/flow/editor");
+  const isEditor = pathname?.includes("/flow/editor") ?? false;
   const [currentView, setCurrentView] = useState<ViewType>("streams");
   const { getColor, getFont } = useStyles();
 

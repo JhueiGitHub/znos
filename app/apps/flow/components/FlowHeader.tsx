@@ -3,7 +3,6 @@ import { CreateDialog } from "./modals/CreateDialog";
 import { useStyles } from "@os/hooks/useStyles";
 import { ViewType } from "../types/view";
 
-
 interface FlowHeaderProps {
   title: string;
   subtitle: string;
