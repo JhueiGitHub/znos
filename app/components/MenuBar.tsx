@@ -2,7 +2,14 @@
 
 import React, { useEffect, useState, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, Play, Pause, SkipForward, SkipBack } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronRight,
+  Play,
+  Pause,
+  SkipForward,
+  SkipBack,
+} from "lucide-react";
 import { useStyles } from "@/app/hooks/useStyles";
 import { Check } from "lucide-react";
 import {
@@ -20,6 +27,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 // Add this new import
 import { useMusicContext } from "../apps/music/context/MusicContext";
+import { usePlaylist } from "../apps/music/context/PlaylistContext";
 
 const MENU_HEIGHT = 32;
 const TRIGGER_AREA_HEIGHT = 20;
@@ -52,67 +60,140 @@ const MusicDropdown: React.FC<MusicDropdownProps> = ({
   progress,
 }) => {
   const { getColor } = useStyles();
+  const [showPlaylists, setShowPlaylists] = useState(false);
+  const { playlists, playPlaylist, currentPlaylist } = usePlaylist();
 
   return (
     <DropdownMenuContent
-      className="w-[300px] p-3"
+      className="w-[300px] p-3 space-y-3"
       align="end"
-      alignOffset={-10}
       sideOffset={4}
       style={{
         backgroundColor: getColor("black-thick"),
         borderColor: getColor("Brd"),
+        borderRadius: "9px",
       }}
     >
-      <div className="space-y-3">
-        <div className="flex items-center gap-3">
-          <img
-            src="/media/system/_empty_image.png"
-            alt={currentSong.title}
-            className="w-12 h-12 rounded"
+      {/* Current Song Info */}
+      <div className="flex items-center gap-3">
+        <img
+          src="/media/system/_empty_image.png"
+          alt={currentSong.title}
+          className="w-12 h-12 rounded"
+        />
+        <div className="flex-1 min-w-0">
+          <div className="text-sm font-medium truncate text-white">
+            {currentSong.title}
+          </div>
+          <div className="text-xs text-white/60 truncate">
+            {currentSong.artist}
+          </div>
+        </div>
+      </div>
+
+      {/* Progress Bar */}
+      <div className="flex items-center gap-2 px-1">
+        <div className="w-full bg-white/10 rounded-full h-[3px]">
+          <div
+            className="h-full rounded-full transition-all duration-200"
+            style={{
+              width: `${progress}%`,
+              backgroundColor: "rgba(76, 79, 105, 0.81)",
+            }}
           />
-          <div className="flex-1 min-w-0">
-            <div className="text-sm font-medium truncate text-white">
-              {currentSong.title}
-            </div>
-            <div className="text-xs text-white/60 truncate">
-              {currentSong.artist}
-            </div>
-          </div>
         </div>
+      </div>
 
-        <div className="flex items-center gap-2 px-1">
-          <div className="w-full bg-white/10 rounded-full h-[3px]">
-            <div
-              className="h-full rounded-full transition-all duration-200"
-              style={{
-                width: `${progress}%`,
-                backgroundColor: "rgba(76, 79, 105, 0.81)",
-              }}
-            />
-          </div>
-        </div>
+      {/* Playback Controls */}
+      <div className="flex justify-center items-center gap-6">
+        <button
+          onClick={onPrevious}
+          className="text-[rgba(76,79,105,0.81)] hover:text-[rgba(76,79,105,0.95)] transition-colors"
+        >
+          <SkipBack size={20} />
+        </button>
+        <button
+          onClick={onPlayPause}
+          className="text-[rgba(76,79,105,0.81)] hover:text-[rgba(76,79,105,0.95)] transition-colors"
+        >
+          {isPlaying ? <Pause size={24} /> : <Play size={24} />}
+        </button>
+        <button
+          onClick={onNext}
+          className="text-[rgba(76,79,105,0.81)] hover:text-[rgba(76,79,105,0.95)] transition-colors"
+        >
+          <SkipForward size={20} />
+        </button>
+      </div>
 
-        <div className="flex justify-center items-center gap-6">
-          <button
-            onClick={onPrevious}
-            className="text-[rgba(76,79,105,0.81)] hover:text-[rgba(76,79,105,0.95)] transition-colors"
-          >
-            <SkipBack size={20} />
-          </button>
-          <button
-            onClick={onPlayPause}
-            className="text-[rgba(76,79,105,0.81)] hover:text-[rgba(76,79,105,0.95)] transition-colors"
-          >
-            {isPlaying ? <Pause size={24} /> : <Play size={24} />}
-          </button>
-          <button
-            onClick={onNext}
-            className="text-[rgba(76,79,105,0.81)] hover:text-[rgba(76,79,105,0.95)] transition-colors"
-          >
-            <SkipForward size={20} />
-          </button>
-        </div>
+      {/* Playlists Section */}
+      <div>
+        <button
+          onClick={() => setShowPlaylists(!showPlaylists)}
+          className="flex items-center gap-2 w-full px-2 py-1.5 rounded hover:bg-white/5 transition-colors"
+          style={{ color: "rgba(76, 79, 105, 0.81)" }}
+        >
+          <img src="/media/playlists.png" alt="Playlists" className="w-4 h-4" />
+          <span className="text-sm flex-1 text-left">Playlists</span>
+        </button>
+
+        {/* Playlists Expanded View */}
+        <AnimatePresence>
+          {showPlaylists && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="overflow-hidden"
+            >
+              <div className="space-y-2 pt-2">
+                {playlists.map((playlist) => (
+                  <div
+                    key={playlist.id}
+                    className="flex items-center gap-3 p-2 rounded hover:bg-white/5 transition-colors"
+                  >
+                    <div className="relative group">
+                      <img
+                        src={playlist.thumbnail}
+                        alt={playlist.name}
+                        className="w-10 h-10 rounded"
+                      />
+                      <div
+                        className="absolute inset-0 hidden group-hover:flex items-center justify-center bg-black/50 rounded cursor-pointer"
+                        onClick={() => playPlaylist(playlist.id)}
+                      >
+                        <Play
+                          size={20}
+                          className="text-white"
+                          style={{
+                            color: "rgba(76, 79, 105, 0.81)",
+                          }}
+                        />
+                      </div>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div
+                        className="text-sm font-medium truncate"
+                        style={{
+                          color:
+                            currentPlaylist?.id === playlist.id
+                              ? "rgba(76, 79, 105, 0.95)"
+                              : "rgba(76, 79, 105, 0.81)",
+                        }}
+                      >
+                        {playlist.name}
+                      </div>
+                      <div className="text-xs text-white/40 truncate">
+                        {playlist.songCount} songs
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </DropdownMenuContent>
   );
