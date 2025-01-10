@@ -73,7 +73,30 @@ const MusicDropdown: React.FC<MusicDropdownProps> = ({
 }) => {
   const { getColor } = useStyles();
   const [showPlaylists, setShowPlaylists] = useState(false);
-  const { playlists, currentPlaylist, playPlaylist } = useMusicContext(); // Replace usePlaylist with useMusicContext
+  const { playlists, currentPlaylist, playPlaylist, seek } = useMusicContext();
+  const [isHovering, setIsHovering] = useState(false);
+  const [hoverPosition, setHoverPosition] = useState(0);
+  const progressBarRef = useRef<HTMLDivElement>(null);
+
+  // Calculate hover time for preview
+  const getHoverTime = (clientX: number) => {
+    if (!progressBarRef.current) return 0;
+    const rect = progressBarRef.current.getBoundingClientRect();
+    const position = (clientX - rect.left) / rect.width;
+    return Math.max(0, Math.min(position * duration, duration));
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!progressBarRef.current) return;
+    const hoverTime = getHoverTime(e.clientX);
+    setHoverPosition((hoverTime / duration) * 100);
+  };
+
+  const handleProgressBarClick = (e: React.MouseEvent) => {
+    if (!progressBarRef.current) return;
+    const clickTime = getHoverTime(e.clientX);
+    seek(clickTime);
+  };
 
   return (
     <DropdownMenuContent
@@ -105,15 +128,43 @@ const MusicDropdown: React.FC<MusicDropdownProps> = ({
 
       {/* Progress Bar and Time */}
       <div className="space-y-1">
-        <div className="flex items-center gap-2 px-1">
-          <div className="w-full bg-white/10 rounded-full h-[3px]">
+        <div
+          ref={progressBarRef}
+          className="flex items-center gap-2 px-1 relative h-4 group cursor-pointer"
+          onMouseEnter={() => setIsHovering(true)}
+          onMouseLeave={() => setIsHovering(false)}
+          onMouseMove={handleMouseMove}
+          onClick={handleProgressBarClick}
+        >
+          {/* Base progress bar background */}
+          <div className="w-full bg-white/10 rounded-full h-[3px] transition-all relative">
+            {/* Active progress */}
             <div
-              className="h-full rounded-full transition-all duration-200"
+              className="absolute left-0 top-0 h-full rounded-full transition-all duration-200"
               style={{
                 width: `${progress}%`,
                 backgroundColor: "rgba(76, 79, 105, 0.81)",
               }}
             />
+
+            {/* Current position marker - positioned above the progress bar */}
+            <div
+              className="absolute w-[2px] h-4 -top-[6.5px] rounded-full bg-[#626581] -translate-x-1/2 transition-opacity duration-200"
+              style={{
+                left: `${progress}%`,
+                opacity: isHovering ? 1 : 0,
+              }}
+            />
+
+            {/* Hover position marker - positioned above the progress bar */}
+            {isHovering && (
+              <div
+                className="absolute w-[2px] h-4 -top-[6.5px] rounded-full bg-[#626581] -translate-x-1/2 opacity-40"
+                style={{
+                  left: `${hoverPosition}%`,
+                }}
+              />
+            )}
           </div>
         </div>
         <div className="flex justify-between px-1 text-xs text-[rgba(76,79,105,0.81)]">
@@ -122,7 +173,7 @@ const MusicDropdown: React.FC<MusicDropdownProps> = ({
         </div>
       </div>
 
-      {/* Playback Controls */}
+      {/* Rest of the component stays the same */}
       <div className="flex justify-center items-center gap-6">
         <button
           onClick={onPrevious}

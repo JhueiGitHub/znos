@@ -26,6 +26,7 @@ interface Playlist {
 }
 
 interface MusicContextType {
+  seek: (time: number) => void;
   songs: Song[];
   currentSongIndex: number;
   isPlaying: boolean;
@@ -529,38 +530,58 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
 
   const playNext = () => {
     if (currentSongIndex < songs.length - 1) {
+      // Reset all playback-related states
+      setSongProgress(0);
+      setCurrentTime(0);
+      setDuration(0);
+      setIsPlaying(false); // Reset playing state first
+
       setCurrentSongIndex((prev) => prev + 1);
+
       if (audioRef.current) {
         audioRef.current.currentTime = 0;
-        const playPromise = audioRef.current.play();
-        if (playPromise !== undefined) {
-          playPromise
-            .then(() => {
-              setIsPlaying(true);
-            })
-            .catch((error) => {
-              console.error("Error playing audio:", error);
-            });
-        }
+        // Small timeout to ensure state updates have propagated
+        setTimeout(() => {
+          const playPromise = audioRef.current?.play();
+          if (playPromise !== undefined) {
+            playPromise
+              .then(() => {
+                setIsPlaying(true);
+              })
+              .catch((error) => {
+                console.error("Error playing audio:", error);
+              });
+          }
+        }, 50);
       }
     }
   };
 
   const playPrevious = () => {
     if (currentSongIndex > 0) {
+      // Reset all playback-related states
+      setSongProgress(0);
+      setCurrentTime(0);
+      setDuration(0);
+      setIsPlaying(false); // Reset playing state first
+
       setCurrentSongIndex((prev) => prev - 1);
+
       if (audioRef.current) {
         audioRef.current.currentTime = 0;
-        const playPromise = audioRef.current.play();
-        if (playPromise !== undefined) {
-          playPromise
-            .then(() => {
-              setIsPlaying(true);
-            })
-            .catch((error) => {
-              console.error("Error playing audio:", error);
-            });
-        }
+        // Small timeout to ensure state updates have propagated
+        setTimeout(() => {
+          const playPromise = audioRef.current?.play();
+          if (playPromise !== undefined) {
+            playPromise
+              .then(() => {
+                setIsPlaying(true);
+              })
+              .catch((error) => {
+                console.error("Error playing audio:", error);
+              });
+          }
+        }, 50);
       }
     }
   };
@@ -568,29 +589,50 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
   const playPlaylist = (playlistId: string) => {
     const playlist = ALL_PLAYLISTS.find((p) => p.id === playlistId);
     if (playlist) {
+      // Reset all playback-related states first
+      setSongProgress(0);
+      setCurrentTime(0);
+      setDuration(0);
+      setIsPlaying(false); // Reset playing state first
+
+      // Update playlist and song states
       setCurrentPlaylist(playlist);
       setSongs(playlist.songs);
       setCurrentSongIndex(0);
-      setCurrentTime(0);
+
       if (audioRef.current) {
         audioRef.current.currentTime = 0;
-        const playPromise = audioRef.current.play();
-        if (playPromise !== undefined) {
-          playPromise
-            .then(() => {
-              setIsPlaying(true);
-            })
-            .catch((error) => {
-              console.error("Error playing audio:", error);
-            });
-        }
+        // Small timeout to ensure state updates have propagated
+        setTimeout(() => {
+          const playPromise = audioRef.current?.play();
+          if (playPromise !== undefined) {
+            playPromise
+              .then(() => {
+                setIsPlaying(true);
+              })
+              .catch((error) => {
+                console.error("Error playing audio:", error);
+              });
+          }
+        }, 50);
       }
+    }
+  };
+
+  const seek = (time: number) => {
+    if (audioRef.current) {
+      audioRef.current.currentTime = Math.min(time, audioRef.current.duration);
+      setCurrentTime(audioRef.current.currentTime);
+      setSongProgress(
+        (audioRef.current.currentTime / audioRef.current.duration) * 100
+      );
     }
   };
 
   return (
     <MusicContext.Provider
       value={{
+        seek,
         songs,
         currentSongIndex,
         isPlaying,
