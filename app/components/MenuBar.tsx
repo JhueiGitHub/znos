@@ -39,6 +39,14 @@ interface SystemIconProps {
   onOpenChange?: (open: boolean) => void; // Add this prop
 }
 
+const formatTime = (seconds: number): string => {
+  if (!seconds) return "0:00";
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = Math.floor(seconds % 60);
+  return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
+};
+
+// Update the MusicDropdown interface
 interface MusicDropdownProps {
   currentSong?: {
     title: string;
@@ -49,6 +57,8 @@ interface MusicDropdownProps {
   onNext: () => void;
   onPrevious: () => void;
   progress: number;
+  currentTime: number;
+  duration: number;
 }
 
 const MusicDropdown: React.FC<MusicDropdownProps> = ({
@@ -58,6 +68,8 @@ const MusicDropdown: React.FC<MusicDropdownProps> = ({
   onNext,
   onPrevious,
   progress,
+  currentTime,
+  duration,
 }) => {
   const { getColor } = useStyles();
   const [showPlaylists, setShowPlaylists] = useState(false);
@@ -91,20 +103,26 @@ const MusicDropdown: React.FC<MusicDropdownProps> = ({
         </div>
       </div>
 
-      {/* Progress Bar */}
-      <div className="flex items-center gap-2 px-1">
-        <div className="w-full bg-white/10 rounded-full h-[3px]">
-          <div
-            className="h-full rounded-full transition-all duration-200"
-            style={{
-              width: `${progress}%`,
-              backgroundColor: "rgba(76, 79, 105, 0.81)",
-            }}
-          />
+      {/* Progress Bar and Time */}
+      <div className="space-y-1">
+        <div className="flex items-center gap-2 px-1">
+          <div className="w-full bg-white/10 rounded-full h-[3px]">
+            <div
+              className="h-full rounded-full transition-all duration-200"
+              style={{
+                width: `${progress}%`,
+                backgroundColor: "rgba(76, 79, 105, 0.81)",
+              }}
+            />
+          </div>
+        </div>
+        <div className="flex justify-between px-1 text-xs text-[rgba(76,79,105,0.81)]">
+          <span>{formatTime(currentTime)}</span>
+          <span>{formatTime(duration)}</span>
         </div>
       </div>
 
-      {/* Playback Controls */}
+      {/* Rest of the component remains the same */}
       <div className="flex justify-center items-center gap-6">
         <button
           onClick={onPrevious}
@@ -137,7 +155,6 @@ const MusicDropdown: React.FC<MusicDropdownProps> = ({
           <span className="text-sm flex-1 text-left">Playlists</span>
         </button>
 
-        {/* Playlists Expanded View */}
         <AnimatePresence>
           {showPlaylists && (
             <motion.div
@@ -253,6 +270,8 @@ export const MenuBar = () => {
     togglePlay,
     playNext,
     playPrevious,
+    currentTime, // Add this line to get currentTime from context
+    duration, // Ensure duration is also obtained from context
   } = useMusicContext();
 
   // Get current song info
@@ -503,7 +522,7 @@ export const MenuBar = () => {
               <div className="flex items-center gap-2">
                 <SystemIcon
                   src="/icns/system/_play.png"
-                  onOpenChange={setDropdownOpen} // Add this prop
+                  onOpenChange={setDropdownOpen}
                 >
                   <MusicDropdown
                     currentSong={
@@ -519,6 +538,8 @@ export const MenuBar = () => {
                     onNext={playNext}
                     onPrevious={playPrevious}
                     progress={songProgress}
+                    currentTime={currentTime}
+                    duration={duration}
                   />
                 </SystemIcon>
                 <div

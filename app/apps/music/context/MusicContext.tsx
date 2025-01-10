@@ -1,4 +1,3 @@
-// /root/app/apps/music/context/MusicContext.tsx
 "use client";
 
 import React, {
@@ -21,6 +20,8 @@ interface MusicContextType {
   isPlaying: boolean;
   songProgress: number;
   volume: number;
+  currentTime: number;
+  duration: number;
   setSongs: (songs: Song[]) => void;
   setCurrentSongIndex: (index: number) => void;
   setIsPlaying: (playing: boolean) => void;
@@ -33,6 +34,14 @@ interface MusicContextType {
 }
 
 const MusicContext = createContext<MusicContextType | undefined>(undefined);
+
+const STORAGE_KEY = "musicState";
+
+interface PersistedState {
+  currentSongIndex: number;
+  currentTime: number;
+  volume: number;
+}
 
 export function MusicProvider({ children }: { children: React.ReactNode }) {
   const [songs, setSongs] = useState<Song[]>([
@@ -82,19 +91,66 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
       path: "/audio/songs/song9.mp4",
     },
   ]);
-  const [currentSongIndex, setCurrentSongIndex] = useState(0);
+
+  // Load persisted state from localStorage
+  const loadPersistedState = (): PersistedState => {
+    if (typeof window === "undefined")
+      return { currentSongIndex: 0, currentTime: 0, volume: 1 };
+
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (!saved) return { currentSongIndex: 0, currentTime: 0, volume: 1 };
+
+    try {
+      return JSON.parse(saved);
+    } catch {
+      return { currentSongIndex: 0, currentTime: 0, volume: 1 };
+    }
+  };
+
+  // Initialize state with persisted values
+  const [currentSongIndex, setCurrentSongIndex] = useState(
+    () => loadPersistedState().currentSongIndex
+  );
   const [isPlaying, setIsPlaying] = useState(false);
   const [songProgress, setSongProgress] = useState(0);
-  const [volume, setVolume] = useState(1);
+  const [volume, setVolume] = useState(() => loadPersistedState().volume);
+  const [currentTime, setCurrentTime] = useState(
+    () => loadPersistedState().currentTime
+  );
+  const [duration, setDuration] = useState(0);
   const audioRef = useRef<HTMLAudioElement>(null);
 
-  // Add useEffect to handle audio element updates
+  // Persist state changes
+  useEffect(() => {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        currentSongIndex,
+        currentTime,
+        volume,
+      })
+    );
+  }, [currentSongIndex, currentTime, volume]);
+
+  // Restore playback position on mount
+  useEffect(() => {
+    if (audioRef.current) {
+      const savedTime = loadPersistedState().currentTime;
+      audioRef.current.currentTime = savedTime;
+    }
+  }, []);
+
   useEffect(() => {
     if (audioRef.current) {
       const audio = audioRef.current;
 
       const handleTimeUpdate = () => {
         setSongProgress((audio.currentTime / audio.duration) * 100);
+        setCurrentTime(audio.currentTime);
+      };
+
+      const handleDurationChange = () => {
+        setDuration(audio.duration);
       };
 
       const handleEnded = () => {
@@ -104,15 +160,32 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
         }
       };
 
+      // Save current time periodically
+      const saveTimeInterval = setInterval(() => {
+        if (audio.currentTime > 0) {
+          localStorage.setItem(
+            STORAGE_KEY,
+            JSON.stringify({
+              currentSongIndex,
+              currentTime: audio.currentTime,
+              volume,
+            })
+          );
+        }
+      }, 1000);
+
       audio.addEventListener("timeupdate", handleTimeUpdate);
+      audio.addEventListener("durationchange", handleDurationChange);
       audio.addEventListener("ended", handleEnded);
 
       return () => {
         audio.removeEventListener("timeupdate", handleTimeUpdate);
+        audio.removeEventListener("durationchange", handleDurationChange);
         audio.removeEventListener("ended", handleEnded);
+        clearInterval(saveTimeInterval);
       };
     }
-  }, [currentSongIndex, songs.length]);
+  }, [currentSongIndex, songs.length, volume]);
 
   const togglePlay = () => {
     if (audioRef.current) {
@@ -171,6 +244,8 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
         isPlaying,
         songProgress,
         volume,
+        currentTime,
+        duration,
         setSongs,
         setCurrentSongIndex,
         setIsPlaying,
