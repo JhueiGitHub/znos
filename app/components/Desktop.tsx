@@ -12,7 +12,6 @@ import { SpotlightSearch } from "./SpotlightSearch";
 import axios from "axios";
 import { FlowComponent } from "@prisma/client";
 import { MusicProvider } from "../apps/music/context/MusicContext";
-import { PlaylistProvider } from "../apps/music/context/PlaylistContext";
 
 const Desktop: React.FC = () => {
   const {
@@ -103,33 +102,27 @@ const Desktop: React.FC = () => {
 
   return (
     <MusicProvider>
-      <PlaylistProvider>
-        <div className="h-full w-full overflow-hidden fixed inset-0">
-          <Wallpaper />
-          <MenuBar />
-          <div
-            className="relative z-10 h-full overflow-hidden"
-            style={{
-              color: getColor("Text Primary (Hd)"),
-              fontFamily: getFont("Text Primary"),
-            }}
-          >
-            {openApps.map((app) => (
-              <Window
-                key={app.id}
-                app={app}
-                isActive={app.id === activeAppId}
-              />
-            ))}
-            <Dock />
-          </div>
-
-          <SpotlightSearch
-            isOpen={isSpotlightOpen}
-            onClose={() => setIsSpotlightOpen(false)}
-          />
+      <div className="h-full w-full overflow-hidden fixed inset-0">
+        <Wallpaper />
+        <MenuBar />
+        <div
+          className="relative z-10 h-full overflow-hidden"
+          style={{
+            color: getColor("Text Primary (Hd)"),
+            fontFamily: getFont("Text Primary"),
+          }}
+        >
+          {openApps.map((app) => (
+            <Window key={app.id} app={app} isActive={app.id === activeAppId} />
+          ))}
+          <Dock />
         </div>
-      </PlaylistProvider>
+
+        <SpotlightSearch
+          isOpen={isSpotlightOpen}
+          onClose={() => setIsSpotlightOpen(false)}
+        />
+      </div>
     </MusicProvider>
   );
 };

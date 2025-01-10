@@ -27,7 +27,6 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 // Add this new import
 import { useMusicContext } from "../apps/music/context/MusicContext";
-import { usePlaylist } from "../apps/music/context/PlaylistContext";
 
 const MENU_HEIGHT = 32;
 const TRIGGER_AREA_HEIGHT = 20;
@@ -51,6 +50,7 @@ interface MusicDropdownProps {
   currentSong?: {
     title: string;
     artist: string;
+    thumbnail?: string;
   };
   isPlaying: boolean;
   onPlayPause: () => void;
@@ -73,7 +73,7 @@ const MusicDropdown: React.FC<MusicDropdownProps> = ({
 }) => {
   const { getColor } = useStyles();
   const [showPlaylists, setShowPlaylists] = useState(false);
-  const { playlists, playPlaylist, currentPlaylist } = usePlaylist();
+  const { playlists, currentPlaylist, playPlaylist } = useMusicContext(); // Replace usePlaylist with useMusicContext
 
   return (
     <DropdownMenuContent
@@ -89,7 +89,7 @@ const MusicDropdown: React.FC<MusicDropdownProps> = ({
       {/* Current Song Info */}
       <div className="flex items-center gap-3">
         <img
-          src="/media/system/_empty_image.png"
+          src={currentSong?.thumbnail || "/media/system/_empty_image.png"}
           alt={currentSong.title}
           className="w-12 h-12 rounded"
         />
@@ -122,7 +122,7 @@ const MusicDropdown: React.FC<MusicDropdownProps> = ({
         </div>
       </div>
 
-      {/* Rest of the component remains the same */}
+      {/* Playback Controls */}
       <div className="flex justify-center items-center gap-6">
         <button
           onClick={onPrevious}
@@ -178,7 +178,7 @@ const MusicDropdown: React.FC<MusicDropdownProps> = ({
                       />
                       <div
                         className="absolute inset-0 hidden group-hover:flex items-center justify-center bg-black/50 rounded cursor-pointer"
-                        onClick={() => playPlaylist(playlist.id)}
+                        onClick={() => playPlaylist(playlist.id)} // Using context's playPlaylist
                       >
                         <Play
                           size={20}
