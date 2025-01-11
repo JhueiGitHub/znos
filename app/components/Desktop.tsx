@@ -13,6 +13,7 @@ import axios from "axios";
 import { FlowComponent } from "@prisma/client";
 import { MusicProvider } from "../apps/music/context/MusicContext";
 import MusicWallpaper from "./MusicWallpaper";
+import CustomCursor from './CustomCursor';
 
 const Desktop: React.FC = () => {
   const {
@@ -103,6 +104,7 @@ const Desktop: React.FC = () => {
 
   return (
     <MusicProvider>
+      <CustomCursor />
       <div className="h-full w-full overflow-hidden fixed inset-0">
         <Wallpaper />
         <MusicWallpaper />
