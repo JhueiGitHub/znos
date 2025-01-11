@@ -14,6 +14,8 @@ import {
 } from "@/components/ui/context-menu";
 import { toast } from "sonner";
 import "./globals.css";
+import XPGlowCard from "./XPGlowCard";
+import MysticalGlowCard from "./XPGlowCard";
 
 // PRESERVED: Original interfaces with enhanced ColorComponent
 interface ColorComponent {
@@ -32,6 +34,8 @@ interface Flow {
   description: string | null;
   components: ColorComponent[];
   updatedAt: string;
+  // Add new field
+  isPublished?: boolean;
 }
 
 interface Stream {
@@ -69,6 +73,14 @@ export const StreamView = ({ streamId, onFlowSelect }: StreamViewProps) => {
     },
   });
 
+  const { data: publishedFlowsMap = {} } = useQuery({
+    queryKey: ["published-flows"],
+    queryFn: async () => {
+      const response = await axios.get("/api/xp/published-flows");
+      return response.data;
+    },
+  });
+
   // PRESERVED: Original handlers
   const handleDuplicateFlow = async (flowId: string, flowName: string) => {
     setIsDuplicating(flowId);
@@ -95,7 +107,7 @@ export const StreamView = ({ streamId, onFlowSelect }: StreamViewProps) => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries(["xp-profile"]);
-      queryClient.invalidateQueries(["published-flows"]);
+      queryClient.invalidateQueries(["published-flows"]); // Add this
       toast.success("Design system published to XP successfully!");
     },
     onError: () => {
@@ -235,71 +247,75 @@ export const StreamView = ({ streamId, onFlowSelect }: StreamViewProps) => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ type: "spring", duration: 0.5 }}
               >
-                <Card
-                  onClick={() => onFlowSelect(flow.id)}
-                  className="w-[291px] h-[247px] flex-shrink-0 border rounded-[15px] transition-all hover:border-white/20 cursor-pointer"
-                  style={{
-                    backgroundColor: getColor("Glass"),
-                    borderColor: getColor("Brd"),
-                  }}
+                <MysticalGlowCard
+                  isAddedToXP={Boolean(publishedFlowsMap[flow.id])}
                 >
-                  <CardContent className="p-6">
-                    {renderFlowPreview(flow)}
+                  <Card
+                    onClick={() => onFlowSelect(flow.id)}
+                    className="w-[291px] h-[247px] flex-shrink-0 border rounded-[15px] transition-all hover:border-white/20 cursor-pointer"
+                    style={{
+                      backgroundColor: getColor("Glass"),
+                      borderColor: getColor("Brd"),
+                    }}
+                  >
+                    <CardContent className="p-6">
+                      {renderFlowPreview(flow)}
 
-                    <div className="pl-px space-y-2.5">
-                      {renamingFlowId === flow.id ? (
-                        <input
-                          ref={nameInputRef}
-                          defaultValue={flow.name}
-                          className="text-sm font-semibold w-full px-2 py-1 rounded outline-none"
-                          style={{
-                            backgroundColor: "rgba(76, 79, 105, 0.3)",
-                            color: getColor("Text Primary (Hd)"),
-                            fontFamily: getFont("Text Primary"),
-                          }}
-                          onBlur={(e) =>
-                            handleRenameSubmit(flow.id, e.target.value)
-                          }
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              handleRenameSubmit(
-                                flow.id,
-                                e.currentTarget.value
-                              );
-                            } else if (e.key === "Escape") {
-                              setRenamingFlowId(null);
+                      <div className="pl-px space-y-2.5">
+                        {renamingFlowId === flow.id ? (
+                          <input
+                            ref={nameInputRef}
+                            defaultValue={flow.name}
+                            className="text-sm font-semibold w-full px-2 py-1 rounded outline-none"
+                            style={{
+                              backgroundColor: "rgba(76, 79, 105, 0.3)",
+                              color: getColor("Text Primary (Hd)"),
+                              fontFamily: getFont("Text Primary"),
+                            }}
+                            onBlur={(e) =>
+                              handleRenameSubmit(flow.id, e.target.value)
                             }
-                          }}
-                          onClick={(e) => e.stopPropagation()}
-                        />
-                      ) : (
-                        <h3
-                          className="text-sm font-semibold"
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                handleRenameSubmit(
+                                  flow.id,
+                                  e.currentTarget.value
+                                );
+                              } else if (e.key === "Escape") {
+                                setRenamingFlowId(null);
+                              }
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        ) : (
+                          <h3
+                            className="text-sm font-semibold"
+                            style={{
+                              color: getColor("Text Primary (Hd)"),
+                              fontFamily: getFont("Text Primary"),
+                            }}
+                          >
+                            {flow.name}
+                          </h3>
+                        )}
+                        <div
+                          className="flex items-center gap-[3px] text-[11px]"
                           style={{
-                            color: getColor("Text Primary (Hd)"),
-                            fontFamily: getFont("Text Primary"),
+                            color: getColor("Text Secondary (Bd)"),
+                            fontFamily: getFont("Text Secondary"),
                           }}
                         >
-                          {flow.name}
-                        </h3>
-                      )}
-                      <div
-                        className="flex items-center gap-[3px] text-[11px]"
-                        style={{
-                          color: getColor("Text Secondary (Bd)"),
-                          fontFamily: getFont("Text Secondary"),
-                        }}
-                      >
-                        <span>{flow.components.length} components</span>
-                        <span className="text-[6px]">•</span>
-                        <span>
-                          Updated{" "}
-                          {new Date(flow.updatedAt).toLocaleDateString()}
-                        </span>
+                          <span>{flow.components.length} components</span>
+                          <span className="text-[6px]">•</span>
+                          <span>
+                            Updated{" "}
+                            {new Date(flow.updatedAt).toLocaleDateString()}
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
+                </MysticalGlowCard>
               </motion.div>
             </ContextMenuTrigger>
             <ContextMenuContent
