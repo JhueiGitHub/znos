@@ -73,7 +73,14 @@ const MusicDropdown: React.FC<MusicDropdownProps> = ({
 }) => {
   const { getColor } = useStyles();
   const [showPlaylists, setShowPlaylists] = useState(false);
-  const { playlists, currentPlaylist, playPlaylist, seek } = useMusicContext();
+  const {
+    playlists,
+    currentPlaylist,
+    playPlaylist,
+    seek,
+    isWallpaperMode,
+    toggleWallpaperMode,
+  } = useMusicContext();
   const [isHovering, setIsHovering] = useState(false);
   const [hoverPosition, setHoverPosition] = useState(0);
   const progressBarRef = useRef<HTMLDivElement>(null);
@@ -219,9 +226,10 @@ const MusicDropdown: React.FC<MusicDropdownProps> = ({
                 {playlists.map((playlist) => (
                   <div
                     key={playlist.id}
-                    className="flex items-center gap-3 p-2 rounded hover:bg-white/5 transition-colors"
+                    className="flex items-center gap-3 p-2 rounded hover:bg-white/5 transition-colors relative group"
                   >
-                    <div className="relative group">
+                    {/* Left side with thumbnail and play button */}
+                    <div className="relative">
                       <img
                         src={playlist.thumbnail}
                         alt={playlist.name}
@@ -229,7 +237,7 @@ const MusicDropdown: React.FC<MusicDropdownProps> = ({
                       />
                       <div
                         className="absolute inset-0 hidden group-hover:flex items-center justify-center bg-black/50 rounded cursor-pointer"
-                        onClick={() => playPlaylist(playlist.id)} // Using context's playPlaylist
+                        onClick={() => playPlaylist(playlist.id)}
                       >
                         <Play
                           size={20}
@@ -240,6 +248,8 @@ const MusicDropdown: React.FC<MusicDropdownProps> = ({
                         />
                       </div>
                     </div>
+
+                    {/* Middle section with playlist info */}
                     <div className="flex-1 min-w-0">
                       <div
                         className="text-sm font-medium truncate"
@@ -254,6 +264,23 @@ const MusicDropdown: React.FC<MusicDropdownProps> = ({
                       </div>
                       <div className="text-xs text-white/40 truncate">
                         {playlist.songCount} songs
+                      </div>
+                    </div>
+
+                    {/* Right side with wallpaper toggle */}
+                    <div
+                      className="absolute right-5 hidden group-hover:flex items-center justify-center cursor-pointer"
+                      onClick={() => toggleWallpaperMode()}
+                      style={{ color: "rgba(76, 79, 105, 0.81)" }}
+                    >
+                      <div className="w-[27px] h-[27px] flex items-center justify-center">
+                        <img
+                          src="/media/music-wallpaper.png"
+                          alt="Toggle Wallpaper"
+                          className={`w-auto h-auto max-w-full max-h-full object-cover opacity-60 hover:opacity-100 transition-opacity ${
+                            isWallpaperMode ? "opacity-100" : ""
+                          }`}
+                        />
                       </div>
                     </div>
                   </div>

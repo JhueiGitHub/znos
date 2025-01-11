@@ -15,6 +15,7 @@ interface Song {
   artist: string;
   path: string;
   thumbnail: string;
+  videoUrl?: string; // YouTube video URL
 }
 
 interface Playlist {
@@ -46,6 +47,8 @@ interface MusicContextType {
   playPrevious: () => void;
   audioRef: React.RefObject<HTMLAudioElement>;
   playPlaylist: (playlistId: string) => void;
+  isWallpaperMode: boolean;
+  toggleWallpaperMode: () => void;
 }
 
 // All playlists data combined into one constant
@@ -62,6 +65,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "Unknown Artist",
         path: "/audio/songs/song1.mp4",
         thumbnail: "/media/songs/song1.png",
+        videoUrl: "https://www.youtube.com/watch?v=WxMBIxB9EPI",
       },
       {
         id: "xpfm-2",
@@ -69,6 +73,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "Unknown Artist",
         path: "/audio/songs/song2.mp4",
         thumbnail: "/media/songs/song2.png",
+        videoUrl: "https://www.youtube.com/watch?v=oZREDSBcEK0",
       },
       {
         id: "xpfm-3",
@@ -76,6 +81,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "Unknown Artist",
         path: "/audio/songs/song3.mp4",
         thumbnail: "/media/songs/song3.png",
+        videoUrl: "https://www.youtube.com/watch?v=SPBVVzttXIM",
       },
       {
         id: "xpfm-4",
@@ -83,6 +89,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "Unknown Artist",
         path: "/audio/songs/song4.mp4",
         thumbnail: "/media/songs/song4.png",
+        videoUrl: "https://www.youtube.com/watch?v=zD0M7rVDG6g",
       },
       {
         id: "xpfm-5",
@@ -90,6 +97,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "Unknown Artist",
         path: "/audio/songs/song5.mp4",
         thumbnail: "/media/songs/song5.png",
+        videoUrl: "https://www.youtube.com/watch?v=cKKc14qAXr4",
       },
       {
         id: "xpfm-6",
@@ -97,6 +105,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "Unknown Artist",
         path: "/audio/songs/song6.mp4",
         thumbnail: "/media/songs/song6.png",
+        videoUrl: "https://www.youtube.com/watch?v=x8Wh4GeyMB4",
       },
       {
         id: "xpfm-7",
@@ -104,6 +113,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "Unknown Artist",
         path: "/audio/songs/song7.mp4",
         thumbnail: "/media/songs/song7.png",
+        videoUrl: "https://www.youtube.com/watch?v=QtnoYpODf7w",
       },
       {
         id: "xpfm-8",
@@ -111,6 +121,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "Unknown Artist",
         path: "/audio/songs/song8.mp4",
         thumbnail: "/media/songs/song8.png",
+        videoUrl: "https://www.youtube.com/watch?v=0sgDPaznkjc",
       },
       {
         id: "xpfm-9",
@@ -118,6 +129,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "Unknown Artist",
         path: "/audio/songs/song9.mp4",
         thumbnail: "/media/songs/song9.png",
+        videoUrl: "https://www.youtube.com/watch?v=acYLIALwzlQ",
       },
     ],
   },
@@ -133,6 +145,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "BLAV",
         path: "/audio/blav/iwasneverthere.mp4",
         thumbnail: "/media/playlists/blav/iwasneverthere.png",
+        videoUrl: "https://www.youtube.com/watch?v=NbqZRrb4_Lc",
       },
       {
         id: "blav-2",
@@ -140,6 +153,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "BLAV",
         path: "/audio/blav/valerie.mp4",
         thumbnail: "/media/songs/blav/valerie.png",
+        videoUrl: "https://www.youtube.com/watch?v=v60yXCH3IDw",
       },
       {
         id: "blav-3",
@@ -147,6 +161,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "BLAV",
         path: "/audio/blav/inyoureyes.mp4",
         thumbnail: "/media/songs/blav/inyoureyes.png",
+        videoUrl: "https://www.youtube.com/watch?v=QLNyHl4nwEo",
       },
       {
         id: "blav-4",
@@ -154,6 +169,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "BLAV",
         path: "/audio/blav/starryeyes.mp4",
         thumbnail: "/media/songs/blav/starryeyes.png",
+        videoUrl: "https://www.youtube.com/watch?v=SDyf6f7qhcY",
       },
       {
         id: "blav-5",
@@ -161,6 +177,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "BLAV",
         path: "/audio/blav/icantfeelmyface.mp4",
         thumbnail: "/media/songs/blav/icantfeelmyface.png",
+        videoUrl: "https://www.youtube.com/watch?v=533ct1vFHmM",
       },
       {
         id: "blav-6",
@@ -168,6 +185,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "BLAV",
         path: "/audio/blav/calloutmyname.mp4",
         thumbnail: "/media/songs/blav/calloutmyname.png",
+        videoUrl: "https://www.youtube.com/watch?v=ZIBLdNxW5do",
       },
       {
         id: "blav-7",
@@ -175,6 +193,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "BLAV",
         path: "/audio/blav/nothingwithoutyou.mp4",
         thumbnail: "/media/songs/blav/nothingwithoutyou.png",
+        videoUrl: "https://www.youtube.com/watch?v=LaeJJ9aB9e8",
       },
       {
         id: "blav-8",
@@ -182,6 +201,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "BLAV",
         path: "/audio/blav/pretty.mp4",
         thumbnail: "/media/songs/blav/pretty.png",
+        videoUrl: "https://www.youtube.com/watch?v=b_SwuIozFdQ",
       },
       {
         id: "blav-9",
@@ -189,6 +209,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "BLAV",
         path: "/audio/blav/professional.mp4",
         thumbnail: "/media/songs/blav/professional.png",
+        videoUrl: "https://www.youtube.com/watch?v=XzM3d5dBJns",
       },
       {
         id: "blav-10",
@@ -196,6 +217,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "BLAV",
         path: "/audio/blav/inthenight.mp4",
         thumbnail: "/media/songs/blav/inthenight.png",
+        videoUrl: "https://www.youtube.com/watch?v=AXM10bYqtUc",
       },
       {
         id: "blav-11",
@@ -203,6 +225,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "BLAV",
         path: "/audio/blav/adaptation.mp4",
         thumbnail: "/media/songs/blav/adaptation.png",
+        videoUrl: "https://www.youtube.com/watch?v=TgKcNj8fKpI",
       },
       {
         id: "blav-12",
@@ -210,6 +233,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "BLAV",
         path: "/audio/blav/pray.mp4",
         thumbnail: "/media/songs/blav/pray.png",
+        videoUrl: "https://www.youtube.com/watch?v=QRj2JP0Fe1c",
       },
       {
         id: "blav-13",
@@ -217,6 +241,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "BLAV",
         path: "/audio/blav/starboy.mp4",
         thumbnail: "/media/songs/blav/starboy.png",
+        videoUrl: "https://www.youtube.com/watch?v=mFMNIlhIUvs",
       },
       {
         id: "blav-14",
@@ -224,6 +249,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "BLAV",
         path: "/audio/blav/power.mp4",
         thumbnail: "/media/songs/blav/power.png",
+        videoUrl: "https://www.youtube.com/watch?v=x8Wh4GeyMB4",
       },
       {
         id: "blav-15",
@@ -231,6 +257,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "BLAV",
         path: "/audio/blav/takemybreath.mp4",
         thumbnail: "/media/songs/blav/takemybreath.png",
+        videoUrl: "https://www.youtube.com/watch?v=q266o-KOUMk",
       },
       {
         id: "blav-16",
@@ -238,6 +265,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "BLAV",
         path: "/audio/blav/mothtoaflame.mp4",
         thumbnail: "/media/songs/blav/mothtoaflame.png",
+        videoUrl: "https://www.youtube.com/watch?v=gl1v-nWiGLk",
       },
       {
         id: "blav-17",
@@ -245,6 +273,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "BLAV",
         path: "/audio/blav/lowlife.mp4",
         thumbnail: "/media/songs/blav/lowlife.png",
+        videoUrl: "https://www.youtube.com/watch?v=nqcjuk0o7YM",
       },
       {
         id: "blav-18",
@@ -252,6 +281,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "BLAV",
         path: "/audio/blav/faith.mp4",
         thumbnail: "/media/songs/blav/faith.png",
+        videoUrl: "https://www.youtube.com/watch?v=Co2muyyYIkM",
       },
       {
         id: "blav-19",
@@ -259,6 +289,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "BLAV",
         path: "/audio/blav/afterhours.mp4",
         thumbnail: "/media/songs/blav/afterhours.png",
+        videoUrl: "https://www.youtube.com/watch?v=pV0ngdzx7RE",
       },
     ],
   },
@@ -274,6 +305,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "SWAN",
         path: "/audio/swan/lune.mp4",
         thumbnail: "/media/songs/lune.png",
+        videoUrl: "https://www.youtube.com/watch?v=WxMBIxB9EPI",
       },
       {
         id: "swan-2",
@@ -281,6 +313,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "SWAN",
         path: "/audio/swan/swans.mp4",
         thumbnail: "/media/songs/swans.png",
+        videoUrl: "https://www.youtube.com/watch?v=WxMBIxB9EPI",
       },
       {
         id: "swan-3",
@@ -288,6 +321,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "SWAN",
         path: "/audio/swan/ballade.mp4",
         thumbnail: "/media/songs/ballade.png",
+        videoUrl: "https://www.youtube.com/watch?v=WxMBIxB9EPI",
       },
       {
         id: "swan-4",
@@ -295,6 +329,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "SWAN",
         path: "/audio/swan/nocturne.mp4",
         thumbnail: "/media/songs/nocturne.png",
+        videoUrl: "https://www.youtube.com/watch?v=WxMBIxB9EPI",
       },
       {
         id: "swan-5",
@@ -302,6 +337,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "SWAN",
         path: "/audio/swan/fantasia.mp4",
         thumbnail: "/media/songs/fantasia.png",
+        videoUrl: "https://www.youtube.com/watch?v=WxMBIxB9EPI",
       },
       {
         id: "swan-6",
@@ -309,6 +345,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "SWAN",
         path: "/audio/swan/overuse.mp4",
         thumbnail: "/media/songs/overuse.png",
+        videoUrl: "https://www.youtube.com/watch?v=WxMBIxB9EPI",
       },
       {
         id: "swan-7",
@@ -316,6 +353,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "SWAN",
         path: "/audio/swan/lake.mp4",
         thumbnail: "/media/songs/lake.png",
+        videoUrl: "https://www.youtube.com/watch?v=WxMBIxB9EPI",
       },
       {
         id: "swan-8",
@@ -323,6 +361,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "SWAN",
         path: "/audio/swan/lacrimosa.mp4",
         thumbnail: "/media/songs/lacrimosa.png",
+        videoUrl: "https://www.youtube.com/watch?v=WxMBIxB9EPI",
       },
     ],
   },
@@ -338,6 +377,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "NXRA",
         path: "/audio/nxra/regular.mp4",
         thumbnail: "/media/songs/nxra/regular.png",
+        videoUrl: "https://www.youtube.com/watch?v=pkX5-wmMaUA",
       },
       {
         id: "nxra-2",
@@ -345,6 +385,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "NXRA",
         path: "/audio/nxra/privilege.mp4",
         thumbnail: "/media/songs/nxra/privilege.png",
+        videoUrl: "https://www.youtube.com/watch?v=_mgf7YVKnKg",
       },
       {
         id: "nxra-3",
@@ -352,6 +393,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "NXRA",
         path: "/audio/nxra/afterhours.mp4",
         thumbnail: "/media/songs/nxra/afterhours.png",
+        videoUrl: "https://www.youtube.com/watch?v=mj1Y5AWtvmM",
       },
       {
         id: "nxra-4",
@@ -359,6 +401,15 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "NXRA",
         path: "/audio/nxra/toolate.mp4",
         thumbnail: "/media/songs/nxra/toolate.png",
+        videoUrl: "https://www.youtube.com/watch?v=qd9N1DoitW0",
+      },
+      {
+        id: "nxra-5",
+        title: "open hearts",
+        artist: "NXRA",
+        path: "/audio/nxra/openhearts.mp4",
+        thumbnail: "/media/songs/nxra/openhearts.png",
+        videoUrl: "https://www.youtube.com/watch?v=f9sj9yEziQY",
       },
     ],
   },
@@ -405,6 +456,20 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
         currentPlaylistId: "xpfm",
       };
     }
+  };
+
+  const [isWallpaperMode, setIsWallpaperMode] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem("musicWallpaperMode") === "true";
+  });
+
+  // Save wallpaper mode to localStorage
+  useEffect(() => {
+    localStorage.setItem("musicWallpaperMode", isWallpaperMode.toString());
+  }, [isWallpaperMode]);
+
+  const toggleWallpaperMode = () => {
+    setIsWallpaperMode((prev) => !prev);
   };
 
   // State management
@@ -638,6 +703,8 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
         playPrevious,
         audioRef,
         playPlaylist,
+        isWallpaperMode,
+        toggleWallpaperMode,
       }}
     >
       <audio

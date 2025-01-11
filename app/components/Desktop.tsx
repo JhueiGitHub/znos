@@ -12,6 +12,7 @@ import { SpotlightSearch } from "./SpotlightSearch";
 import axios from "axios";
 import { FlowComponent } from "@prisma/client";
 import { MusicProvider } from "../apps/music/context/MusicContext";
+import MusicWallpaper from "./MusicWallpaper";
 
 const Desktop: React.FC = () => {
   const {
@@ -104,6 +105,7 @@ const Desktop: React.FC = () => {
     <MusicProvider>
       <div className="h-full w-full overflow-hidden fixed inset-0">
         <Wallpaper />
+        <MusicWallpaper />
         <MenuBar />
         <div
           className="relative z-10 h-full overflow-hidden"
