@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/context-menu";
 import { toast } from "sonner";
 import "./globals.css";
-import XPGlowCard from "./XPGlowCard";
 import MysticalGlowCard from "./XPGlowCard";
 
 // PRESERVED: Original interfaces with enhanced ColorComponent
@@ -73,11 +72,22 @@ export const StreamView = ({ streamId, onFlowSelect }: StreamViewProps) => {
     },
   });
 
+  // Modify in StreamView
   const { data: publishedFlowsMap = {} } = useQuery({
     queryKey: ["published-flows"],
     queryFn: async () => {
       const response = await axios.get("/api/xp/published-flows");
-      return response.data;
+      // Add hasChanges flag for each flow
+      return Object.entries(response.data).reduce(
+        (acc, [flowId, data]) => {
+          acc[flowId] = {
+            ...data,
+            hasChanges: false, // Initial state
+          };
+          return acc;
+        },
+        {} as Record<string, any>
+      );
     },
   });
 
@@ -124,8 +134,8 @@ export const StreamView = ({ streamId, onFlowSelect }: StreamViewProps) => {
       const response = await axios.patch(`/api/flows/${flowId}`, { name });
       return response.data;
     },
+    // Modify renameFlow mutation's onSuccess
     onSuccess: (updatedFlow) => {
-      // Update the cache directly instead of invalidating
       queryClient.setQueryData(["stream", streamId], (oldData: any) => {
         if (!oldData) return oldData;
         return {
@@ -137,12 +147,35 @@ export const StreamView = ({ streamId, onFlowSelect }: StreamViewProps) => {
           ),
         };
       });
+
+      // Add this: Track changes if flow is published
+      if (publishedFlowsMap[updatedFlow.id]) {
+        trackFlowChanges(updatedFlow.id);
+      }
+
       toast.success("Flow renamed successfully");
       setRenamingFlowId(null);
     },
     onError: () => {
       toast.error("Failed to rename flow");
       setRenamingFlowId(null);
+    },
+  });
+
+  // Add this after other mutations in StreamView
+  const { mutate: trackFlowChanges } = useMutation({
+    mutationFn: async (flowId: string) => {
+      // Update the cached publishedFlowsMap directly
+      queryClient.setQueryData(["published-flows"], (old: any) => {
+        if (!old || !old[flowId]) return old;
+        return {
+          ...old,
+          [flowId]: {
+            ...old[flowId],
+            hasChanges: true,
+          },
+        };
+      });
     },
   });
 
@@ -154,6 +187,49 @@ export const StreamView = ({ streamId, onFlowSelect }: StreamViewProps) => {
       nameInputRef.current.select();
     }
   }, [renamingFlowId]);
+
+  // Add new query to track flow content
+const { data: flowContent } = useQuery({
+  queryKey: ["flow-content", streamId],
+  queryFn: async () => {
+    const response = await axios.get(`/api/flows/${streamId}/content`);
+    return response.data;
+  },
+  // This is key - we want to track changes
+  onSuccess: (data) => {
+    // Check if any published flows have changed content
+    if (publishedFlowsMap && stream?.flows) {
+      stream.flows.forEach(flow => {
+        if (publishedFlowsMap[flow.id]) {
+          const currentContent = JSON.stringify(flow.components);
+          const previousContent = JSON.stringify(data[flow.id]?.components || {});
+          
+          if (currentContent !== previousContent) {
+            trackFlowChanges(flow.id);
+          }
+        }
+      });
+    }
+  }
+});
+
+// Add useEffect to track changes from parent updates
+useEffect(() => {
+  if (stream?.flows && publishedFlowsMap) {
+    stream.flows.forEach(flow => {
+      if (publishedFlowsMap[flow.id]) {
+        // Compare current flow state with initial state
+        const initialContent = flowContent?.[flow.id];
+        if (initialContent) {
+          const hasContentChanged = JSON.stringify(flow.components) !== JSON.stringify(initialContent.components);
+          if (hasContentChanged) {
+            trackFlowChanges(flow.id);
+          }
+        }
+      }
+    });
+  }
+}, [stream?.flows, publishedFlowsMap, flowContent, trackFlowChanges]);
 
   // Handle rename start
   const handleRenameStart = (flowId: string) => {
@@ -326,16 +402,38 @@ export const StreamView = ({ streamId, onFlowSelect }: StreamViewProps) => {
             >
               {stream.type === "CONFIG" && (
                 <>
-                  <ContextMenuItem
-                    onClick={() => publishToXP(flow.id)}
-                    disabled={isPublishing === flow.id}
-                    style={{
-                      color: getColor("Text Primary (Hd)"),
-                      fontFamily: getFont("Text Primary"),
-                    }}
-                  >
-                    {isPublishing === flow.id ? "Publishing..." : "Add to XP"}
-                  </ContextMenuItem>
+                  {publishedFlowsMap[flow.id] ? (
+                    // Show for published flows
+                    <ContextMenuItem
+                      onClick={() => {
+                        /* Push implementation later */
+                      }}
+                      disabled={!publishedFlowsMap[flow.id]?.hasChanges}
+                      className={
+                        !publishedFlowsMap[flow.id]?.hasChanges
+                          ? "opacity-50"
+                          : ""
+                      }
+                      style={{
+                        color: getColor("Text Primary (Hd)"),
+                        fontFamily: getFont("Text Primary"),
+                      }}
+                    >
+                      Push to XP
+                    </ContextMenuItem>
+                  ) : (
+                    // Show for unpublished flows
+                    <ContextMenuItem
+                      onClick={() => publishToXP(flow.id)}
+                      disabled={isPublishing === flow.id}
+                      style={{
+                        color: getColor("Text Primary (Hd)"),
+                        fontFamily: getFont("Text Primary"),
+                      }}
+                    >
+                      {isPublishing === flow.id ? "Publishing..." : "Add to XP"}
+                    </ContextMenuItem>
+                  )}
                   <ContextMenuItem
                     onClick={() => handleRenameStart(flow.id)}
                     style={{
