@@ -108,30 +108,38 @@ const Dock: React.FC = () => {
     const isOpen = !!openApp;
     const isMinimized = openApp?.isMinimized || false;
     const dockIcon = dockIcons?.[index];
+    const isColorFill = dockIcon?.mode === "color";
 
     return {
       title: app.name,
+      isColorFill,
       icon: (
         <button
           onClick={() => handleAppClick(app)}
-          className="focus:outline-none w-12 h-12 flex items-center justify-center relative"
+          className="focus:outline-none w-full h-full flex items-center justify-center relative"
           style={{ backgroundColor: getColor("Overlaying BG") }}
         >
           <div
-            className="w-8 h-8 rounded-md"
+            className="w-full h-full rounded-md flex items-center justify-center"
             style={{
               backgroundColor:
                 dockIcon?.mode === "color"
                   ? getColor(dockIcon.tokenId || "Graphite")
                   : "transparent",
-              backgroundImage:
-                dockIcon?.mode === "media" && dockIcon.value
-                  ? `url(${dockIcon.value})`
-                  : undefined,
-              backgroundSize: "cover",
-              backgroundPosition: "center",
+              minWidth: "24px",
+              minHeight: "24px",
+              maxWidth: isColorFill ? "48px" : "64px",
+              maxHeight: isColorFill ? "48px" : "64px",
             }}
-          />
+          >
+            {dockIcon?.mode === "media" && dockIcon.value && (
+              <img
+                src={dockIcon.value}
+                alt={app.name}
+                className="w-full h-full object-contain"
+              />
+            )}
+          </div>
           {isOpen && (
             <div
               className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1 h-1 rounded-full"

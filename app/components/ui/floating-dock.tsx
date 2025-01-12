@@ -1,7 +1,4 @@
-// floating-dock.tsx
-"use client";
-
-import { cn } from "@/lib/utils";
+import React from 'react';
 import {
   MotionValue,
   motion,
@@ -18,7 +15,12 @@ export const FloatingDock = ({
   backgroundColor,
   borderColor,
 }: {
-  items: { title: string; icon: React.ReactNode; href: string }[];
+  items: { 
+    title: string; 
+    icon: React.ReactNode; 
+    href: string;
+    isColorFill?: boolean;
+  }[];
   backgroundColor: string;
   borderColor: string;
 }) => {
@@ -54,6 +56,7 @@ function IconContainer({
   href,
   backgroundColor,
   borderColor,
+  isColorFill = false,
 }: {
   mouseX: MotionValue;
   title: string;
@@ -61,6 +64,7 @@ function IconContainer({
   href: string;
   backgroundColor: string;
   borderColor: string;
+  isColorFill?: boolean;
 }) {
   let ref = useRef<HTMLDivElement>(null);
 
@@ -69,13 +73,17 @@ function IconContainer({
     return val - bounds.x - bounds.width / 2;
   });
 
+  // Container transforms remain the same for layout consistency
   let widthTransform = useTransform(distance, [-150, 0, 150], [40, 80, 40]);
   let heightTransform = useTransform(distance, [-150, 0, 150], [40, 80, 40]);
-  let widthTransformIcon = useTransform(distance, [-150, 0, 150], [20, 40, 20]);
-  let heightTransformIcon = useTransform(
-    distance,
-    [-150, 0, 150],
-    [20, 40, 20]
+
+  // Different icon size transforms based on type
+  let iconSizeTransform = useTransform(
+    distance, 
+    [-150, 0, 150], 
+    isColorFill 
+      ? [24, 48, 24]  // Color fills max out at 48px
+      : [24, 64, 24]  // Media icons can go up to 64px
   );
 
   let width = useSpring(widthTransform, {
@@ -83,18 +91,14 @@ function IconContainer({
     stiffness: 150,
     damping: 12,
   });
+  
   let height = useSpring(heightTransform, {
     mass: 0.1,
     stiffness: 150,
     damping: 12,
   });
 
-  let widthIcon = useSpring(widthTransformIcon, {
-    mass: 0.1,
-    stiffness: 150,
-    damping: 12,
-  });
-  let heightIcon = useSpring(heightTransformIcon, {
+  let iconSize = useSpring(iconSizeTransform, {
     mass: 0.1,
     stiffness: 150,
     damping: 12,
@@ -133,9 +137,14 @@ function IconContainer({
             </motion.div>
           )}
         </AnimatePresence>
-        <motion.div
-          style={{ width: widthIcon, height: heightIcon }}
-          className="flex items-center justify-center"
+        
+        {/* Icon container with dynamic sizing */}
+        <motion.div 
+          style={{ 
+            width: iconSize,
+            height: iconSize,
+          }}
+          className="flex items-center justify-center rounded-md overflow-hidden"
         >
           {icon}
         </motion.div>
@@ -143,3 +152,5 @@ function IconContainer({
     </Link>
   );
 }
+
+export default FloatingDock;
