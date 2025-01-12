@@ -305,7 +305,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "SWAN",
         path: "/audio/swan/lune.mp4",
         thumbnail: "/media/songs/lune.png",
-        videoUrl: "https://www.youtube.com/watch?v=WxMBIxB9EPI",
+        videoUrl: "https://www.youtube.com/watch?v=CvFH_6DNRCY",
       },
       {
         id: "swan-2",
@@ -313,7 +313,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "SWAN",
         path: "/audio/swan/swans.mp4",
         thumbnail: "/media/songs/swans.png",
-        videoUrl: "https://www.youtube.com/watch?v=WxMBIxB9EPI",
+        videoUrl: "https://youtube.com/watch?v=MyzfjP_wXBw",
       },
       {
         id: "swan-3",
@@ -321,7 +321,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "SWAN",
         path: "/audio/swan/ballade.mp4",
         thumbnail: "/media/songs/ballade.png",
-        videoUrl: "https://www.youtube.com/watch?v=WxMBIxB9EPI",
+        videoUrl: "https://www.youtube.com/watch?v=2uvAewYkEFU",
       },
       {
         id: "swan-4",
@@ -329,7 +329,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "SWAN",
         path: "/audio/swan/nocturne.mp4",
         thumbnail: "/media/songs/nocturne.png",
-        videoUrl: "https://www.youtube.com/watch?v=WxMBIxB9EPI",
+        videoUrl: "https://www.youtube.com/watch?v=T7k2pmKUXxI",
       },
       {
         id: "swan-5",
@@ -337,7 +337,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "SWAN",
         path: "/audio/swan/fantasia.mp4",
         thumbnail: "/media/songs/fantasia.png",
-        videoUrl: "https://www.youtube.com/watch?v=WxMBIxB9EPI",
+        videoUrl: "https://www.youtube.com/watch?v=zlWAdUPUCJw",
       },
       {
         id: "swan-6",
@@ -345,7 +345,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "SWAN",
         path: "/audio/swan/overuse.mp4",
         thumbnail: "/media/songs/overuse.png",
-        videoUrl: "https://www.youtube.com/watch?v=WxMBIxB9EPI",
+        videoUrl: "https://www.youtube.com/watch?v=rrBsvldbwdQ",
       },
       {
         id: "swan-7",
@@ -353,7 +353,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "SWAN",
         path: "/audio/swan/lake.mp4",
         thumbnail: "/media/songs/lake.png",
-        videoUrl: "https://www.youtube.com/watch?v=WxMBIxB9EPI",
+        videoUrl: "https://www.youtube.com/watch?v=xF_x4oenM1E",
       },
       {
         id: "swan-8",
@@ -361,7 +361,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "SWAN",
         path: "/audio/swan/lacrimosa.mp4",
         thumbnail: "/media/songs/lacrimosa.png",
-        videoUrl: "https://www.youtube.com/watch?v=WxMBIxB9EPI",
+        videoUrl: "https://www.youtube.com/watch?v=mt6m63ylw-g",
       },
     ],
   },
