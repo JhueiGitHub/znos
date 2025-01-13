@@ -141,17 +141,20 @@ model FlowComponent {
   id            String      @id @default(cuid())
   name          String
   type          String
-  mode          String?
-  value         String?
+  mode          String? // For icon fill
+  value         String? // For icon fill
+  outlineMode   String? // NEW: For border/outline
+  outlineValue  String? // NEW: For border/outline
   opacity       Int?
   fontFamily    String?
-  strokeWidth   Float? // New field for border widths
-  mappedTokenId String? // New field to reference design system tokens
-  mediaId       String? // For uploaded media
-  mediaItem     MediaItem[] // For uploaded media
-  mediaUrl      String? // For uploaded media
-  tokenId       String? // For mapped token value
-  tokenValue    String? // For mapped token value
+  strokeWidth   Float?
+  mappedTokenId String?
+  mediaId       String?
+  mediaItem     MediaItem[]
+  mediaUrl      String?
+  tokenId       String?
+  tokenValue    String?
+  outlineTokenId String? // NEW: For color token reference of outline
   order         Int
 
   flowId    String

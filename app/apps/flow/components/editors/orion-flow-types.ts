@@ -1,4 +1,5 @@
 // Explicit component type with all required fields
+// orion-flow-types.ts
 export interface OrionFlowComponent {
   id: string;
   name: string;
@@ -10,11 +11,23 @@ export interface OrionFlowComponent {
   mediaId?: string;
   mediaUrl?: string;
   tokenValue?: string;
+  outlineMode?: "color" | "media"; // NEW
+  outlineValue?: string | null; // NEW
+  outlineTokenId?: string; // NEW
 }
 
-// Type for component updates 
+// Type for component updates
 export type ComponentUpdate = Partial<
-  Pick<OrionFlowComponent, "mode" | "value" | "mediaId" | "tokenId">
+  Pick<
+    OrionFlowComponent,
+    | "mode"
+    | "value"
+    | "mediaId"
+    | "tokenId"
+    | "outlineMode"
+    | "outlineValue"
+    | "outlineTokenId"
+  >
 >;
 
 // Full sidebar props interface
@@ -28,6 +41,6 @@ export interface OrionSidebarProps {
     }>;
   } | null;
   onUpdateComponent: (id: string, updates: Partial<OrionFlowComponent>) => void;
-  onMediaSelect: () => void;
+  onMediaSelect: (type?: "fill" | "outline") => void; // Updated to accept optional type parameter
   onMacOSIconSelect?: () => void;
 }

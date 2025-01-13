@@ -1,4 +1,3 @@
-// PRESERVED: Original imports
 import { OrionSidebarProps } from "./orion-flow-types";
 import { useStyles } from "@os/hooks/useStyles";
 import {
@@ -19,7 +18,6 @@ const OrionEditorSidebar = ({
 }: OrionSidebarProps) => {
   const { getColor, getFont } = useStyles();
 
-  // PRESERVED: Original no selection state
   if (!selectedComponent) {
     return (
       <div
@@ -53,10 +51,14 @@ const OrionEditorSidebar = ({
     );
   }
 
-  // EVOLVED: Enhanced media content renderer with video support
-  const renderMediaContent = () => {
-    // EVOLVED: Add explicit video detection
-    const isVideo = selectedComponent.value?.match(/\.(mp4|webm|mov)$/i);
+  const isDockIcon = selectedComponent.type === "DOCK_ICON";
+
+  const renderMediaContent = (type: "fill" | "outline" = "fill") => {
+    const value =
+      type === "fill"
+        ? selectedComponent.value
+        : selectedComponent.outlineValue;
+    const isVideo = value?.match(/\.(mp4|webm|mov)$/i);
 
     return (
       <div className="space-y-2">
@@ -67,48 +69,54 @@ const OrionEditorSidebar = ({
             fontFamily: getFont("Text Secondary"),
           }}
         >
-          Media
+          {type === "fill" ? "Media" : "Outline Media"}
         </label>
         <div
           className="aspect-video rounded border overflow-hidden"
           style={{ borderColor: getColor("Brd") }}
         >
-          {selectedComponent.mode === "media" && selectedComponent.value ? (
+          {value ? (
             isVideo ? (
-              <VideoPreview url={selectedComponent.value} />
+              <VideoPreview url={value} />
             ) : (
               <img
-                src={selectedComponent.value}
+                src={value}
                 className="w-full h-full object-cover"
-                alt="Selected media"
+                alt={`Selected ${type} media`}
               />
             )
           ) : (
             <img
               src="/media/system/_empty_image.png"
               className="w-full h-full object-cover"
-              alt="Empty media state"
+              alt={`Empty ${type} media state`}
             />
           )}
         </div>
         <div className="flex flex-col gap-2">
           <button
-            onClick={onMediaSelect}
+            onClick={() =>
+              onMediaSelect(type === "outline" ? "outline" : "fill")
+            }
             className="w-full h-8 px-3 bg-transparent border border-white/[0.09] rounded text-[11px] hover:bg-white/[0.02]"
             style={{
               color: getColor("Text Primary (Hd)"),
               fontFamily: getFont("Text Primary"),
             }}
           >
-            {selectedComponent.type === "WALLPAPER"
-              ? selectedComponent.value
-                ? "Change wallpaper..."
-                : "Choose wallpaper..."
-              : selectedComponent.value
-                ? "Change icon..."
-                : "Choose icon..."}
+            {type === "fill"
+              ? selectedComponent.type === "WALLPAPER"
+                ? value
+                  ? "Change wallpaper..."
+                  : "Choose wallpaper..."
+                : value
+                  ? "Change icon..."
+                  : "Choose icon..."
+              : value
+                ? "Change outline..."
+                : "Choose outline..."}
           </button>
-          {selectedComponent.type === "DOCK_ICON" && (
+          {type === "fill" && isDockIcon && (
             <button
               onClick={onMacOSIconSelect}
               className="w-full h-8 px-3 bg-transparent border border-white/[0.09] rounded text-[11px] hover:bg-white/[0.02]"
@@ -125,8 +133,7 @@ const OrionEditorSidebar = ({
     );
   };
 
-  // PRESERVED: Original color content renderer
-  const renderColorContent = () => (
+  const renderColorContent = (type: "fill" | "outline" = "fill") => (
     <div className="space-y-2">
       <label
         className="text-[11px] uppercase"
@@ -135,12 +142,21 @@ const OrionEditorSidebar = ({
           fontFamily: getFont("Text Secondary"),
         }}
       >
-        Color Token
+        {type === "fill" ? "Color Token" : "Outline Color"}
       </label>
       <Select
-        value={selectedComponent.tokenId || ""}
+        value={
+          type === "fill"
+            ? selectedComponent.tokenId || ""
+            : selectedComponent.outlineTokenId ||
+              selectedComponent.tokenId ||
+              ""
+        }
         onValueChange={(value) =>
-          onUpdateComponent(selectedComponent.id, { tokenId: value })
+          onUpdateComponent(
+            selectedComponent.id,
+            type === "fill" ? { tokenId: value } : { outlineTokenId: value }
+          )
         }
       >
         <SelectTrigger
@@ -169,7 +185,6 @@ const OrionEditorSidebar = ({
     </div>
   );
 
-  // PRESERVED: Main component structure
   return (
     <div
       className="absolute right-0 top-0 bottom-0 w-[264px] border-l flex flex-col bg-[#010203]/80 backdrop-blur-sm"
@@ -189,41 +204,88 @@ const OrionEditorSidebar = ({
           Design
         </span>
       </div>
-      <div className="flex-1 p-4 space-y-4">
-        <div className="space-y-2">
-          <label
-            className="text-[11px] uppercase"
-            style={{
-              color: getColor("Text Secondary (Bd)"),
-              fontFamily: getFont("Text Secondary"),
-            }}
-          >
-            Mode
-          </label>
-          <Select
-            value={selectedComponent.mode}
-            onValueChange={(value: "color" | "media") =>
-              onUpdateComponent(selectedComponent.id, { mode: value })
-            }
-          >
-            <SelectTrigger
-              className="w-full h-8 px-3 bg-transparent border border-white/[0.09]"
+      <div className="flex-1 p-4 space-y-4 overflow-y-auto">
+        {/* Fill Section */}
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <label
+              className="text-[11px] uppercase"
               style={{
-                color: getColor("Text Primary (Hd)"),
-                fontFamily: getFont("Text Primary"),
+                color: getColor("Text Secondary (Bd)"),
+                fontFamily: getFont("Text Secondary"),
               }}
             >
-              <SelectValue placeholder="Select mode" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="color">Color Fill</SelectItem>
-              <SelectItem value="media">Media</SelectItem>
-            </SelectContent>
-          </Select>
+              Fill Mode
+            </label>
+            <Select
+              value={selectedComponent.mode}
+              onValueChange={(value: "color" | "media") =>
+                onUpdateComponent(selectedComponent.id, { mode: value })
+              }
+            >
+              <SelectTrigger
+                className="w-full h-8 px-3 bg-transparent border border-white/[0.09]"
+                style={{
+                  color: getColor("Text Primary (Hd)"),
+                  fontFamily: getFont("Text Primary"),
+                }}
+              >
+                <SelectValue placeholder="Select mode" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="color">Color Fill</SelectItem>
+                <SelectItem value="media">Media</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {selectedComponent.mode === "media" && renderMediaContent("fill")}
+          {selectedComponent.mode === "color" && renderColorContent("fill")}
         </div>
 
-        {selectedComponent.mode === "media" && renderMediaContent()}
-        {selectedComponent.mode === "color" && renderColorContent()}
+        {/* Outline Section (Only for dock icons) */}
+        {isDockIcon && (
+          <div className="space-y-4 pt-4 border-t border-white/[0.09]">
+            <div className="space-y-2">
+              <label
+                className="text-[11px] uppercase"
+                style={{
+                  color: getColor("Text Secondary (Bd)"),
+                  fontFamily: getFont("Text Secondary"),
+                }}
+              >
+                Outline Mode
+              </label>
+              <Select
+                value={selectedComponent.outlineMode || "color"}
+                onValueChange={(value: "color" | "media") =>
+                  onUpdateComponent(selectedComponent.id, {
+                    outlineMode: value,
+                  })
+                }
+              >
+                <SelectTrigger
+                  className="w-full h-8 px-3 bg-transparent border border-white/[0.09]"
+                  style={{
+                    color: getColor("Text Primary (Hd)"),
+                    fontFamily: getFont("Text Primary"),
+                  }}
+                >
+                  <SelectValue placeholder="Select outline mode" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="color">Color Fill</SelectItem>
+                  <SelectItem value="media">Media</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {(selectedComponent.outlineMode || "color") === "media" &&
+              renderMediaContent("outline")}
+            {(selectedComponent.outlineMode || "color") === "color" &&
+              renderColorContent("outline")}
+          </div>
+        )}
       </div>
     </div>
   );
