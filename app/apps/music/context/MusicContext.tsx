@@ -62,7 +62,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       {
         id: "xpfm-1",
         title: "song1",
-        artist: "Unknown Artist",
+        artist: "XPFM",
         path: "/audio/songs/song1.mp4",
         thumbnail: "/media/songs/song1.png",
         videoUrl: "https://www.youtube.com/watch?v=WxMBIxB9EPI",
@@ -70,7 +70,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       {
         id: "xpfm-2",
         title: "song2",
-        artist: "Unknown Artist",
+        artist: "XPFM",
         path: "/audio/songs/song2.mp4",
         thumbnail: "/media/songs/song2.png",
         videoUrl: "https://www.youtube.com/watch?v=oZREDSBcEK0",
@@ -78,7 +78,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       {
         id: "xpfm-3",
         title: "song3",
-        artist: "Unknown Artist",
+        artist: "XPFM",
         path: "/audio/songs/song3.mp4",
         thumbnail: "/media/songs/song3.png",
         videoUrl: "https://www.youtube.com/watch?v=SPBVVzttXIM",
@@ -86,7 +86,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       {
         id: "xpfm-4",
         title: "song4",
-        artist: "Unknown Artist",
+        artist: "XPFM",
         path: "/audio/songs/song4.mp4",
         thumbnail: "/media/songs/song4.png",
         videoUrl: "https://www.youtube.com/watch?v=zD0M7rVDG6g",
@@ -94,7 +94,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       {
         id: "xpfm-5",
         title: "song5",
-        artist: "Unknown Artist",
+        artist: "XPFM",
         path: "/audio/songs/song5.mp4",
         thumbnail: "/media/songs/song5.png",
         videoUrl: "https://www.youtube.com/watch?v=cKKc14qAXr4",
@@ -102,7 +102,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       {
         id: "xpfm-6",
         title: "song6",
-        artist: "Unknown Artist",
+        artist: "XPFM",
         path: "/audio/songs/song6.mp4",
         thumbnail: "/media/songs/song6.png",
         videoUrl: "https://www.youtube.com/watch?v=x8Wh4GeyMB4",
@@ -110,7 +110,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       {
         id: "xpfm-7",
         title: "song7",
-        artist: "Unknown Artist",
+        artist: "XPFM",
         path: "/audio/songs/song7.mp4",
         thumbnail: "/media/songs/song7.png",
         videoUrl: "https://www.youtube.com/watch?v=QtnoYpODf7w",
@@ -118,7 +118,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       {
         id: "xpfm-8",
         title: "song8",
-        artist: "Unknown Artist",
+        artist: "XPFM",
         path: "/audio/songs/song8.mp4",
         thumbnail: "/media/songs/song8.png",
         videoUrl: "https://www.youtube.com/watch?v=0sgDPaznkjc",
@@ -126,7 +126,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       {
         id: "xpfm-9",
         title: "song9",
-        artist: "Unknown Artist",
+        artist: "XPFM",
         path: "/audio/songs/song9.mp4",
         thumbnail: "/media/songs/song9.png",
         videoUrl: "https://www.youtube.com/watch?v=acYLIALwzlQ",
@@ -368,7 +368,7 @@ const ALL_PLAYLISTS: Playlist[] = [
   {
     id: "nxra",
     name: "NXRA",
-    songCount: 4,
+    songCount: 6,
     thumbnail: "/media/playlists/nxra.png",
     songs: [
       {
@@ -410,6 +410,14 @@ const ALL_PLAYLISTS: Playlist[] = [
         path: "/audio/nxra/openhearts.mp4",
         thumbnail: "/media/songs/nxra/openhearts.png",
         videoUrl: "https://www.youtube.com/watch?v=f9sj9yEziQY",
+      },
+      {
+        id: "nxra-6",
+        title: "try me",
+        artist: "NXRA",
+        path: "/audio/nxra/tryme.mp4",
+        thumbnail: "/media/songs/nxra/tryme.png",
+        videoUrl: "https://www.youtube.com/watch?v=Qi7bA43x0cg",
       },
     ],
   },

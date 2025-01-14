@@ -10,6 +10,19 @@ import Link from "next/link";
 import { useRef, useState } from "react";
 import { AnimatePresence } from "framer-motion";
 
+interface IconContainerProps {
+  mouseX: MotionValue;
+  title: string;
+  icon: React.ReactNode;
+  href: string;
+  backgroundColor: string;
+  borderColor: string;
+  outlineMode: "color" | "media";
+  outlineValue?: string | null;
+  outlineTokenId?: string;
+  isColorFill?: boolean;
+}
+
 export const FloatingDock = ({
   items,
   backgroundColor,
@@ -20,9 +33,9 @@ export const FloatingDock = ({
     icon: React.ReactNode;
     href: string;
     isColorFill?: boolean;
-    // Need to add
+    borderColor?: string;
     outlineMode: "color" | "media";
-    outlineValue: string | null;
+    outlineValue?: string | null;
     outlineTokenId?: string;
   }[];
   backgroundColor: string;
@@ -34,16 +47,19 @@ export const FloatingDock = ({
     <motion.div
       onMouseMove={(e) => mouseX.set(e.pageX)}
       onMouseLeave={() => mouseX.set(Infinity)}
-      className="flex h-16 items-end px-4 pb-3"
-      style={{ backgroundColor }}
+      className="flex h-16 items-end rounded-[19px] px-4 pb-3"
+      style={{
+        backgroundColor,
+        border: `0.6px solid ${borderColor}`,
+      }}
     >
-      {items.map((item) => (
+      {items?.map((item) => (
         <IconContainer
           mouseX={mouseX}
           key={item.title}
           {...item}
-          backgroundColor={backgroundColor}
-          borderColor={borderColor}
+          backgroundColor="transparent"
+          borderColor={item.borderColor || borderColor}
         />
       ))}
     </motion.div>
@@ -57,25 +73,11 @@ function IconContainer({
   href,
   backgroundColor,
   borderColor,
-  isColorFill = false,
   outlineMode,
   outlineValue,
-  outlineTokenId,
-}: {
-  mouseX: MotionValue;
-  title: string;
-  icon: React.ReactNode;
-  href: string;
-  backgroundColor: string;
-  borderColor: string;
-  isColorFill?: boolean;
-  outlineMode: "color" | "media";
-  outlineValue: string | null;
-  outlineTokenId?: string;
-}) {
+  isColorFill = false,
+}: IconContainerProps) {
   let ref = useRef<HTMLDivElement>(null);
-
-  // Transform calculations for container and icon sizes
   let distance = useTransform(mouseX, (val) => {
     let bounds = ref.current?.getBoundingClientRect() ?? { x: 0, width: 0 };
     return val - bounds.x - bounds.width / 2;
@@ -86,7 +88,7 @@ function IconContainer({
   let iconSizeTransform = useTransform(
     distance,
     [-150, 0, 150],
-    isColorFill ? [24, 48, 24] : [24, 64, 24]
+    isColorFill ? [24, 48, 24] : [24, 60, 24]
   );
 
   let width = useSpring(widthTransform, {
@@ -117,43 +119,64 @@ function IconContainer({
           width,
           height,
           backgroundColor,
+          position: "relative",
+          margin: "0 4px",
         }}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
-        className="flex items-center justify-center relative overflow-visible"
+        className="rounded-[19px] flex items-center justify-center"
       >
-        {/* Outline/Border Container */}
-        {outlineMode === "media" && outlineValue ? (
+        {/* Base container without border */}
+        <motion.div
+          className="absolute inset-0 rounded-[19px]"
+          style={{
+            ...(outlineMode === "color"
+              ? { border: `0.6px solid ${borderColor}` }
+              : {}),
+          }}
+        />
+
+        {/* Media outline container */}
+        {outlineMode === "media" && outlineValue && (
           <motion.div
-            className="absolute inset-0 pointer-events-none"
-            style={{ width, height }}
-          >
-            <motion.img
-              src={outlineValue}
-              alt=""
-              className="absolute inset-0 w-full h-full object-contain"
-              style={{ width, height }}
-            />
-          </motion.div>
-        ) : (
-          <motion.div
-            className="absolute inset-0 rounded-[19px] pointer-events-none"
+            className="absolute inset-0 rounded-[19px]"
             style={{
-              border: `0.6px solid ${borderColor}`,
               width,
               height,
             }}
-          />
+          >
+            <div
+              className="absolute inset-0"
+              style={{ transform: "scale(1.2)", transformOrigin: "center" }}
+            >
+              <img
+                src={outlineValue}
+                alt=""
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+            </div>
+          </motion.div>
         )}
 
-        {/* Hover tooltip */}
+        {/* Icon container */}
+        <motion.div
+          style={{
+            width: iconSize,
+            height: iconSize,
+          }}
+          className="relative z-10 flex items-center justify-center"
+        >
+          {icon}
+        </motion.div>
+
+        {/* Tooltip */}
         <AnimatePresence>
           {hovered && (
             <motion.div
               initial={{ opacity: 0, y: 10, x: "-50%" }}
               animate={{ opacity: 1, y: 0, x: "-50%" }}
               exit={{ opacity: 0, y: 2, x: "-50%" }}
-              className="px-2 py-0.5 whitespace-pre rounded-[19px] absolute left-1/2 -translate-x-1/2 -top-8 w-fit text-xs"
+              className="px-2 py-0.5 whitespace-pre rounded-[19px] absolute left-1/2 -translate-x-1/2 -top-8 w-fit text-xs z-20"
               style={{
                 backgroundColor,
                 border: `0.6px solid rgba(255, 255, 255, 0.09)`,
@@ -164,17 +187,6 @@ function IconContainer({
             </motion.div>
           )}
         </AnimatePresence>
-
-        {/* Icon Container */}
-        <motion.div
-          style={{
-            width: iconSize,
-            height: iconSize,
-          }}
-          className="relative z-10 flex items-center justify-center"
-        >
-          {icon}
-        </motion.div>
       </motion.div>
     </Link>
   );

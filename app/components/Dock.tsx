@@ -109,27 +109,29 @@ const Dock: React.FC = () => {
     };
   }, [handleMouseMove]);
 
+  // Inside the dockItems mapping in Dock.tsx
   const dockItems = appDefinitions.map((app, index) => {
     const openApp = appStore.openApps?.find((a) => a.id === app.id);
     const isOpen = !!openApp;
     const isMinimized = openApp?.isMinimized || false;
     const dockIcon = dockIcons?.[index];
     const isColorFill = dockIcon?.mode === "color";
-    const isColorOutline = dockIcon?.outlineMode === "color";
 
     return {
       title: app.name,
       isColorFill,
-      isColorOutline,
-      // Need to pass outline data
+      // Pass the outline-related properties
       outlineMode: dockIcon?.outlineMode || "color",
-      outlineValue: dockIcon?.outlineValue,
-      outlineTokenId: dockIcon?.outlineTokenId,
+      outlineValue: dockIcon?.outlineValue || null,
+      // Pass the borderColor based on the outlineTokenId
+      borderColor:
+        dockIcon?.outlineMode === "color"
+          ? getColor(dockIcon.outlineTokenId || "latte")
+          : undefined,
       icon: (
         <button
           onClick={() => handleAppClick(app)}
           className="focus:outline-none w-full h-full flex items-center justify-center relative"
-          style={{ backgroundColor: getColor("Overlaying BG") }}
         >
           <div
             className="w-full h-full rounded-md flex items-center justify-center"
