@@ -23,6 +23,10 @@ interface OrionConfig {
     tokenId?: string;
     order: number;
     mediaId?: string;
+    outlineMode?: "color" | "media";
+    outlineValue?: string | null;
+    outlineTokenId?: string;
+    outlineMediaId?: string;
   }>;
 }
 

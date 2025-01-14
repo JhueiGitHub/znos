@@ -20,6 +20,10 @@ export const FloatingDock = ({
     icon: React.ReactNode;
     href: string;
     isColorFill?: boolean;
+    // Need to add
+    outlineMode: "color" | "media";
+    outlineValue: string | null;
+    outlineTokenId?: string;
   }[];
   backgroundColor: string;
   borderColor: string;
@@ -30,11 +34,8 @@ export const FloatingDock = ({
     <motion.div
       onMouseMove={(e) => mouseX.set(e.pageX)}
       onMouseLeave={() => mouseX.set(Infinity)}
-      className="flex h-16 items-end rounded-[19px] px-4 pb-3"
-      style={{
-        backgroundColor,
-        border: `0.6px solid rgba(255, 255, 255, 0.09)`,
-      }}
+      className="flex h-16 items-end px-4 pb-3"
+      style={{ backgroundColor }}
     >
       {items.map((item) => (
         <IconContainer
@@ -57,6 +58,9 @@ function IconContainer({
   backgroundColor,
   borderColor,
   isColorFill = false,
+  outlineMode,
+  outlineValue,
+  outlineTokenId,
 }: {
   mouseX: MotionValue;
   title: string;
@@ -65,25 +69,24 @@ function IconContainer({
   backgroundColor: string;
   borderColor: string;
   isColorFill?: boolean;
+  outlineMode: "color" | "media";
+  outlineValue: string | null;
+  outlineTokenId?: string;
 }) {
   let ref = useRef<HTMLDivElement>(null);
 
+  // Transform calculations for container and icon sizes
   let distance = useTransform(mouseX, (val) => {
     let bounds = ref.current?.getBoundingClientRect() ?? { x: 0, width: 0 };
     return val - bounds.x - bounds.width / 2;
   });
 
-  // Container transforms remain the same for layout consistency
   let widthTransform = useTransform(distance, [-150, 0, 150], [40, 80, 40]);
   let heightTransform = useTransform(distance, [-150, 0, 150], [40, 80, 40]);
-
-  // Different icon size transforms based on type
   let iconSizeTransform = useTransform(
     distance,
     [-150, 0, 150],
-    isColorFill
-      ? [24, 48, 24] // Color fills max out at 48px
-      : [24, 64, 24] // Media icons can go up to 64px
+    isColorFill ? [24, 48, 24] : [24, 64, 24]
   );
 
   let width = useSpring(widthTransform, {
@@ -114,12 +117,36 @@ function IconContainer({
           width,
           height,
           backgroundColor,
-          border: `0.6px solid rgba(255, 255, 255, 0.09)`,
         }}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
-        className="rounded-[19px] flex items-center justify-center relative"
+        className="flex items-center justify-center relative overflow-visible"
       >
+        {/* Outline/Border Container */}
+        {outlineMode === "media" && outlineValue ? (
+          <motion.div
+            className="absolute inset-0 pointer-events-none"
+            style={{ width, height }}
+          >
+            <motion.img
+              src={outlineValue}
+              alt=""
+              className="absolute inset-0 w-full h-full object-contain"
+              style={{ width, height }}
+            />
+          </motion.div>
+        ) : (
+          <motion.div
+            className="absolute inset-0 rounded-[19px] pointer-events-none"
+            style={{
+              border: `0.6px solid ${borderColor}`,
+              width,
+              height,
+            }}
+          />
+        )}
+
+        {/* Hover tooltip */}
         <AnimatePresence>
           {hovered && (
             <motion.div
@@ -138,13 +165,13 @@ function IconContainer({
           )}
         </AnimatePresence>
 
-        {/* Icon container with dynamic sizing */}
+        {/* Icon Container */}
         <motion.div
           style={{
             width: iconSize,
             height: iconSize,
           }}
-          className="flex items-center justify-center rounded-md overflow-hidden"
+          className="relative z-10 flex items-center justify-center"
         >
           {icon}
         </motion.div>

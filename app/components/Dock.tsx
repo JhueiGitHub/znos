@@ -8,12 +8,18 @@ import { useStyles } from "../hooks/useStyles";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 
+// Dock.tsx
 interface DockIcon {
   id: string;
   name: string;
+  // Fill
   mode: "color" | "media";
   value: string | null;
-  tokenId: string | undefined;
+  tokenId?: string | undefined;
+  // Outline (missing - need to add)
+  outlineMode: "color" | "media";
+  outlineValue: string | null;
+  outlineTokenId?: string;
   order: number;
 }
 
@@ -109,10 +115,16 @@ const Dock: React.FC = () => {
     const isMinimized = openApp?.isMinimized || false;
     const dockIcon = dockIcons?.[index];
     const isColorFill = dockIcon?.mode === "color";
+    const isColorOutline = dockIcon?.outlineMode === "color";
 
     return {
       title: app.name,
       isColorFill,
+      isColorOutline,
+      // Need to pass outline data
+      outlineMode: dockIcon?.outlineMode || "color",
+      outlineValue: dockIcon?.outlineValue,
+      outlineTokenId: dockIcon?.outlineTokenId,
       icon: (
         <button
           onClick={() => handleAppClick(app)}
