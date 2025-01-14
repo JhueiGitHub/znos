@@ -37,11 +37,17 @@ export async function PATCH(
         id: componentId,
       },
       data: {
+        // Fill properties
         mode: updates.mode,
         value: updates.value,
         tokenId: updates.tokenId,
         mediaId: updates.mediaId,
         mediaUrl: updates.mediaUrl,
+
+        // Outline properties
+        outlineMode: updates.outlineMode,
+        outlineValue: updates.outlineValue,
+        outlineTokenId: updates.outlineTokenId,
       },
     });
 

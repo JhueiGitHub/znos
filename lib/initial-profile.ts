@@ -259,7 +259,7 @@ export const initialProfile = async () => {
                   mode: "color", // Starts in color mode
                   tokenId: "graphite-med", // Initial fill color
                   outlineMode: "color", // NEW
-                  outlineTokenId: "graphite-med", // NEW
+                  outlineTokenId: "latte", // NEW
                   order: 1,
                 },
                 {
@@ -268,7 +268,7 @@ export const initialProfile = async () => {
                   mode: "color",
                   tokenId: "graphite-med",
                   outlineMode: "color", // NEW
-                  outlineTokenId: "graphite-med", // NEW
+                  outlineTokenId: "latte", // NEW
                   order: 2,
                 },
                 {
@@ -277,7 +277,7 @@ export const initialProfile = async () => {
                   mode: "color",
                   tokenId: "graphite-med",
                   outlineMode: "color", // NEW
-                  outlineTokenId: "graphite-med", // NEW
+                  outlineTokenId: "latte", // NEW
                   order: 3,
                 },
                 {
@@ -286,7 +286,7 @@ export const initialProfile = async () => {
                   mode: "color",
                   tokenId: "graphite-med",
                   outlineMode: "color", // NEW
-                  outlineTokenId: "graphite-med", // NEW
+                  outlineTokenId: "latte", // NEW
                   order: 4,
                 },
                 {
@@ -295,7 +295,7 @@ export const initialProfile = async () => {
                   mode: "color",
                   tokenId: "graphite-med",
                   outlineMode: "color", // NEW
-                  outlineTokenId: "graphite-med", // NEW
+                  outlineTokenId: "latte", // NEW
                   order: 5,
                 },
                 {
@@ -304,7 +304,7 @@ export const initialProfile = async () => {
                   mode: "color",
                   tokenId: "graphite-med",
                   outlineMode: "color", // NEW
-                  outlineTokenId: "graphite-med", // NEW
+                  outlineTokenId: "latte", // NEW
                   order: 6,
                 },
                 {
@@ -313,7 +313,7 @@ export const initialProfile = async () => {
                   mode: "color",
                   tokenId: "graphite-med",
                   outlineMode: "color", // NEW
-                  outlineTokenId: "graphite-med", // NEW
+                  outlineTokenId: "latte", // NEW
                   order: 7,
                 },
                 {
@@ -322,7 +322,7 @@ export const initialProfile = async () => {
                   mode: "color",
                   tokenId: "graphite-med",
                   outlineMode: "color", // NEW
-                  outlineTokenId: "graphite-med", // NEW
+                  outlineTokenId: "latte", // NEW
                   order: 8,
                 },
               ],

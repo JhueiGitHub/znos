@@ -1,5 +1,6 @@
 // Explicit component type with all required fields
 // orion-flow-types.ts
+// orion-flow-types.ts
 export interface OrionFlowComponent {
   id: string;
   name: string;
@@ -31,6 +32,7 @@ export type ComponentUpdate = Partial<
 >;
 
 // Full sidebar props interface
+// orion-flow-types.ts
 export interface OrionSidebarProps {
   selectedComponent: OrionFlowComponent | null;
   designSystem: {

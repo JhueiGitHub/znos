@@ -33,6 +33,7 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
   const [mediaSelector, setMediaSelector] = useState<{
     x: number;
     y: number;
+    type: "fill" | "outline";
   } | null>(null);
   const updateOrionConfig = useAppStore((state) => state.setOrionConfig);
   const currentStoreConfig = useAppStore((state) => state.orionConfig);
@@ -119,7 +120,11 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
     setMacOSIconSelector(null);
   };
 
-  const handleMediaSelect = async (mediaItem: MediaItem) => {
+  // In OrionFlowEditor.tsx
+  const handleMediaSelect = async (
+    mediaItem: MediaItem,
+    type: "fill" | "outline" = "fill"
+  ) => {
     if (!selectedComponent) return;
 
     // Update canvas immediately
@@ -136,24 +141,53 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
             source: img,
             repeat: "no-repeat",
           });
-          objectToUpdate.set("fill", pattern);
+          if (type === "outline") {
+            objectToUpdate.set({
+              stroke: pattern as any,
+              strokeWidth: 2,
+            });
+          } else {
+            objectToUpdate.set("fill", pattern);
+          }
           fabricRef.current?.renderAll();
         };
         img.src = mediaItem.url;
       }
     }
 
-    const updates: ComponentUpdate = {
-      mode: "media",
-      value: mediaItem.url,
-      mediaId: mediaItem.id,
-      tokenId: undefined,
-    };
+    // Create appropriate updates based on type
+    const updates: ComponentUpdate =
+      type === "outline"
+        ? {
+            outlineMode: "media" as const, // Explicitly type as const
+            outlineValue: mediaItem.url,
+            outlineTokenId: undefined,
+          }
+        : {
+            mode: "media" as const, // Explicitly type as const
+            value: mediaItem.url,
+            mediaId: mediaItem.id,
+            tokenId: undefined,
+          };
 
     // Update local state and cache
     if (selectedComponent.type === "DOCK_ICON" && currentStoreConfig) {
       const updatedDockIcons = currentStoreConfig.dockIcons?.map((icon) =>
-        icon.id === selectedComponent.id ? { ...icon, ...updates } : icon
+        icon.id === selectedComponent.id
+          ? {
+              ...icon,
+              ...(type === "outline"
+                ? {
+                    outlineMode: "media" as const, // Explicitly type as const
+                    outlineValue: mediaItem.url,
+                  }
+                : {
+                    mode: "media" as const, // Explicitly type as const
+                    value: mediaItem.url,
+                    mediaId: mediaItem.id,
+                  }),
+            }
+          : icon
       );
 
       const updatedConfig = {
@@ -417,10 +451,11 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
                 selectedComponent={selectedComponent}
                 designSystem={designSystem}
                 onUpdateComponent={handleComponentUpdate}
-                onMediaSelect={() =>
+                onMediaSelect={(type) =>
                   setMediaSelector({
                     x: window.innerWidth - 700,
                     y: 100,
+                    type: type || "fill", // Add type to the state
                   })
                 }
                 onMacOSIconSelect={() =>
@@ -449,7 +484,9 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
         {mediaSelector && (
           <MediaSelector
             position={mediaSelector}
-            onSelect={handleMediaSelect}
+            onSelect={(mediaItem) =>
+              handleMediaSelect(mediaItem, mediaSelector.type)
+            } // Add type here
             onClose={() => setMediaSelector(null)}
           />
         )}
