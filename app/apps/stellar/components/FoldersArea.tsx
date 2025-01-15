@@ -375,7 +375,7 @@ export function FoldersArea() {
         setIsUploading(true);
         const formData = new FormData();
         formData.append("file", file);
-        formData.append("UPLOADCARE_PUB_KEY", "db02d0ff804f74d1f9e9");
+        formData.append("UPLOADCARE_PUB_KEY", "8ad170db5210465d6add");
 
         const uploadResponse = await axios.post(
           "https://upload.uploadcare.com/base/",

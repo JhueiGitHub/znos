@@ -12,6 +12,7 @@ interface MediaSelectorProps {
   position: { x: number; y: number };
   onSelect: (mediaItem: MediaItem) => void;
   onClose: () => void;
+  componentType?: string; // Add this new prop
 }
 
 // Define interface for Stellar files
@@ -43,6 +44,7 @@ export const MediaSelector = ({
   position,
   onSelect,
   onClose,
+  componentType,
 }: MediaSelectorProps) => {
   const { getColor } = useStyles();
 

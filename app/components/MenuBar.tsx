@@ -450,6 +450,10 @@ export const MenuBar = () => {
         value: c.value,
         tokenId: c.tokenId || undefined,
         mediaId: c.mediaId || undefined,
+        // Use only the outline properties that exist in the schema
+        outlineMode: c.outlineMode as "color" | "media",
+        outlineValue: c.outlineValue || null,
+        outlineTokenId: c.outlineTokenId || undefined,
         order: c.order,
       }));
 
