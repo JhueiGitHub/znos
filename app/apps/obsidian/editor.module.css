@@ -1,0 +1,46 @@
+/* editor.module.css */
+@font-face {
+    font-family: 'Dank';
+    src: url('/fonts/DankMono-Italic.ttf') format('truetype');
+    font-style: italic;
+  }
+  
+  @font-face {
+    font-family: 'Dank';
+    src: url('/fonts/DankMono-Regular.ttf') format('truetype');
+    font-style: normal;
+  }
+  
+  .editorContainer {
+    height: 100%;
+    background: rgba(0, 0, 0, 0.576);
+    border-radius: 0.5rem;
+    display: flex;
+    justify-content: center;
+  }
+  
+  .editorWrapper {
+    width: 970px;
+    padding: 1.5rem;
+    height: 100%;
+  }
+  
+  .editorContent {
+    position: relative;
+    width: 100%;
+    height: calc(100% - 3rem);
+  }
+  
+  .editorContent :global(.cm-editor) {
+    height: 100%;
+    font-family: 'Dank', monospace;
+  }
+  
+  .editorContent :global(.cm-editor.cm-focused) {
+    outline: none !important;
+  }
+  
+  .editorContent :global(.cm-scroller) {
+    font-family: 'Dank', monospace;
+    padding: 0 !important;
+  }

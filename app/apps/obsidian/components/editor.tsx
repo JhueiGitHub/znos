@@ -8,6 +8,7 @@ import debounce from "lodash/debounce";
 import { useShorthand } from "../hooks/useShorthand";
 import { useShorthandStore } from "../stores/shorthand-store";
 
+
 // Updated regex pattern to include both arrows and bullet points while preserving their original form
 const SYMBOL_PATTERN = /(->|- |"|"|"|:|;)/g;
 
@@ -31,7 +32,7 @@ const getSymbolType = (symbol: string) => {
 };
 
 // Enhanced PreviewContent component to handle both arrows and bullets
-const PreviewContent: React.FC<{ content: string; accentColor: string }> =
+const PreviewContent: React.FC<{ content: string; accentColor: string }> = 
   React.memo(({ content, accentColor }) => {
     // Split content by our symbol pattern while preserving the symbols
     const parts = content.split(SYMBOL_PATTERN).map((part, index) => {
@@ -67,33 +68,55 @@ const PreviewContent: React.FC<{ content: string; accentColor: string }> =
     return <div className="whitespace-pre-wrap">{parts}</div>;
   });
 
-const Editor: React.FC = () => {
-  const { getColor } = useStyles();
-  const { activeNote, activeNoteId, saveScrollPosition, getScrollPosition } =
-    useNote();
-  const { accentColor } = useDailyColor();
-  const [content, setContent] = useState(activeNote?.content || "");
-  const queryClient = useQueryClient();
-  const editorRef = useRef<HTMLTextAreaElement>(null);
-  const previewRef = useRef<HTMLDivElement>(null);
+  const Editor: React.FC = () => {
+    const { getColor } = useStyles();
+    const { activeNote, activeNoteId, saveScrollPosition, getScrollPosition } = useNote();
+    const { accentColor } = useDailyColor();
+    const [content, setContent] = useState(activeNote?.content || "");
+    const queryClient = useQueryClient();
+    const editorRef = useRef<HTMLTextAreaElement>(null);
+    const previewRef = useRef<HTMLDivElement>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
+  
+    // Enhanced scroll sync with requestAnimationFrame for performance
+    // Enhanced scroll sync with requestAnimationFrame for performance
+  const syncScroll = useCallback((sourceElement: HTMLElement, targetElement: HTMLElement) => {
+    requestAnimationFrame(() => {
+      targetElement.scrollTop = sourceElement.scrollTop;
+    });
+  }, []);
 
   const saveScrollDebounced = useCallback(
-    debounce((position: number) => {
-      if (activeNoteId) {
-        saveScrollPosition(activeNoteId, position);
-      }
+    debounce((noteId: string, position: number) => {
+      saveScrollPosition(noteId, position);
     }, 100),
-    [activeNoteId, saveScrollPosition]
+    [saveScrollPosition]
   );
 
-  const handleScroll = useCallback(() => {
-    if (editorRef.current && activeNoteId) {
-      saveScrollDebounced(editorRef.current.scrollTop);
-      if (previewRef.current) {
-        previewRef.current.scrollTop = editorRef.current.scrollTop;
+  const handleScroll = useCallback((e: React.UIEvent<HTMLElement>) => {
+    const source = e.target as HTMLElement;
+    if (editorRef.current && previewRef.current) {
+      if (source === editorRef.current) {
+        syncScroll(editorRef.current, previewRef.current);
+      } else if (source === previewRef.current) {
+        syncScroll(previewRef.current, editorRef.current);
       }
     }
-  }, [activeNoteId, saveScrollDebounced]);
+    
+    if (activeNoteId && editorRef.current) {
+      saveScrollDebounced(activeNoteId, editorRef.current.scrollTop);
+    }
+  }, [activeNoteId, saveScrollDebounced, syncScroll]);
+
+  // Update scroll position when note changes
+  useEffect(() => {
+    if (activeNoteId && editorRef.current && previewRef.current) {
+      const savedPosition = getScrollPosition(activeNoteId);
+      editorRef.current.scrollTop = savedPosition;
+      previewRef.current.scrollTop = savedPosition;
+    }
+  }, [activeNoteId, getScrollPosition]);
+  
 
   // Update content when note changes
   useEffect(() => {
@@ -265,9 +288,9 @@ const Editor: React.FC = () => {
 
   return (
     <div className="h-full bg-[#00000093] rounded-lg flex justify-center">
-      <div className="w-[970px] p-6">
+      <div className="w-[970px] p-6 flex flex-col h-full">
         <h1
-          className="text-2xl font-bold mb-4"
+          className="text-2xl font-bold mb-4 flex-shrink-0"
           style={{
             fontFamily: "ExemplarPro",
             color: activeNote.isDaily ? accentColor : "#4C4F69",
@@ -276,28 +299,35 @@ const Editor: React.FC = () => {
         >
           {activeNote.title}
         </h1>
-        <div className="relative w-full h-[calc(100%-3rem)]">
+        
+        <div 
+          ref={containerRef}
+          className="relative flex-grow overflow-hidden"
+        >
           <textarea
             ref={editorRef}
             value={content}
             onChange={handleContentChange}
             onScroll={handleScroll}
             onKeyDown={handleKeyDown}
-            className="absolute inset-0 w-full h-full bg-transparent resize-none outline-none prose prose-invert"
+            className="absolute inset-0 w-full h-full bg-transparent resize-none outline-none prose prose-invert overflow-y-auto"
             style={{
               fontFamily: "Dank",
               color: "transparent",
               caretColor: "#7E8691",
               zIndex: 1,
+              padding: 0,
             }}
           />
           <div
             ref={previewRef}
-            className="absolute inset-0 w-full h-full pointer-events-none prose prose-invert"
+            onScroll={handleScroll}
+            className="absolute inset-0 w-full h-full pointer-events-none prose prose-invert overflow-y-auto"
             style={{
               fontFamily: "Dank",
               color: "#7E8691",
               zIndex: 2,
+              padding: 0,
             }}
           >
             <PreviewContent content={content} accentColor={accentColor} />
