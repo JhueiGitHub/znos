@@ -1,3 +1,4 @@
+// components/ui/file-tree.tsx
 "use client";
 
 import React, {
@@ -10,7 +11,6 @@ import React, {
 } from "react";
 import * as AccordionPrimitive from "@radix-ui/react-accordion";
 import { FileIcon, FolderIcon, FolderOpenIcon } from "lucide-react";
-
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -55,6 +55,7 @@ type TreeViewProps = {
   initialExpandedItems?: string[];
   openIcon?: React.ReactNode;
   closeIcon?: React.ReactNode;
+  onValueChange?: (value: string[]) => void; // Add this prop
 } & TreeViewComponentProps;
 
 const Tree = forwardRef<HTMLDivElement, TreeViewProps>(
@@ -69,6 +70,7 @@ const Tree = forwardRef<HTMLDivElement, TreeViewProps>(
       openIcon,
       closeIcon,
       dir,
+      onValueChange, // Add this prop
       ...props
     },
     ref
@@ -79,6 +81,8 @@ const Tree = forwardRef<HTMLDivElement, TreeViewProps>(
     const [expandedItems, setExpandedItems] = useState<string[] | undefined>(
       initialExpandedItems
     );
+
+    // Remove the problematic effect
 
     const selectItem = useCallback((id: string) => {
       setSelectedId(id);
@@ -134,7 +138,7 @@ const Tree = forwardRef<HTMLDivElement, TreeViewProps>(
       if (initialSelectedId) {
         expandSpecificTargetedElements(elements, initialSelectedId);
       }
-    }, [initialSelectedId, elements]);
+    }, [initialSelectedId, elements, expandSpecificTargetedElements]);
 
     const direction = dir === "rtl" ? "rtl" : "ltr";
 
@@ -164,9 +168,12 @@ const Tree = forwardRef<HTMLDivElement, TreeViewProps>(
               defaultValue={expandedItems}
               value={expandedItems}
               className="flex flex-col gap-[3px]"
-              onValueChange={(value) =>
-                setExpandedItems((prev) => [...(prev ?? []), value[0]])
-              }
+              onValueChange={(value) => {
+                setExpandedItems(value);
+                if (onValueChange) {
+                  onValueChange(value);
+                }
+              }}
               dir={dir as Direction}
             >
               {children}
@@ -177,6 +184,11 @@ const Tree = forwardRef<HTMLDivElement, TreeViewProps>(
     );
   }
 );
+
+Tree.displayName = "Tree";
+
+// Rest of the components remain the same...
+// Include all other existing components (TreeIndicator, Folder, File, CollapseButton)
 
 Tree.displayName = "Tree";
 

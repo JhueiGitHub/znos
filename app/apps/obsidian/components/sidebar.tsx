@@ -1,5 +1,5 @@
-// components/sidebar.tsx
-import React from "react"; // Removed unused imports
+// components/Sidebar.tsx
+import React, { useEffect } from "react";
 import { Tree, Folder, File } from "./ui/file-tree";
 import { useStyles } from "@os/hooks/useStyles";
 import Image from "next/image";
@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { useNote } from "../contexts/note-context";
 import { ObsidianCalendar } from "./obsidian-calendar";
+import { useNotePersistence } from "../hooks/useNotePersistence";
 
 type ObsidianNote = {
   id: string;
@@ -24,8 +25,13 @@ type ObsidianFolder = {
 const Sidebar: React.FC = () => {
   const { getColor, getFont } = useStyles();
   const { activeNoteId, setActiveNoteId, navigateToDate } = useNote();
+  const { 
+    expandedFolders, 
+    setExpandedFolders, 
+    toggleFolderExpanded 
+  } = useNotePersistence();
 
-  // First, fetch the profile to get the vault
+  // Profile and vault queries remain the same...
   const { data: profile } = useQuery({
     queryKey: ["profile"],
     queryFn: async () => {
@@ -34,7 +40,6 @@ const Sidebar: React.FC = () => {
     },
   });
 
-  // Then fetch the vault using the profile
   const { data: vault } = useQuery({
     queryKey: ["vault", profile?.id],
     queryFn: async () => {
@@ -44,7 +49,6 @@ const Sidebar: React.FC = () => {
     enabled: !!profile?.id,
   });
 
-  // Finally, fetch the folder structure using the vault ID
   const { data: treeData, isLoading } = useQuery({
     queryKey: ["vault-folders", vault?.id],
     queryFn: async () => {
@@ -56,12 +60,10 @@ const Sidebar: React.FC = () => {
       const filterDailyNotes = (data: any): any => {
         if (!data) return data;
 
-        // Handle array of items
         if (Array.isArray(data)) {
           return data.map(filterDailyNotes);
         }
 
-        // Handle single folder item
         const notes = Array.isArray(data.notes)
           ? data.notes.filter((note: ObsidianNote) => !note.isDaily)
           : [];
@@ -123,7 +125,12 @@ const Sidebar: React.FC = () => {
 
       if (Array.isArray(item.children) && item.children.length > 0) {
         return (
-          <Folder key={item.id} element={item.name} value={item.id}>
+          <Folder 
+            key={item.id} 
+            element={item.name} 
+            value={item.id}
+            isSelect={expandedFolders?.includes(item.id) || false}
+          >
             {renderTreeItems(item.children)}
             {Array.isArray(item.notes) &&
               renderTreeItems(
@@ -141,6 +148,7 @@ const Sidebar: React.FC = () => {
             value={item.id}
             fileIcon={<FileIcon />}
             handleSelect={(id) => setActiveNoteId(id)}
+            isSelect={activeNoteId === item.id}
           >
             <p>{item.name}</p>
           </File>
@@ -161,18 +169,12 @@ const Sidebar: React.FC = () => {
     );
   }
 
-  if (!vault) {
+  if (!vault || !treeData) {
     return (
       <div className="w-[240px] p-4">
-        <div className="text-sm text-white/50">Loading vault...</div>
-      </div>
-    );
-  }
-
-  if (!treeData) {
-    return (
-      <div className="w-[240px] p-4">
-        <div className="text-sm text-white/50">No data available</div>
+        <div className="text-sm text-white/50">
+          {!vault ? "Loading vault..." : "No data available"}
+        </div>
       </div>
     );
   }
@@ -186,6 +188,7 @@ const Sidebar: React.FC = () => {
         openIcon={<FolderIcon isOpen={true} />}
         closeIcon={<FolderIcon isOpen={false} />}
         initialSelectedId={activeNoteId}
+        initialExpandedItems={expandedFolders || []}
       >
         {renderTreeItems(treeData)}
       </Tree>
