@@ -53,7 +53,7 @@ const IntroClient = ({ profileId }: IntroClientProps) => {
       <div className="titles">
         <div id="titlecontent">
           <p className="center">
-            EPISODE I<br />A NEW OPERATING SYSTEM
+            EPISODE I<br />THE AGE OF ARCHITECTS
           </p>
 
           <p className="center">THE SILENCE BEFORE DAWN</p>

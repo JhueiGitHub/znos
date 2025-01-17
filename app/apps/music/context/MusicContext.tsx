@@ -136,7 +136,7 @@ const ALL_PLAYLISTS: Playlist[] = [
   {
     id: "blav",
     name: "BLAV",
-    songCount: 19,
+    songCount: 18,
     thumbnail: "/media/playlists/blav.png",
     songs: [
       {
@@ -277,14 +277,6 @@ const ALL_PLAYLISTS: Playlist[] = [
       },
       {
         id: "blav-18",
-        title: "faith",
-        artist: "BLAV",
-        path: "/audio/blav/faith.mp4",
-        thumbnail: "/media/songs/blav/faith.png",
-        videoUrl: "https://www.youtube.com/watch?v=Co2muyyYIkM",
-      },
-      {
-        id: "blav-19",
         title: "after hours",
         artist: "BLAV",
         path: "/audio/blav/afterhours.mp4",
@@ -368,7 +360,7 @@ const ALL_PLAYLISTS: Playlist[] = [
   {
     id: "nxra",
     name: "NXRA",
-    songCount: 6,
+    songCount: 9,
     thumbnail: "/media/playlists/nxra.png",
     songs: [
       {
@@ -418,6 +410,30 @@ const ALL_PLAYLISTS: Playlist[] = [
         path: "/audio/nxra/tryme.mp4",
         thumbnail: "/media/songs/nxra/tryme.png",
         videoUrl: "https://www.youtube.com/watch?v=Qi7bA43x0cg",
+      },
+      {
+        id: "nxra-7",
+        title: "lost in the fire",
+        artist: "NXRA",
+        path: "/audio/nxra/lostinthefire.mp4",
+        thumbnail: "/media/songs/nxra/lostinthefire.png",
+        videoUrl: "https://www.youtube.com/watch?v=gkXb-G1s7J8",
+      },
+      {
+        id: "nxra-8",
+        title: "low life",
+        artist: "NXRA",
+        path: "/audio/nxra/lowlife.mp4",
+        thumbnail: "/media/songs/nxra/lowlife.png",
+        videoUrl: "https://www.youtube.com/watch?v=1ZIm3m92_vQ",
+      },
+      {
+        id: "nxra-9",
+        title: "wanderlust",
+        artist: "NXRA",
+        path: "/audio/nxra/wanderlust.mp4",
+        thumbnail: "/media/songs/nxra/wanderlust.png",
+        videoUrl: "https://www.youtube.com/watch?v=9_smMqZhnkY",
       },
     ],
   },
