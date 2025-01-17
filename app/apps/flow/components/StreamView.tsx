@@ -91,6 +91,27 @@ export const StreamView = ({ streamId, onFlowSelect }: StreamViewProps) => {
     },
   });
 
+  // Add this mutation near other mutations in StreamView
+const { mutate: unpublishFromXP } = useMutation({
+  mutationFn: async (flowId: string) => {
+    const response = await axios.delete(`/api/xp/publications/by-flow/${flowId}`);
+    return response.data;
+  },
+  onSuccess: (_, flowId) => {
+    // Update published flows cache
+    queryClient.setQueryData(["published-flows"], (old: any) => {
+      if (!old) return old;
+      const newData = { ...old };
+      delete newData[flowId];
+      return newData;
+    });
+    toast.success("Flow unpublished from XP successfully");
+  },
+  onError: () => {
+    toast.error("Failed to unpublish flow from XP");
+  },
+});
+
   // PRESERVED: Original handlers
   const handleDuplicateFlow = async (flowId: string, flowName: string) => {
     setIsDuplicating(flowId);
@@ -395,70 +416,79 @@ useEffect(() => {
               </motion.div>
             </ContextMenuTrigger>
             <ContextMenuContent
-              style={{
-                backgroundColor: getColor("Glass"),
-                borderColor: getColor("Brd"),
-              }}
-            >
-              {stream.type === "CONFIG" && (
-                <>
-                  {publishedFlowsMap[flow.id] ? (
-                    // Show for published flows
-                    <ContextMenuItem
-                      onClick={() => {
-                        /* Push implementation later */
-                      }}
-                      disabled={!publishedFlowsMap[flow.id]?.hasChanges}
-                      className={
-                        !publishedFlowsMap[flow.id]?.hasChanges
-                          ? "opacity-50"
-                          : ""
-                      }
-                      style={{
-                        color: getColor("Text Primary (Hd)"),
-                        fontFamily: getFont("Text Primary"),
-                      }}
-                    >
-                      Push to XP
-                    </ContextMenuItem>
-                  ) : (
-                    // Show for unpublished flows
-                    <ContextMenuItem
-                      onClick={() => publishToXP(flow.id)}
-                      disabled={isPublishing === flow.id}
-                      style={{
-                        color: getColor("Text Primary (Hd)"),
-                        fontFamily: getFont("Text Primary"),
-                      }}
-                    >
-                      {isPublishing === flow.id ? "Publishing..." : "Add to XP"}
-                    </ContextMenuItem>
-                  )}
-                  <ContextMenuItem
-                    onClick={() => handleRenameStart(flow.id)}
-                    style={{
-                      color: getColor("Text Primary (Hd)"),
-                      fontFamily: getFont("Text Primary"),
-                    }}
-                  >
-                    Rename
-                  </ContextMenuItem>
-                  <ContextMenuSeparator />
-                </>
-              )}
-              <ContextMenuItem
-                onClick={() => handleDuplicateFlow(flow.id, flow.name)}
-                disabled={isDuplicating === flow.id}
-                style={{
-                  color: getColor("Text Primary (Hd)"),
-                  fontFamily: getFont("Text Primary"),
-                }}
-              >
-                {isDuplicating === flow.id
-                  ? "Duplicating..."
-                  : "Duplicate Flow"}
-              </ContextMenuItem>
-            </ContextMenuContent>
+  style={{
+    backgroundColor: getColor("Glass"),
+    borderColor: getColor("Brd"),
+  }}
+>
+  {stream.type === "CONFIG" && (
+    <>
+      {publishedFlowsMap[flow.id] ? (
+        <>
+          <ContextMenuItem
+            onClick={() => {
+              if (publishedFlowsMap[flow.id]?.hasChanges) {
+                /* Push implementation later */
+              }
+            }}
+            disabled={!publishedFlowsMap[flow.id]?.hasChanges}
+            className={!publishedFlowsMap[flow.id]?.hasChanges ? "opacity-50" : ""}
+            style={{
+              color: getColor("Text Primary (Hd)"),
+              fontFamily: getFont("Text Primary"),
+            }}
+          >
+            Push to XP
+          </ContextMenuItem>
+          <ContextMenuItem
+            onClick={() => {
+              if (window.confirm("Are you sure you want to unpublish this flow from XP?")) {
+                unpublishFromXP(flow.id);
+              }
+            }}
+            style={{
+              color: "#ef4444", // Red color for danger
+              fontFamily: getFont("Text Primary"),
+            }}
+          >
+            Unpublish from XP
+          </ContextMenuItem>
+        </>
+      ) : (
+        <ContextMenuItem
+          onClick={() => publishToXP(flow.id)}
+          disabled={isPublishing === flow.id}
+          style={{
+            color: getColor("Text Primary (Hd)"),
+            fontFamily: getFont("Text Primary"),
+          }}
+        >
+          {isPublishing === flow.id ? "Publishing..." : "Add to XP"}
+        </ContextMenuItem>
+      )}
+      <ContextMenuItem
+        onClick={() => handleRenameStart(flow.id)}
+        style={{
+          color: getColor("Text Primary (Hd)"),
+          fontFamily: getFont("Text Primary"),
+        }}
+      >
+        Rename
+      </ContextMenuItem>
+      <ContextMenuSeparator />
+    </>
+  )}
+  <ContextMenuItem
+    onClick={() => handleDuplicateFlow(flow.id, flow.name)}
+    disabled={isDuplicating === flow.id}
+    style={{
+      color: getColor("Text Primary (Hd)"),
+      fontFamily: getFont("Text Primary"),
+    }}
+  >
+    {isDuplicating === flow.id ? "Duplicating..." : "Duplicate Flow"}
+  </ContextMenuItem>
+</ContextMenuContent>
           </ContextMenu>
         ))}
       </motion.div>
