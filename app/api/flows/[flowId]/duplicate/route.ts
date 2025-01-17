@@ -2,6 +2,7 @@
 import { NextResponse } from "next/server";
 import { currentProfile } from "@/lib/current-profile";
 import { db } from "@/lib/db";
+import { OrionFlowComponent } from "@/app/apps/flow/components/editors/orion-flow-types";
 
 export async function POST(
   req: Request,
@@ -52,12 +53,21 @@ export async function POST(
             mediaUrl: component.mediaUrl,
             tokenId: component.tokenId,
             tokenValue: component.tokenValue,
+            // Add outline-related fields
+            outlineMode: component.outlineMode,
+            outlineValue: component.outlineValue,
+            outlineTokenId: component.outlineTokenId,
+            // Ensure order is maintained
             order: component.order,
           })),
         },
       },
       include: {
-        components: true,
+        components: {
+          orderBy: {
+            order: 'asc'
+          }
+        },
       },
     });
 
