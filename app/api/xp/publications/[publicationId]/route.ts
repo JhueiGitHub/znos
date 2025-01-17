@@ -35,14 +35,16 @@ export async function GET(
     }
 
     // EVOLVED: Get complete flow data including all components
+    // Inside the GET handler after the publication query
     const flow = await db.flow.findUnique({
       where: {
         id: publication.designSystemId,
       },
       include: {
+        stream: true,
         components: {
           include: {
-            mediaItem: true, // Include media information
+            mediaItem: true,
           },
         },
       },

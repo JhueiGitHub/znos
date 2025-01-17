@@ -122,33 +122,38 @@ export async function POST(
         profileId: profile.id,
         streamId: orionStream.id,
         designSystemId: sourceFlow.designSystemId,
-        components: {
-          create: components.map((component) => {
-            const baseComponent = {
-              name: component.name,
-              type: component.type,
-              mode: component.mode,
-              value: component.value,
-              opacity: component.opacity,
-              fontFamily: component.fontFamily,
-              strokeWidth: component.strokeWidth,
-              mappedTokenId: component.mappedTokenId,
-              mediaUrl: component.mediaUrl,
-              order: component.order,
-              tokenId: component.tokenId,
-              tokenValue: component.tokenValue,
-            } satisfies Omit<FlowComponent, 'id' | 'flowId' | 'createdAt' | 'updatedAt' | 'mediaId'>;
+        // Inside the flow creation, replace the component mapping section with:
+components: {
+  create: components.map((component) => {
+    const baseComponent = {
+      name: component.name,
+      type: component.type,
+      mode: component.mode,
+      value: component.value,
+      opacity: component.opacity,
+      fontFamily: component.fontFamily,
+      strokeWidth: component.strokeWidth,
+      mappedTokenId: component.mappedTokenId,
+      mediaUrl: component.mediaUrl,
+      order: component.order,
+      tokenId: component.tokenId,
+      tokenValue: component.tokenValue,
+      outlineMode: component.outlineMode,
+      outlineValue: component.outlineValue,
+      outlineTokenId: component.outlineTokenId,
+    };
 
-            if (component.mediaId && mediaMapping.has(component.mediaId)) {
-              return {
-                ...baseComponent,
-                mediaId: mediaMapping.get(component.mediaId),
-              };
-            }
+    // Only add mediaId if it exists and is mapped
+    if (component.mediaId && mediaMapping.has(component.mediaId)) {
+      return {
+        ...baseComponent,
+        mediaId: mediaMapping.get(component.mediaId),
+      };
+    }
 
-            return baseComponent;
-          }),
-        },
+    return baseComponent;
+  }),
+},
       },
       include: {
         components: {

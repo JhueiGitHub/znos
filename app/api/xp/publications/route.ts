@@ -50,6 +50,7 @@ export async function POST(req: Request) {
     }
 
     // Get flow with all needed relations
+    // in /api/xp/publications/route.ts, in the POST handler
     const flow = await db.flow.findUnique({
       where: {
         id: flowId,
