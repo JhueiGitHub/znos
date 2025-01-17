@@ -127,6 +127,28 @@ const { mutate: unpublishFromXP } = useMutation({
     }
   };
 
+  // Add this mutation near other mutations in StreamView
+const { mutate: deleteFlow } = useMutation({
+  mutationFn: async (flowId: string) => {
+    const response = await axios.delete(`/api/flows/${flowId}`);
+    return response.data;
+  },
+  onSuccess: (_, flowId) => {
+    // Update stream cache to remove the deleted flow
+    queryClient.setQueryData(["stream", streamId], (oldData: any) => {
+      if (!oldData) return oldData;
+      return {
+        ...oldData,
+        flows: oldData.flows.filter((flow: Flow) => flow.id !== flowId),
+      };
+    });
+    toast.success("Flow deleted successfully");
+  },
+  onError: () => {
+    toast.error("Failed to delete flow");
+  },
+});
+
   // PRESERVED: XP mutation
   const { mutate: publishToXP } = useMutation({
     mutationFn: async (flowId: string) => {
@@ -424,36 +446,19 @@ useEffect(() => {
   {stream.type === "CONFIG" && (
     <>
       {publishedFlowsMap[flow.id] ? (
-        <>
-          <ContextMenuItem
-            onClick={() => {
-              if (publishedFlowsMap[flow.id]?.hasChanges) {
-                /* Push implementation later */
-              }
-            }}
-            disabled={!publishedFlowsMap[flow.id]?.hasChanges}
-            className={!publishedFlowsMap[flow.id]?.hasChanges ? "opacity-50" : ""}
-            style={{
-              color: getColor("Text Primary (Hd)"),
-              fontFamily: getFont("Text Primary"),
-            }}
-          >
-            Push to XP
-          </ContextMenuItem>
-          <ContextMenuItem
-            onClick={() => {
-              if (window.confirm("Are you sure you want to unpublish this flow from XP?")) {
-                unpublishFromXP(flow.id);
-              }
-            }}
-            style={{
-              color: "#ef4444", // Red color for danger
-              fontFamily: getFont("Text Primary"),
-            }}
-          >
-            Unpublish from XP
-          </ContextMenuItem>
-        </>
+        <ContextMenuItem
+          onClick={() => {
+            /* Push implementation later */
+          }}
+          disabled={!publishedFlowsMap[flow.id]?.hasChanges}
+          className={!publishedFlowsMap[flow.id]?.hasChanges ? "opacity-50" : ""}
+          style={{
+            color: getColor("Text Primary (Hd)"),
+            fontFamily: getFont("Text Primary"),
+          }}
+        >
+          Push to XP
+        </ContextMenuItem>
       ) : (
         <ContextMenuItem
           onClick={() => publishToXP(flow.id)}
@@ -476,6 +481,19 @@ useEffect(() => {
         Rename
       </ContextMenuItem>
       <ContextMenuSeparator />
+      <ContextMenuItem
+        onClick={() => {
+          if (window.confirm("Are you sure you want to delete this flow?")) {
+            deleteFlow(flow.id);
+          }
+        }}
+        style={{
+          color: "#ef4444", // Red color for danger
+          fontFamily: getFont("Text Primary"),
+        }}
+      >
+        Delete Flow
+      </ContextMenuItem>
     </>
   )}
   <ContextMenuItem

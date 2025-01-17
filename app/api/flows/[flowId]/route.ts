@@ -129,12 +129,29 @@ export async function DELETE(
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    await db.flow.delete({
-      where: { id: params.flowId, profileId: profile.id },
+    // Use a transaction to handle component deletion first
+    await db.$transaction(async (tx) => {
+      // First delete all components
+      await tx.flowComponent.deleteMany({
+        where: {
+          flowId: params.flowId,
+          flow: {
+            profileId: profile.id // Ensure ownership
+          }
+        },
+      });
+
+      // Then delete the flow
+      await tx.flow.delete({
+        where: {
+          id: params.flowId,
+          profileId: profile.id // Ensure ownership
+        },
+      });
     });
 
     return new NextResponse(null, { status: 204 });
-  } catch (error: unknown) {
+  } catch (error) {
     console.error("[FLOW_DELETE]", error);
     return new NextResponse("Internal Error", { status: 500 });
   }
