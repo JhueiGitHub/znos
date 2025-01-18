@@ -92,6 +92,7 @@ export const StreamView = ({ streamId, onFlowSelect }: StreamViewProps) => {
   });
 
   // Add this mutation near other mutations in StreamView
+// Add this mutation near other mutations in StreamView
 const { mutate: unpublishFromXP } = useMutation({
   mutationFn: async (flowId: string) => {
     const response = await axios.delete(`/api/xp/publications/by-flow/${flowId}`);
@@ -446,20 +447,37 @@ useEffect(() => {
   {stream.type === "CONFIG" && (
     <>
       {publishedFlowsMap[flow.id] ? (
+        <>
         <ContextMenuItem
-          onClick={() => {
+        onClick={() => {
+          if (publishedFlowsMap[flow.id]?.hasChanges) {
             /* Push implementation later */
-          }}
-          disabled={!publishedFlowsMap[flow.id]?.hasChanges}
-          className={!publishedFlowsMap[flow.id]?.hasChanges ? "opacity-50" : ""}
-          style={{
-            color: getColor("Text Primary (Hd)"),
-            fontFamily: getFont("Text Primary"),
-          }}
-        >
+          }
+        }}
+        disabled={!publishedFlowsMap[flow.id]?.hasChanges}
+        className={!publishedFlowsMap[flow.id]?.hasChanges ? "opacity-50" : ""}
+        style={{
+          color: getColor("Text Primary (Hd)"),
+          fontFamily: getFont("Text Primary"),
+        }}
+      >
           Push to XP
         </ContextMenuItem>
-      ) : (
+      <ContextMenuItem
+      onClick={() => {
+        if (window.confirm("Are you sure you want to unpublish this flow from XP?")) {
+          unpublishFromXP(flow.id);
+        }
+      }}
+      style={{
+        color: "#ef4444", // Red color for danger
+        fontFamily: getFont("Text Primary"),
+      }}
+    >
+      Unpublish from XP
+    </ContextMenuItem>
+  </>
+) : (
         <ContextMenuItem
           onClick={() => publishToXP(flow.id)}
           disabled={isPublishing === flow.id}
