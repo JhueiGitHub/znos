@@ -80,6 +80,8 @@ const MusicDropdown: React.FC<MusicDropdownProps> = ({
     seek,
     isWallpaperMode,
     toggleWallpaperMode,
+    fmModeEnabled,
+    toggleFmMode,
   } = useMusicContext();
   const [isHovering, setIsHovering] = useState(false);
   const [hoverPosition, setHoverPosition] = useState(0);
@@ -251,21 +253,34 @@ const MusicDropdown: React.FC<MusicDropdownProps> = ({
 
                     {/* Middle section with playlist info */}
                     <div className="flex-1 min-w-0">
-                      <div
-                        className="text-sm font-medium truncate"
-                        style={{
-                          color:
-                            currentPlaylist?.id === playlist.id
-                              ? "rgba(76, 79, 105, 0.95)"
-                              : "rgba(76, 79, 105, 0.81)",
-                        }}
-                      >
-                        {playlist.name}
-                      </div>
-                      <div className="text-xs text-white/40 truncate">
-                        {playlist.songCount} songs
-                      </div>
-                    </div>
+  <div
+    className="text-sm font-medium truncate"
+    style={{
+      color:
+        currentPlaylist?.id === playlist.id
+          ? "rgba(76, 79, 105, 0.95)"
+          : "rgba(76, 79, 105, 0.81)",
+    }}
+  >
+    {playlist.name}
+    <span
+      onClick={(e) => {
+        e.stopPropagation();
+        toggleFmMode(playlist.id);
+      }}
+      style={{
+        color: fmModeEnabled[playlist.id]
+          ? "inherit"
+          : "rgba(76, 79, 105, 0.4)",
+      }}
+    >
+      FM
+    </span>
+  </div>
+  <div className="text-xs text-white/40 truncate">
+    {playlist.songCount} songs
+  </div>
+</div>
 
                     {/* Right side with wallpaper toggle */}
                     <div

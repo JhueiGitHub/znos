@@ -49,13 +49,16 @@ interface MusicContextType {
   playPlaylist: (playlistId: string) => void;
   isWallpaperMode: boolean;
   toggleWallpaperMode: () => void;
+  // Add these two new properties
+  fmModeEnabled: Record<string, boolean>;
+  toggleFmMode: (playlistId: string) => void;
 }
 
 // All playlists data combined into one constant
 const ALL_PLAYLISTS: Playlist[] = [
   {
-    id: "xpfm",
-    name: "XPFM",
+    id: "xp",
+    name: "XP",
     songCount: 9,
     thumbnail: "/media/system/_empty_image.png",
     songs: [
@@ -446,6 +449,7 @@ interface PersistedState {
   currentTime: number;
   volume: number;
   currentPlaylistId: string;
+  fmModeEnabled: Record<string, boolean>;
 }
 
 const MusicContext = createContext<MusicContextType | undefined>(undefined);
@@ -453,23 +457,25 @@ const MusicContext = createContext<MusicContextType | undefined>(undefined);
 export function MusicProvider({ children }: { children: React.ReactNode }) {
   // Load persisted state from localStorage
   const loadPersistedState = (): PersistedState => {
-    if (typeof window === "undefined")
+    if (typeof window === "undefined") 
       return {
         currentSongIndex: 0,
         currentTime: 0,
         volume: 1,
         currentPlaylistId: "xpfm",
+        fmModeEnabled: {}
       };
-
+  
     const saved = localStorage.getItem(STORAGE_KEY);
-    if (!saved)
+    if (!saved) 
       return {
         currentSongIndex: 0,
         currentTime: 0,
         volume: 1,
         currentPlaylistId: "xpfm",
+        fmModeEnabled: {}
       };
-
+  
     try {
       return JSON.parse(saved);
     } catch {
@@ -478,6 +484,7 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
         currentTime: 0,
         volume: 1,
         currentPlaylistId: "xpfm",
+        fmModeEnabled: {}
       };
     }
   };
@@ -519,7 +526,27 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
     () => loadPersistedState().currentTime
   );
   const [duration, setDuration] = useState(0);
+  const [fmModeEnabled, setFmModeEnabled] = useState<Record<string, boolean>>(() => 
+    loadPersistedState().fmModeEnabled || {}
+  );
+  
   const audioRef = useRef<HTMLAudioElement>(null);
+  
+  const toggleFmMode = (playlistId: string) => {
+    setFmModeEnabled(prev => {
+      const updated = { ...prev, [playlistId]: !prev[playlistId] };
+      if (currentPlaylist) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+          currentSongIndex,
+          currentTime,
+          volume,
+          currentPlaylistId: currentPlaylist.id,
+          fmModeEnabled: updated
+        }));
+      }
+      return updated;
+    });
+  };
 
   // Persist state changes
   useEffect(() => {
@@ -544,53 +571,46 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  useEffect(() => {
-    if (audioRef.current) {
-      const audio = audioRef.current;
+  // Find this useEffect that handles periodic saves in MusicContext
+useEffect(() => {
+  if (audioRef.current) {
+    const audio = audioRef.current;
 
-      const handleTimeUpdate = () => {
-        setSongProgress((audio.currentTime / audio.duration) * 100);
-        setCurrentTime(audio.currentTime);
-      };
+    const handleTimeUpdate = () => {
+      setSongProgress((audio.currentTime / audio.duration) * 100);
+      setCurrentTime(audio.currentTime);
+    };
 
-      const handleDurationChange = () => {
-        setDuration(audio.duration);
-      };
+    const handleDurationChange = () => {
+      setDuration(audio.duration);
+    };
 
-      const handleEnded = () => {
-        setIsPlaying(false);
-        if (currentSongIndex < songs.length - 1) {
-          setCurrentSongIndex((prev) => prev + 1);
-        }
-      };
+    // Save current time periodically
+    const saveTimeInterval = setInterval(() => {
+      if (audio.currentTime > 0 && currentPlaylist) {
+        localStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify({
+            currentSongIndex,
+            currentTime: audio.currentTime,
+            volume,
+            currentPlaylistId: currentPlaylist.id,
+            fmModeEnabled  // Add this line - it was missing from the periodic save!
+          })
+        );
+      }
+    }, 1000);
 
-      // Save current time periodically
-      const saveTimeInterval = setInterval(() => {
-        if (audio.currentTime > 0 && currentPlaylist) {
-          localStorage.setItem(
-            STORAGE_KEY,
-            JSON.stringify({
-              currentSongIndex,
-              currentTime: audio.currentTime,
-              volume,
-              currentPlaylistId: currentPlaylist.id,
-            })
-          );
-        }
-      }, 1000);
+    audio.addEventListener("timeupdate", handleTimeUpdate);
+    audio.addEventListener("durationchange", handleDurationChange);
 
-      audio.addEventListener("timeupdate", handleTimeUpdate);
-      audio.addEventListener("durationchange", handleDurationChange);
-      audio.addEventListener("ended", handleEnded);
-
-      return () => {
-        audio.removeEventListener("timeupdate", handleTimeUpdate);
-        audio.removeEventListener("durationchange", handleDurationChange);
-        audio.removeEventListener("ended", handleEnded);
-        clearInterval(saveTimeInterval);
-      };
-    }
-  }, [currentSongIndex, songs.length, volume, currentPlaylist]);
+    return () => {
+      audio.removeEventListener("timeupdate", handleTimeUpdate);
+      audio.removeEventListener("durationchange", handleDurationChange);
+      clearInterval(saveTimeInterval);
+    };
+  }
+}, [currentSongIndex, songs.length, volume, currentPlaylist, fmModeEnabled]); // Add fmModeEnabled to deps
 
   const togglePlay = () => {
     if (audioRef.current) {
@@ -603,21 +623,24 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const playNext = () => {
-    if (currentSongIndex < songs.length - 1) {
-      // Reset all playback-related states
-      setSongProgress(0);
-      setCurrentTime(0);
-      setDuration(0);
-      setIsPlaying(false); // Reset playing state first
+  // Update the playNext function to be more robust
+const playNext = () => {
+  if (currentSongIndex < songs.length - 1) {
+    setSongProgress(0);
+    setCurrentTime(0);
+    setDuration(0);
 
-      setCurrentSongIndex((prev) => prev + 1);
+    setCurrentSongIndex((prev) => prev + 1);
 
-      if (audioRef.current) {
-        audioRef.current.currentTime = 0;
-        // Small timeout to ensure state updates have propagated
-        setTimeout(() => {
-          const playPromise = audioRef.current?.play();
+    // Ensure we reset the audio properly
+    if (audioRef.current) {
+      audioRef.current.currentTime = 0;
+      audioRef.current.pause(); // Ensure we pause first
+      
+      // Small timeout to ensure state updates have propagated
+      setTimeout(() => {
+        if (audioRef.current) {
+          const playPromise = audioRef.current.play();
           if (playPromise !== undefined) {
             playPromise
               .then(() => {
@@ -627,10 +650,11 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
                 console.error("Error playing audio:", error);
               });
           }
-        }, 50);
-      }
+        }
+      }, 50);
     }
-  };
+  }
+};
 
   const playPrevious = () => {
     if (currentSongIndex > 0) {
@@ -703,6 +727,78 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
       );
     }
   };
+  
+  // Update useEffect for audio ended event
+  // Update the handleEnded event handler in the useEffect
+useEffect(() => {
+  if (audioRef.current) {
+    const audio = audioRef.current;
+
+    const handleEnded = async () => {
+      const isFmEnabled = fmModeEnabled[currentPlaylist?.id || ''];
+      
+      if (isFmEnabled) {
+        if (currentSongIndex < songs.length - 1) {
+          // Reset states first
+          setSongProgress(0);
+          setCurrentTime(0);
+          setDuration(0);
+          
+          // Update index
+          setCurrentSongIndex(prev => prev + 1);
+          
+          // Reset audio state
+          audio.currentTime = 0;
+          audio.pause();
+          
+          // Small delay to ensure state updates
+          setTimeout(() => {
+            const playPromise = audio.play();
+            if (playPromise !== undefined) {
+              playPromise
+                .then(() => {
+                  setIsPlaying(true);
+                })
+                .catch((error) => {
+                  console.error("Error playing next track:", error);
+                });
+            }
+          }, 50);
+        } else {
+          // Handle playlist end - loop back to start
+          setSongProgress(0);
+          setCurrentTime(0);
+          setDuration(0);
+          setCurrentSongIndex(0);
+          
+          audio.currentTime = 0;
+          audio.pause();
+          
+          setTimeout(() => {
+            const playPromise = audio.play();
+            if (playPromise !== undefined) {
+              playPromise
+                .then(() => {
+                  setIsPlaying(true);
+                })
+                .catch((error) => {
+                  console.error("Error restarting playlist:", error);
+                });
+            }
+          }, 50);
+        }
+      } else {
+        // If FM mode is disabled, just stop at the end
+        setIsPlaying(false);
+        setSongProgress(0);
+        setCurrentTime(0);
+      }
+    };
+
+    audio.addEventListener('ended', handleEnded);
+    return () => audio.removeEventListener('ended', handleEnded);
+  }
+}, [currentSongIndex, songs.length, fmModeEnabled, currentPlaylist]);
 
   return (
     <MusicContext.Provider
@@ -729,6 +825,8 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
         playPlaylist,
         isWallpaperMode,
         toggleWallpaperMode,
+        fmModeEnabled,
+  toggleFmMode,
       }}
     >
       <audio
