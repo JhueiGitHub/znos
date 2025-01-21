@@ -124,7 +124,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "XPFM",
         path: "/audio/songs/song8.mp4",
         thumbnail: "/media/songs/song8.png",
-        videoUrl: "https://www.youtube.com/watch?v=0sgDPaznkjc",
+        videoUrl: "https://www.youtube.com/watch?v=oAuBZ1OJfWE",
       },
       {
         id: "xpfm-9",
@@ -132,7 +132,55 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "XPFM",
         path: "/audio/songs/song9.mp4",
         thumbnail: "/media/songs/song9.png",
+        videoUrl: "https://www.youtube.com/watch?v=rpCY2ngsxUo",
+      },
+      {
+        id: "xpfm-10",
+        title: "song10",
+        artist: "XPFM",
+        path: "/audio/songs/song10.mp4",
+        thumbnail: "/media/songs/song10.png",
+        videoUrl: "https://www.youtube.com/watch?v=0sgDPaznkjc",
+      },
+      {
+        id: "xpfm-11",
+        title: "song11",
+        artist: "XPFM",
+        path: "/audio/songs/song11.mp4",
+        thumbnail: "/media/songs/song11.png",
         videoUrl: "https://www.youtube.com/watch?v=acYLIALwzlQ",
+      },
+      {
+        id: "xpfm-12",
+        title: "song12",
+        artist: "XPFM",
+        path: "/audio/songs/song12.mp4",
+        thumbnail: "/media/songs/song12.png",
+        videoUrl: "https://www.youtube.com/watch?v=H42_eY53dBM",
+      },
+      {
+        id: "xpfm-13",
+        title: "song13",
+        artist: "XPFM",
+        path: "/audio/songs/song13.mp4",
+        thumbnail: "/media/songs/song13.png",
+        videoUrl: "https://www.youtube.com/watch?v=6kEfiw5gx_8",
+      },
+      {
+        id: "xpfm-14",
+        title: "song14",
+        artist: "XPFM",
+        path: "/audio/songs/song14.mp4",
+        thumbnail: "/media/songs/song14.png",
+        videoUrl: "https://www.youtube.com/watch?v=QiLCgnPCrFc",
+      },
+      {
+        id: "xpfm-15",
+        title: "song15",
+        artist: "XPFM",
+        path: "/audio/songs/song15.mp4",
+        thumbnail: "/media/songs/song15.png",
+        videoUrl: "https://www.youtube.com/watch?v=GxJCxBZrvfY",
       },
     ],
   },
@@ -416,11 +464,11 @@ const ALL_PLAYLISTS: Playlist[] = [
       },
       {
         id: "nxra-7",
-        title: "lost in the fire",
+        title: "often",
         artist: "NXRA",
-        path: "/audio/nxra/lostinthefire.mp4",
-        thumbnail: "/media/songs/nxra/lostinthefire.png",
-        videoUrl: "https://www.youtube.com/watch?v=gkXb-G1s7J8",
+        path: "/audio/nxra/often.mp4",
+        thumbnail: "/media/songs/nxra/often.png",
+        videoUrl: "https://www.youtube.com/watch?v=9fF491-R2do",
       },
       {
         id: "nxra-8",
@@ -457,25 +505,25 @@ const MusicContext = createContext<MusicContextType | undefined>(undefined);
 export function MusicProvider({ children }: { children: React.ReactNode }) {
   // Load persisted state from localStorage
   const loadPersistedState = (): PersistedState => {
-    if (typeof window === "undefined") 
+    if (typeof window === "undefined")
       return {
         currentSongIndex: 0,
         currentTime: 0,
         volume: 1,
         currentPlaylistId: "xpfm",
-        fmModeEnabled: {}
+        fmModeEnabled: {},
       };
-  
+
     const saved = localStorage.getItem(STORAGE_KEY);
-    if (!saved) 
+    if (!saved)
       return {
         currentSongIndex: 0,
         currentTime: 0,
         volume: 1,
         currentPlaylistId: "xpfm",
-        fmModeEnabled: {}
+        fmModeEnabled: {},
       };
-  
+
     try {
       return JSON.parse(saved);
     } catch {
@@ -484,7 +532,7 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
         currentTime: 0,
         volume: 1,
         currentPlaylistId: "xpfm",
-        fmModeEnabled: {}
+        fmModeEnabled: {},
       };
     }
   };
@@ -526,23 +574,26 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
     () => loadPersistedState().currentTime
   );
   const [duration, setDuration] = useState(0);
-  const [fmModeEnabled, setFmModeEnabled] = useState<Record<string, boolean>>(() => 
-    loadPersistedState().fmModeEnabled || {}
+  const [fmModeEnabled, setFmModeEnabled] = useState<Record<string, boolean>>(
+    () => loadPersistedState().fmModeEnabled || {}
   );
-  
+
   const audioRef = useRef<HTMLAudioElement>(null);
-  
+
   const toggleFmMode = (playlistId: string) => {
-    setFmModeEnabled(prev => {
+    setFmModeEnabled((prev) => {
       const updated = { ...prev, [playlistId]: !prev[playlistId] };
       if (currentPlaylist) {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify({
-          currentSongIndex,
-          currentTime,
-          volume,
-          currentPlaylistId: currentPlaylist.id,
-          fmModeEnabled: updated
-        }));
+        localStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify({
+            currentSongIndex,
+            currentTime,
+            volume,
+            currentPlaylistId: currentPlaylist.id,
+            fmModeEnabled: updated,
+          })
+        );
       }
       return updated;
     });
@@ -572,45 +623,45 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   // Find this useEffect that handles periodic saves in MusicContext
-useEffect(() => {
-  if (audioRef.current) {
-    const audio = audioRef.current;
+  useEffect(() => {
+    if (audioRef.current) {
+      const audio = audioRef.current;
 
-    const handleTimeUpdate = () => {
-      setSongProgress((audio.currentTime / audio.duration) * 100);
-      setCurrentTime(audio.currentTime);
-    };
+      const handleTimeUpdate = () => {
+        setSongProgress((audio.currentTime / audio.duration) * 100);
+        setCurrentTime(audio.currentTime);
+      };
 
-    const handleDurationChange = () => {
-      setDuration(audio.duration);
-    };
+      const handleDurationChange = () => {
+        setDuration(audio.duration);
+      };
 
-    // Save current time periodically
-    const saveTimeInterval = setInterval(() => {
-      if (audio.currentTime > 0 && currentPlaylist) {
-        localStorage.setItem(
-          STORAGE_KEY,
-          JSON.stringify({
-            currentSongIndex,
-            currentTime: audio.currentTime,
-            volume,
-            currentPlaylistId: currentPlaylist.id,
-            fmModeEnabled  // Add this line - it was missing from the periodic save!
-          })
-        );
-      }
-    }, 1000);
+      // Save current time periodically
+      const saveTimeInterval = setInterval(() => {
+        if (audio.currentTime > 0 && currentPlaylist) {
+          localStorage.setItem(
+            STORAGE_KEY,
+            JSON.stringify({
+              currentSongIndex,
+              currentTime: audio.currentTime,
+              volume,
+              currentPlaylistId: currentPlaylist.id,
+              fmModeEnabled, // Add this line - it was missing from the periodic save!
+            })
+          );
+        }
+      }, 1000);
 
-    audio.addEventListener("timeupdate", handleTimeUpdate);
-    audio.addEventListener("durationchange", handleDurationChange);
+      audio.addEventListener("timeupdate", handleTimeUpdate);
+      audio.addEventListener("durationchange", handleDurationChange);
 
-    return () => {
-      audio.removeEventListener("timeupdate", handleTimeUpdate);
-      audio.removeEventListener("durationchange", handleDurationChange);
-      clearInterval(saveTimeInterval);
-    };
-  }
-}, [currentSongIndex, songs.length, volume, currentPlaylist, fmModeEnabled]); // Add fmModeEnabled to deps
+      return () => {
+        audio.removeEventListener("timeupdate", handleTimeUpdate);
+        audio.removeEventListener("durationchange", handleDurationChange);
+        clearInterval(saveTimeInterval);
+      };
+    }
+  }, [currentSongIndex, songs.length, volume, currentPlaylist, fmModeEnabled]); // Add fmModeEnabled to deps
 
   const togglePlay = () => {
     if (audioRef.current) {
@@ -624,37 +675,37 @@ useEffect(() => {
   };
 
   // Update the playNext function to be more robust
-const playNext = () => {
-  if (currentSongIndex < songs.length - 1) {
-    setSongProgress(0);
-    setCurrentTime(0);
-    setDuration(0);
+  const playNext = () => {
+    if (currentSongIndex < songs.length - 1) {
+      setSongProgress(0);
+      setCurrentTime(0);
+      setDuration(0);
 
-    setCurrentSongIndex((prev) => prev + 1);
+      setCurrentSongIndex((prev) => prev + 1);
 
-    // Ensure we reset the audio properly
-    if (audioRef.current) {
-      audioRef.current.currentTime = 0;
-      audioRef.current.pause(); // Ensure we pause first
-      
-      // Small timeout to ensure state updates have propagated
-      setTimeout(() => {
-        if (audioRef.current) {
-          const playPromise = audioRef.current.play();
-          if (playPromise !== undefined) {
-            playPromise
-              .then(() => {
-                setIsPlaying(true);
-              })
-              .catch((error) => {
-                console.error("Error playing audio:", error);
-              });
+      // Ensure we reset the audio properly
+      if (audioRef.current) {
+        audioRef.current.currentTime = 0;
+        audioRef.current.pause(); // Ensure we pause first
+
+        // Small timeout to ensure state updates have propagated
+        setTimeout(() => {
+          if (audioRef.current) {
+            const playPromise = audioRef.current.play();
+            if (playPromise !== undefined) {
+              playPromise
+                .then(() => {
+                  setIsPlaying(true);
+                })
+                .catch((error) => {
+                  console.error("Error playing audio:", error);
+                });
+            }
           }
-        }
-      }, 50);
+        }, 50);
+      }
     }
-  }
-};
+  };
 
   const playPrevious = () => {
     if (currentSongIndex > 0) {
@@ -727,78 +778,78 @@ const playNext = () => {
       );
     }
   };
-  
+
   // Update useEffect for audio ended event
   // Update the handleEnded event handler in the useEffect
-useEffect(() => {
-  if (audioRef.current) {
-    const audio = audioRef.current;
+  useEffect(() => {
+    if (audioRef.current) {
+      const audio = audioRef.current;
 
-    const handleEnded = async () => {
-      const isFmEnabled = fmModeEnabled[currentPlaylist?.id || ''];
-      
-      if (isFmEnabled) {
-        if (currentSongIndex < songs.length - 1) {
-          // Reset states first
-          setSongProgress(0);
-          setCurrentTime(0);
-          setDuration(0);
-          
-          // Update index
-          setCurrentSongIndex(prev => prev + 1);
-          
-          // Reset audio state
-          audio.currentTime = 0;
-          audio.pause();
-          
-          // Small delay to ensure state updates
-          setTimeout(() => {
-            const playPromise = audio.play();
-            if (playPromise !== undefined) {
-              playPromise
-                .then(() => {
-                  setIsPlaying(true);
-                })
-                .catch((error) => {
-                  console.error("Error playing next track:", error);
-                });
-            }
-          }, 50);
+      const handleEnded = async () => {
+        const isFmEnabled = fmModeEnabled[currentPlaylist?.id || ""];
+
+        if (isFmEnabled) {
+          if (currentSongIndex < songs.length - 1) {
+            // Reset states first
+            setSongProgress(0);
+            setCurrentTime(0);
+            setDuration(0);
+
+            // Update index
+            setCurrentSongIndex((prev) => prev + 1);
+
+            // Reset audio state
+            audio.currentTime = 0;
+            audio.pause();
+
+            // Small delay to ensure state updates
+            setTimeout(() => {
+              const playPromise = audio.play();
+              if (playPromise !== undefined) {
+                playPromise
+                  .then(() => {
+                    setIsPlaying(true);
+                  })
+                  .catch((error) => {
+                    console.error("Error playing next track:", error);
+                  });
+              }
+            }, 50);
+          } else {
+            // Handle playlist end - loop back to start
+            setSongProgress(0);
+            setCurrentTime(0);
+            setDuration(0);
+            setCurrentSongIndex(0);
+
+            audio.currentTime = 0;
+            audio.pause();
+
+            setTimeout(() => {
+              const playPromise = audio.play();
+              if (playPromise !== undefined) {
+                playPromise
+                  .then(() => {
+                    setIsPlaying(true);
+                  })
+                  .catch((error) => {
+                    console.error("Error restarting playlist:", error);
+                  });
+              }
+            }, 50);
+          }
         } else {
-          // Handle playlist end - loop back to start
+          // If FM mode is disabled, just stop at the end
+          setIsPlaying(false);
           setSongProgress(0);
           setCurrentTime(0);
-          setDuration(0);
-          setCurrentSongIndex(0);
-          
-          audio.currentTime = 0;
-          audio.pause();
-          
-          setTimeout(() => {
-            const playPromise = audio.play();
-            if (playPromise !== undefined) {
-              playPromise
-                .then(() => {
-                  setIsPlaying(true);
-                })
-                .catch((error) => {
-                  console.error("Error restarting playlist:", error);
-                });
-            }
-          }, 50);
         }
-      } else {
-        // If FM mode is disabled, just stop at the end
-        setIsPlaying(false);
-        setSongProgress(0);
-        setCurrentTime(0);
-      }
-    };
+      };
 
-    audio.addEventListener('ended', handleEnded);
-    return () => audio.removeEventListener('ended', handleEnded);
-  }
-}, [currentSongIndex, songs.length, fmModeEnabled, currentPlaylist]);
+      audio.addEventListener("ended", handleEnded);
+      return () => audio.removeEventListener("ended", handleEnded);
+    }
+  }, [currentSongIndex, songs.length, fmModeEnabled, currentPlaylist]);
 
   return (
     <MusicContext.Provider
@@ -826,7 +877,7 @@ useEffect(() => {
         isWallpaperMode,
         toggleWallpaperMode,
         fmModeEnabled,
-  toggleFmMode,
+        toggleFmMode,
       }}
     >
       <audio

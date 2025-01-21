@@ -1,17 +1,22 @@
-// /root/app/apps/glory/components/VideoPlayer.tsx
-"use client";
-
+// Updated VideoPlayer.tsx
 import { useStyles } from "@/app/hooks/useStyles";
+import { YouTubePlayer } from './YouTubePlayer';
 
 interface VideoPlayerProps {
   videoId: string;
   title: string;
+  platform?: 'youtube';  // Optional - only needed for YouTube videos
 }
 
-export function VideoPlayer({ videoId, title }: VideoPlayerProps) {
+export function VideoPlayer({ videoId, title, platform }: VideoPlayerProps) {
   const { getColor } = useStyles();
 
-  // Added comprehensive parameters to hide UI elements
+  // If platform is explicitly set to youtube, use YouTube player
+  if (platform === 'youtube') {
+    return <YouTubePlayer videoId={videoId} title={title} />;
+  }
+
+  // Default to DailyMotion player
   const embedUrl = `https://geo.dailymotion.com/player.html?video=${videoId}&mute=false&queue-enable=false&ui-logo=0&ui-start-screen-info=false&sharing-enable=false&ui-logo-enable=0&queue-enable=0&sharing-enable=0&ui-highlights=false&ui-theme=dark&ui-watermark=false&pip-enable=false&ui-logo-show=false&ui-logo-position=none&ui-click-through=false`;
 
   return (

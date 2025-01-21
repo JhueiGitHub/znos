@@ -32,6 +32,7 @@ interface Movie extends BaseContent {
   type: "movie";
   videoId: string;
   duration: string;
+  platform?: string;
 }
 
 type Content = Series | Movie;
@@ -836,6 +837,18 @@ const CATEGORIES_DATA: Category[] = [
             duration: "59:00",
           },
         ],
+      },
+      {
+        type: "movie",
+        id: "norm",
+        platform: "youtube", // This will trigger the YouTube player
+        title: "Norm",
+        rating: "80% Google User Review",
+        thumbnail: "/apps/glory/norm_thumbnail.jpeg", // You'll need to add this image
+        description: "A classic performance showcasing storytelling and humor.",
+        maturityRating: "18+",
+        videoId: "UjQnha99sTY",
+        duration: "9:47"
       },
     ],
   },
