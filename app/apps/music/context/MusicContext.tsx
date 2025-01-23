@@ -182,6 +182,14 @@ const ALL_PLAYLISTS: Playlist[] = [
         thumbnail: "/media/songs/song15.png",
         videoUrl: "https://www.youtube.com/watch?v=GxJCxBZrvfY",
       },
+      {
+        id: "xpfm-16",
+        title: "song16",
+        artist: "XPFM",
+        path: "/audio/songs/song16.mp4",
+        thumbnail: "/media/songs/song16.png",
+        videoUrl: "https://www.youtube.com/watch?v=Y_vsK993ENk",
+      },
     ],
   },
   {

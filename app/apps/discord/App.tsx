@@ -16,10 +16,13 @@ const SetupPage = () => {
   const [serverId, setServerId] = useState<string | null>(null);
   const [activeChannelId, setActiveChannelId] = useState<string | null>(null);
 
-  const { onOpen } = useModal();
+  const { onOpen, onClose } = useModal();
 
   // EVOLVED: Enhanced initialization flow
   useEffect(() => {
+    // First, ensure any open modals are closed on mount
+    onClose();
+
     const initializeDiscordState = async () => {
       try {
         // Step 1: Get initial profile and available servers
@@ -62,14 +65,12 @@ const SetupPage = () => {
     };
 
     initializeDiscordState();
-  }, []);
+  }, [onClose]); // Add onClose to dependencies
 
   // PRESERVED: Channel selection handler
   const handleChannelSelect = (channelId: string | null) => {
+    if (!channelId) return;
     setActiveChannelId(channelId);
-    if (channelId) {
-      onOpen("channel", { channelId });
-    }
   };
 
   if (isLoading) return <AppSkeleton />;
