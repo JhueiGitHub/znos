@@ -185,67 +185,123 @@ const CATEGORIES_DATA: Category[] = [
       },
       {
         type: "series",
-        id: "weakheroclass1",
-        title: "약한영웅 Class 1",
-        rating: "97% Google User Review",
-        thumbnail: "/apps/glory/weakhero_thumbnail.jpeg",
+        id: "itaewonclass",
+        title: "Itaewon Class",
+        rating: "95% Google User Review",
+        thumbnail: "/apps/glory/itaewon_thumbnail.jpeg",
         description:
           "A woman puts a carefully crafted revenge plan in motion after suffering traumatic abuse in high school.",
         maturityRating: "18+",
-        episodeCount: 8,
+        episodeCount: 16,
         episodes: [
           {
-            title: "약한영웅 Class 1 Episode 1",
-            videoId: "x8fpxo0",
+            title: "이태원 클라쓰 Episode 1",
+            videoId: "x90ph2m",
             description:
               "Moon Dong-eun becomes a homeroom teacher at a high school to carry out her revenge plot.",
             duration: "47:18",
           },
           {
-            title: "약한영웅 Class 1 Episode 2",
-            videoId: "x8fpye8",
+            title: "이태원 클라쓰 Episode 2",
+            videoId: "x90phsw",
             description:
               "Dong-eun's past is revealed as she meticulously plans her vengeance.",
             duration: "48:22",
           },
           {
-            title: "약한영웅 Class 1 Episode 3",
-            videoId: "x8fpzws",
+            title: "이태원 클라쓰 Episode 3",
+            videoId: "x90pi2o",
             description:
               "Dong-eun's past is revealed as she meticulously plans her vengeance.",
             duration: "48:22",
           },
           {
-            title: "약한영웅 Class 1 Episode 4",
-            videoId: "x8fq1fz",
+            title: "이태원 클라쓰 Episode 4",
+            videoId: "x90pi8k",
             description:
               "Dong-eun's past is revealed as she meticulously plans her vengeance.",
             duration: "48:22",
           },
           {
-            title: "약한영웅 Class 1 Episode 5",
-            videoId: "x8fr5mm",
+            title: "이태원 클라쓰 Episode 5",
+            videoId: "x90tybo",
             description:
               "Dong-eun's past is revealed as she meticulously plans her vengeance.",
             duration: "48:22",
           },
           {
-            title: "약한영웅 Class 1 Episode 6",
-            videoId: "x8fr6a0",
+            title: "이태원 클라쓰 Episode 6",
+            videoId: "x90tydy",
             description:
               "Dong-eun's past is revealed as she meticulously plans her vengeance.",
             duration: "48:22",
           },
           {
-            title: "약한영웅 Class 1 Episode 7",
-            videoId: "x8fr6hf",
+            title: "이태원 클라쓰 Episode 7",
+            videoId: "x90tyf4",
             description:
               "Dong-eun's past is revealed as she meticulously plans her vengeance.",
             duration: "48:22",
           },
           {
-            title: "약한영웅 Class 1 Episode 8",
-            videoId: "x8grnwr",
+            title: "이태원 클라쓰 Episode 8",
+            videoId: "x90tyhm",
+            description:
+              "Dong-eun's past is revealed as she meticulously plans her vengeance.",
+            duration: "48:22",
+          },
+          {
+            title: "이태원 클라쓰 Episode 9",
+            videoId: "x90tywe",
+            description:
+              "Dong-eun's past is revealed as she meticulously plans her vengeance.",
+            duration: "48:22",
+          },
+          {
+            title: "이태원 클라쓰 Episode 10",
+            videoId: "x90tyxy",
+            description:
+              "Dong-eun's past is revealed as she meticulously plans her vengeance.",
+            duration: "48:22",
+          },
+          {
+            title: "이태원 클라쓰 Episode 11",
+            videoId: "x90vgto",
+            description:
+              "Dong-eun's past is revealed as she meticulously plans her vengeance.",
+            duration: "48:22",
+          },
+          {
+            title: "이태원 클라쓰 Episode 12",
+            videoId: "x90y1y2",
+            description:
+              "Dong-eun's past is revealed as she meticulously plans her vengeance.",
+            duration: "48:22",
+          },
+          {
+            title: "이태원 클라쓰 Episode 13",
+            videoId: "x90y1y2",
+            description:
+              "Dong-eun's past is revealed as she meticulously plans her vengeance.",
+            duration: "48:22",
+          },
+          {
+            title: "이태원 클라쓰 Episode 14",
+            videoId: "x90y1y2",
+            description:
+              "Dong-eun's past is revealed as she meticulously plans her vengeance.",
+            duration: "48:22",
+          },
+          {
+            title: "이태원 클라쓰 Episode 15",
+            videoId: "x90y1y2",
+            description:
+              "Dong-eun's past is revealed as she meticulously plans her vengeance.",
+            duration: "48:22",
+          },
+          {
+            title: "이태원 클라쓰 Episode 16",
+            videoId: "x90y1y2",
             description:
               "Dong-eun's past is revealed as she meticulously plans her vengeance.",
             duration: "48:22",
@@ -837,18 +893,6 @@ const CATEGORIES_DATA: Category[] = [
             duration: "59:00",
           },
         ],
-      },
-      {
-        type: "movie",
-        id: "norm",
-        platform: "youtube", // This will trigger the YouTube player
-        title: "Norm",
-        rating: "80% Google User Review",
-        thumbnail: "/apps/glory/norm_thumbnail.jpeg", // You'll need to add this image
-        description: "A classic performance showcasing storytelling and humor.",
-        maturityRating: "18+",
-        videoId: "UjQnha99sTY",
-        duration: "9:47"
       },
     ],
   },
