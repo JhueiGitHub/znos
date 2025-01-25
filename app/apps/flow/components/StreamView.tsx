@@ -576,10 +576,10 @@ export const StreamView = ({ streamId, onFlowSelect }: StreamViewProps) => {
 
             <ContextMenuContent
               style={{
-                backgroundColor: getColor("Glass"),
-
+                backgroundColor: getColor("black-med"),
                 borderColor: getColor("Brd"),
               }}
+              className="w-[180px] py-2"
             >
               {stream.type === "CONFIG" && (
                 <>
@@ -592,15 +592,12 @@ export const StreamView = ({ streamId, onFlowSelect }: StreamViewProps) => {
                           }
                         }}
                         disabled={!publishedFlowsMap[flow.id]?.hasChanges}
-                        className={
-                          !publishedFlowsMap[flow.id]?.hasChanges
-                            ? "opacity-50"
-                            : ""
-                        }
+                        className={`
+              px-3 py-1.5 text-sm focus:bg-[#4C4F69]/20 hover:bg-[#4C4F69]/20 transition-colors text-[#cccccc]/70 hover:text-[#ccccccbb]
+              ${!publishedFlowsMap[flow.id]?.hasChanges ? "opacity-50" : ""}
+            `}
                         style={{
-                          color: getColor("Text Primary (Hd)"),
-
-                          fontFamily: getFont("Text Primary"),
+                          fontFamily: getFont("Text Secondary"),
                         }}
                       >
                         Push to XP
@@ -616,10 +613,9 @@ export const StreamView = ({ streamId, onFlowSelect }: StreamViewProps) => {
                             unpublishFromXP(flow.id);
                           }
                         }}
+                        className="px-3 py-1.5 text-sm text-red-400 focus:bg-[#4C4F69]/20 hover:bg-[#4C4F69]/20 transition-colors text-[#cccccc]/70 hover:text-[#ccccccbb]"
                         style={{
-                          color: "#ef4444", // Red color for danger
-
-                          fontFamily: getFont("Text Primary"),
+                          fontFamily: getFont("Text Secondary"),
                         }}
                       >
                         Unpublish from XP
@@ -629,10 +625,9 @@ export const StreamView = ({ streamId, onFlowSelect }: StreamViewProps) => {
                     <ContextMenuItem
                       onClick={() => publishToXP(flow.id)}
                       disabled={isPublishing === flow.id}
+                      className="px-3 py-1.5 text-sm focus:bg-[#4C4F69]/20 hover:bg-[#4C4F69]/20 transition-colors text-[#cccccc]/70 hover:text-[#ccccccbb]"
                       style={{
-                        color: getColor("Text Primary (Hd)"),
-
-                        fontFamily: getFont("Text Primary"),
+                        fontFamily: getFont("Text Secondary"),
                       }}
                     >
                       {isPublishing === flow.id ? "Publishing..." : "Add to XP"}
@@ -641,16 +636,22 @@ export const StreamView = ({ streamId, onFlowSelect }: StreamViewProps) => {
 
                   <ContextMenuItem
                     onClick={() => handleRenameStart(flow.id)}
+                    className="px-3 py-1.5 text-sm focus:bg-[#4C4F69]/20 hover:bg-[#4C4F69]/20 transition-colors text-[#cccccc]/70 hover:text-[#ccccccbb]"
                     style={{
-                      color: getColor("Text Primary (Hd)"),
-
-                      fontFamily: getFont("Text Primary"),
+                      fontFamily: getFont("Text Secondary"),
                     }}
                   >
                     Rename
                   </ContextMenuItem>
 
-                  <ContextMenuSeparator />
+                  <ContextMenuSeparator
+                    className="my-2"
+                    style={{
+                      backgroundColor: getColor("Brd"),
+                      opacity: 0.6,
+                      height: "1px",
+                    }}
+                  />
 
                   <ContextMenuItem
                     onClick={() => {
@@ -662,10 +663,9 @@ export const StreamView = ({ streamId, onFlowSelect }: StreamViewProps) => {
                         deleteFlow(flow.id);
                       }
                     }}
+                    className="px-3 py-1.5 text-sm text-red-700 focus:bg-[#4C4F69]/20 hover:bg-[#4C4F69]/20 transition-colors hover:text-red-600"
                     style={{
-                      color: "#ef4444", // Red color for danger
-
-                      fontFamily: getFont("Text Primary"),
+                      fontFamily: getFont("Text Secondary"),
                     }}
                   >
                     Delete Flow
@@ -676,10 +676,9 @@ export const StreamView = ({ streamId, onFlowSelect }: StreamViewProps) => {
               <ContextMenuItem
                 onClick={() => handleDuplicateFlow(flow.id, flow.name)}
                 disabled={isDuplicating === flow.id}
+                className="px-3 py-1.5 text-sm focus:bg-[#4C4F69]/20 hover:bg-[#4C4F69]/20 transition-colors text-[#cccccc]/70 hover:text-[#ccccccbb]"
                 style={{
-                  color: getColor("Text Primary (Hd)"),
-
-                  fontFamily: getFont("Text Primary"),
+                  fontFamily: getFont("Text Secondary"),
                 }}
               >
                 {isDuplicating === flow.id
