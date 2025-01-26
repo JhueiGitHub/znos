@@ -1,4 +1,4 @@
-// /api/flows/[flowId]/components/[componentId]/route.ts
+// /app/api/flows/[flowId]/components/[componentId]/route.ts
 import { db } from "@/lib/db";
 import { currentProfile } from "@/lib/current-profile";
 import { NextResponse } from "next/server";
@@ -50,6 +50,29 @@ export async function PATCH(
         outlineTokenId: updates.outlineTokenId,
       },
     });
+
+    // After updating the component
+    if (component.type === "CURSOR") {
+      // Get the active flow config
+      const activeConfig = await db.appConfig.findFirst({
+        where: {
+          appId: "orion",
+          profileId: profile.id,
+        },
+      });
+
+      // If this component's flow is the active flow, update timestamps
+      if (activeConfig && activeConfig.flowId === flowId) {
+        await db.appConfig.update({
+          where: {
+            id: activeConfig.id,
+          },
+          data: {
+            updatedAt: new Date(),
+          },
+        });
+      }
+    }
 
     console.log("Updated component:", updatedComponent);
 

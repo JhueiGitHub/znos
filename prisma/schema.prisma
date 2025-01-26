@@ -166,11 +166,13 @@ model FlowComponent {
 }
 
 // Add new enum for component types
+// Add new enum for component types
 enum ComponentType {
   COLOR
   TYPOGRAPHY
   WALLPAPER
   DOCK_ICON
+  CURSOR
 }
 
 model MediaItem {

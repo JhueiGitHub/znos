@@ -253,34 +253,34 @@ const MusicDropdown: React.FC<MusicDropdownProps> = ({
 
                     {/* Middle section with playlist info */}
                     <div className="flex-1 min-w-0">
-  <div
-    className="text-sm font-medium truncate"
-    style={{
-      color:
-        currentPlaylist?.id === playlist.id
-          ? "rgba(76, 79, 105, 0.95)"
-          : "rgba(76, 79, 105, 0.81)",
-    }}
-  >
-    {playlist.name}
-    <span
-      onClick={(e) => {
-        e.stopPropagation();
-        toggleFmMode(playlist.id);
-      }}
-      style={{
-        color: fmModeEnabled[playlist.id]
-          ? "inherit"
-          : "rgba(76, 79, 105, 0.4)",
-      }}
-    >
-      FM
-    </span>
-  </div>
-  <div className="text-xs text-white/40 truncate">
-    {playlist.songCount} songs
-  </div>
-</div>
+                      <div
+                        className="text-sm font-medium truncate"
+                        style={{
+                          color:
+                            currentPlaylist?.id === playlist.id
+                              ? "rgba(76, 79, 105, 0.95)"
+                              : "rgba(76, 79, 105, 0.81)",
+                        }}
+                      >
+                        {playlist.name}
+                        <span
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleFmMode(playlist.id);
+                          }}
+                          style={{
+                            color: fmModeEnabled[playlist.id]
+                              ? "inherit"
+                              : "rgba(76, 79, 105, 0.4)",
+                          }}
+                        >
+                          FM
+                        </span>
+                      </div>
+                      <div className="text-xs text-white/40 truncate">
+                        {playlist.songCount} songs
+                      </div>
+                    </div>
 
                     {/* Right side with wallpaper toggle */}
                     <div
@@ -455,6 +455,9 @@ export const MenuBar = () => {
     const wallpaper = flow.components.find(
       (c: FlowComponent) => c.type === "WALLPAPER"
     );
+    const cursor = flow.components.find(
+      (c: FlowComponent) => c.type === "CURSOR"
+    );
     const dockIcons = flow.components
       .filter((c: FlowComponent) => c.type === "DOCK_ICON")
       .sort((a, b) => a.order - b.order)
@@ -465,7 +468,6 @@ export const MenuBar = () => {
         value: c.value,
         tokenId: c.tokenId || undefined,
         mediaId: c.mediaId || undefined,
-        // Use only the outline properties that exist in the schema
         outlineMode: c.outlineMode as "color" | "media",
         outlineValue: c.outlineValue || null,
         outlineTokenId: c.outlineTokenId || undefined,
@@ -485,6 +487,13 @@ export const MenuBar = () => {
             value: null,
             tokenId: "Black",
           },
+      cursor: cursor
+        ? {
+            // Convert null to undefined to match the OrionConfig type
+            tokenId: cursor.tokenId || undefined,
+            outlineTokenId: cursor.outlineTokenId || undefined,
+          }
+        : undefined,
       dockIcons,
     });
   };

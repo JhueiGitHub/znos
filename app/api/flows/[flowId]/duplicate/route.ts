@@ -1,8 +1,7 @@
-// app/api/flows/[flowId]/duplicate/route.ts
+// /app/api/flows/[flowId]/duplicate/route.ts
 import { NextResponse } from "next/server";
 import { currentProfile } from "@/lib/current-profile";
 import { db } from "@/lib/db";
-import { OrionFlowComponent } from "@/app/apps/flow/components/editors/orion-flow-types";
 
 export async function POST(
   req: Request,
@@ -51,13 +50,11 @@ export async function POST(
             mappedTokenId: component.mappedTokenId,
             mediaId: component.mediaId,
             mediaUrl: component.mediaUrl,
-            tokenId: component.tokenId,
+            tokenId: component.tokenId, // Crucial for cursor
             tokenValue: component.tokenValue,
-            // Add outline-related fields
-            outlineMode: component.outlineMode,
+            outlineMode: component.outlineMode, // Crucial for cursor
             outlineValue: component.outlineValue,
-            outlineTokenId: component.outlineTokenId,
-            // Ensure order is maintained
+            outlineTokenId: component.outlineTokenId, // Crucial for cursor
             order: component.order,
           })),
         },
@@ -65,8 +62,8 @@ export async function POST(
       include: {
         components: {
           orderBy: {
-            order: 'asc'
-          }
+            order: "asc",
+          },
         },
       },
     });

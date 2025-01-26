@@ -52,6 +52,7 @@ const OrionEditorSidebar = ({
   }
 
   const isDockIcon = selectedComponent.type === "DOCK_ICON";
+  const isCursor = selectedComponent.type === "CURSOR";
 
   const renderMediaContent = (type: "fill" | "outline" = "fill") => {
     const value =
@@ -142,15 +143,19 @@ const OrionEditorSidebar = ({
           fontFamily: getFont("Text Secondary"),
         }}
       >
-        {type === "fill" ? "Color Token" : "Outline Color"}
+        {type === "fill"
+          ? isCursor
+            ? "Inner Color"
+            : "Color Token"
+          : isCursor
+            ? "Outer Color"
+            : "Outline Color"}
       </label>
       <Select
         value={
           type === "fill"
             ? selectedComponent.tokenId || ""
-            : selectedComponent.outlineTokenId ||
-              selectedComponent.tokenId ||
-              ""
+            : selectedComponent.outlineTokenId || ""
         }
         onValueChange={(value) =>
           onUpdateComponent(
@@ -185,6 +190,41 @@ const OrionEditorSidebar = ({
     </div>
   );
 
+  // For cursor, we only show color options
+  if (isCursor) {
+    return (
+      <div
+        className="absolute right-0 top-0 bottom-0 w-[264px] border-l flex flex-col bg-[#010203]/80 backdrop-blur-sm"
+        style={{
+          borderColor: getColor("Brd"),
+          backgroundColor: getColor("Glass"),
+        }}
+      >
+        <div className="h-10 px-4 flex items-center gap-8">
+          <span
+            className="text-[11px] font-semibold"
+            style={{
+              color: getColor("Text Primary (Hd)"),
+              fontFamily: getFont("Text Primary"),
+            }}
+          >
+            Cursor Design
+          </span>
+        </div>
+        <div className="flex-1 p-4 space-y-4 overflow-y-auto">
+          {/* Inner Color */}
+          {renderColorContent("fill")}
+
+          {/* Outer Color */}
+          <div className="pt-4 border-t border-white/[0.09]">
+            {renderColorContent("outline")}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Return original sidebar content for other component types
   return (
     <div
       className="absolute right-0 top-0 bottom-0 w-[264px] border-l flex flex-col bg-[#010203]/80 backdrop-blur-sm"

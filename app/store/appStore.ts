@@ -8,12 +8,18 @@ interface AppWithState extends AppDefinition {
   isMinimized: boolean;
 }
 
+// /root/app/store/appStore.ts
 interface OrionConfig {
   wallpaper?: {
     mode: "color" | "media";
     value: string | null;
     tokenId?: string;
     mediaId?: string;
+  };
+  cursor?: {
+    // Make sure this exists
+    tokenId?: string;
+    outlineTokenId?: string;
   };
   dockIcons?: Array<{
     id: string;
@@ -45,6 +51,7 @@ interface AppState {
   setOrionConfig: (config: OrionConfig) => void;
   updateWallpaper: (wallpaper: NonNullable<OrionConfig["wallpaper"]>) => void;
   updateDockIcons: (icons: NonNullable<OrionConfig["dockIcons"]>) => void;
+  updateCursor: (cursor: NonNullable<OrionConfig["cursor"]>) => void; // Add this
   setActiveOSFlowId: (flowId: string) => Promise<void>;
 }
 
@@ -58,6 +65,11 @@ export const useAppStore = create<AppState>()(
           mode: "color",
           value: null,
           tokenId: "Black",
+        },
+        cursor: {
+          // Add this initial cursor state
+          tokenId: "smoke-med",
+          outlineTokenId: "latte-outer",
         },
         dockIcons: [],
       },
@@ -179,6 +191,15 @@ export const useAppStore = create<AppState>()(
           orionConfig: {
             ...state.orionConfig,
             dockIcons,
+          },
+        })),
+
+      updateCursor: (cursor) =>
+        set((state) => ({
+          ...state,
+          orionConfig: {
+            ...state.orionConfig,
+            cursor,
           },
         })),
 

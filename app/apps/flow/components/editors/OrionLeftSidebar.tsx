@@ -22,6 +22,7 @@ export const OrionLeftSidebar: React.FC<OrionLeftSidebarProps> = ({
 
   const wallpaperComponents = components.filter((c) => c.type === "WALLPAPER");
   const dockComponents = components.filter((c) => c.type === "DOCK_ICON");
+  const cursorComponents = components.filter((c) => c.type === "CURSOR");
 
   return (
     <motion.div
@@ -86,6 +87,17 @@ export const OrionLeftSidebar: React.FC<OrionLeftSidebarProps> = ({
           </FileTreeFolder>
           <FileTreeFolder name="Dock Icons" isSelectable={false}>
             {dockComponents.map((component) => (
+              <FileTreeFile
+                key={component.id}
+                name={component.name}
+                value={component.id}
+                isSelected={component.id === selectedComponentId}
+                handleSelect={onComponentSelect}
+              />
+            ))}
+          </FileTreeFolder>
+          <FileTreeFolder name="Cursor" isSelectable={false}>
+            {cursorComponents.map((component) => (
               <FileTreeFile
                 key={component.id}
                 name={component.name}

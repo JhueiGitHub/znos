@@ -1,10 +1,11 @@
 // Explicit component type with all required fields
 // orion-flow-types.ts
 // orion-flow-types.ts
+// orion-flow-types.ts
 export interface OrionFlowComponent {
   id: string;
   name: string;
-  type: "WALLPAPER" | "DOCK_ICON";
+  type: "WALLPAPER" | "DOCK_ICON" | "CURSOR";
   mode: "color" | "media";
   value: string | null;
   order: number;
@@ -12,9 +13,9 @@ export interface OrionFlowComponent {
   mediaId?: string;
   mediaUrl?: string;
   tokenValue?: string;
-  outlineMode?: "color" | "media"; // NEW
-  outlineValue?: string | null; // NEW
-  outlineTokenId?: string; // NEW
+  outlineMode?: "color" | "media";
+  outlineValue?: string | null;
+  outlineTokenId?: string;
 }
 
 // Type for component updates
@@ -33,6 +34,7 @@ export type ComponentUpdate = Partial<
 
 // Full sidebar props interface
 // orion-flow-types.ts
+// Full sidebar props interface
 export interface OrionSidebarProps {
   selectedComponent: OrionFlowComponent | null;
   designSystem: {
@@ -43,6 +45,6 @@ export interface OrionSidebarProps {
     }>;
   } | null;
   onUpdateComponent: (id: string, updates: Partial<OrionFlowComponent>) => void;
-  onMediaSelect: (type?: "fill" | "outline") => void; // Updated to accept optional type parameter
+  onMediaSelect: (type?: "fill" | "outline") => void;
   onMacOSIconSelect?: () => void;
 }

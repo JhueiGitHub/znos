@@ -98,6 +98,8 @@ export const initialProfile = async () => {
               { name: "latte-med", value: "#4C4F69", opacity: 72 },
               { name: "latte-thin", value: "#4C4F69", opacity: 54 },
               { name: "latte-glass", value: "#4C4F69", opacity: 30 },
+              { name: "latte-inner", value: "#1E202A", opacity: 100 },
+              { name: "latte-outer", value: "#35374A", opacity: 100 },
             ],
           },
         },
@@ -324,6 +326,15 @@ export const initialProfile = async () => {
                   outlineMode: "color", // NEW
                   outlineTokenId: "latte", // NEW
                   order: 8,
+                },
+                {
+                  name: "Cursor",
+                  type: "CURSOR",
+                  mode: "color",
+                  tokenId: "smoke-med", // Inner color: #1e202a closest to our token is night
+                  outlineMode: "color",
+                  outlineTokenId: "latte-outer", // Outer color: #35374a closest to our token is latte
+                  order: 9,
                 },
               ],
             },

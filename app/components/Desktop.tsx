@@ -13,7 +13,7 @@ import axios from "axios";
 import { FlowComponent } from "@prisma/client";
 import { MusicProvider } from "../apps/music/context/MusicContext";
 import MusicWallpaper from "./MusicWallpaper";
-import CustomCursor from './CustomCursor';
+import CustomCursor from "./CustomCursor";
 
 const Desktop: React.FC = () => {
   const {
@@ -21,6 +21,7 @@ const Desktop: React.FC = () => {
     activeAppId,
     updateWallpaper,
     updateDockIcons,
+    updateCursor, // Add this
     setActiveOSFlowId,
     setOrionConfig,
   } = useAppStore();
@@ -29,6 +30,7 @@ const Desktop: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSpotlightOpen, setIsSpotlightOpen] = useState(false);
 
+  // In Desktop.tsx, update the initializeDesktop function
   useEffect(() => {
     const initializeDesktop = async () => {
       const timer = setTimeout(() => {
@@ -44,6 +46,12 @@ const Desktop: React.FC = () => {
           const wallpaper = orionConfig.flow.components?.find(
             (c: FlowComponent) => c.type === "WALLPAPER"
           );
+          const cursor = orionConfig.flow.components?.find(
+            (c: FlowComponent) => c.type === "CURSOR"
+          );
+          const dockIcons = orionConfig.flow.components
+            ?.filter((c: FlowComponent) => c.type === "DOCK_ICON")
+            ?.sort((a: FlowComponent, b: FlowComponent) => a.order - b.order);
 
           if (wallpaper) {
             updateWallpaper({
@@ -54,9 +62,12 @@ const Desktop: React.FC = () => {
             });
           }
 
-          const dockIcons = orionConfig.flow.components
-            ?.filter((c: FlowComponent) => c.type === "DOCK_ICON")
-            ?.sort((a: FlowComponent, b: FlowComponent) => a.order - b.order);
+          if (cursor) {
+            updateCursor({
+              tokenId: cursor.tokenId,
+              outlineTokenId: cursor.outlineTokenId,
+            });
+          }
 
           if (dockIcons?.length) {
             updateDockIcons(dockIcons);
@@ -67,6 +78,10 @@ const Desktop: React.FC = () => {
               mode: "color",
               value: null,
               tokenId: "Black",
+            },
+            cursor: cursor && {
+              tokenId: cursor.tokenId,
+              outlineTokenId: cursor.outlineTokenId,
             },
             dockIcons: dockIcons || [],
           });
@@ -79,7 +94,13 @@ const Desktop: React.FC = () => {
     };
 
     initializeDesktop();
-  }, [updateWallpaper, updateDockIcons, setActiveOSFlowId, setOrionConfig]);
+  }, [
+    updateWallpaper,
+    updateDockIcons,
+    updateCursor,
+    setActiveOSFlowId,
+    setOrionConfig,
+  ]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -104,8 +125,8 @@ const Desktop: React.FC = () => {
 
   return (
     <MusicProvider>
-      <CustomCursor />
       <div className="h-full w-full overflow-hidden fixed inset-0">
+        <CustomCursor /> {/* Move it here, right after the root div */}
         <Wallpaper />
         <MusicWallpaper />
         <MenuBar />
@@ -121,7 +142,6 @@ const Desktop: React.FC = () => {
           ))}
           <Dock />
         </div>
-
         <SpotlightSearch
           isOpen={isSpotlightOpen}
           onClose={() => setIsSpotlightOpen(false)}

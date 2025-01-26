@@ -28,7 +28,7 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
   const fabricRef = useRef<fabric.Canvas | null>(null);
   const queryClient = useQueryClient();
   const { designSystem } = useDesignSystem();
-  const [selectedComponent, setSelectedComponent] = 
+  const [selectedComponent, setSelectedComponent] =
     useState<OrionFlowComponent | null>(null);
   const [mediaSelector, setMediaSelector] = useState<{
     x: number;
@@ -65,6 +65,7 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
   });
 
   // Effect to sync flow components with app store
+  // Effect to sync flow components with app store
   useEffect(() => {
     if (!flow?.components) return;
 
@@ -84,12 +85,24 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
         outlineTokenId: icon.outlineTokenId,
       }));
 
-    if (dockIcons.length > 0) {
+    // Add cursor sync
+    const cursor = flow.components
+      .filter((c) => c.type === "CURSOR")
+      .map((cursor) => ({
+        id: cursor.id,
+        name: cursor.name,
+        mode: "color", // Cursor only supports color mode
+        tokenId: cursor.tokenId,
+        outlineTokenId: cursor.outlineTokenId,
+      }))[0]; // Take first cursor component
+
+    if (dockIcons.length > 0 || cursor) {
       queryClient.setQueryData(
         ["orion-config"],
         (oldConfig: typeof currentStoreConfig) => ({
           ...oldConfig,
           dockIcons,
+          cursor, // Add cursor to config
         })
       );
     }
@@ -311,57 +324,68 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
         strokeWidth: 2,
         selectable: true,
         data: component,
-        objectCaching: true,  // Enable object caching to prevent flicker
-        statefullCache: true  // Ensure cache updates with state changes
+        objectCaching: true,
+        statefullCache: true,
       };
-    
-      const circle = new fabric.Circle({
-        ...baseCircleProps,
-        fill:
-          component.mode === "media" && component.value
-            ? "rgba(0,0,0,0)"
-            : getTokenColor(component.tokenId || null),
-      });
-    
-      canvas.add(circle);
-    
-      if (component.mode === "media" && component.value) {
+
+      let fabricObject;
+
+      if (component.type === "CURSOR") {
+        // Create cursor visualization using circle with special styling
+        fabricObject = new fabric.Circle({
+          ...baseCircleProps,
+          fill: getTokenColor(component.tokenId || null),
+          stroke: getTokenColor(component.outlineTokenId || null),
+          strokeWidth: 3,
+        });
+      } else {
+        // Standard circle for other components
+        fabricObject = new fabric.Circle({
+          ...baseCircleProps,
+          fill:
+            component.mode === "media" && component.value
+              ? "rgba(0,0,0,0)"
+              : getTokenColor(component.tokenId || null),
+        });
+      }
+
+      canvas.add(fabricObject);
+
+      // Handle media loading for non-cursor components
+      if (
+        component.type !== "CURSOR" &&
+        component.mode === "media" &&
+        component.value
+      ) {
         const img = new Image();
         img.crossOrigin = "anonymous";
         img.onload = () => {
-          // Calculate dimensions to maintain aspect ratio and cover the circle
           const imgRatio = img.width / img.height;
           let scale: number;
           let offsetX: number;
           let offsetY: number;
-    
+
           if (imgRatio > 1) {
-            // Image is wider than tall
             scale = (radius * 2) / img.height;
-            offsetX = -((img.width * scale) - (radius * 2)) / 2;
+            offsetX = -(img.width * scale - radius * 2) / 2;
             offsetY = 0;
           } else {
-            // Image is taller than wide
             scale = (radius * 2) / img.width;
             offsetX = 0;
-            offsetY = -((img.height * scale) - (radius * 2)) / 2;
+            offsetY = -(img.height * scale - radius * 2) / 2;
           }
-    
+
           const pattern = new fabric.Pattern({
             source: img,
-            repeat: 'no-repeat',
-            patternTransform: [
-              scale, 0, 0, scale,
-              offsetX,
-              offsetY
-            ],
+            repeat: "no-repeat",
+            patternTransform: [scale, 0, 0, scale, offsetX, offsetY],
           });
-    
-          circle.set({
+
+          fabricObject.set({
             fill: pattern,
-            dirty: true // Force redraw
+            dirty: true,
           });
-    
+
           canvas.requestRenderAll();
         };
         img.src = component.value;
