@@ -433,6 +433,7 @@ export const MenuBar = () => {
       const response = await axios.get("/api/apps/orion/config");
       return response.data;
     },
+    staleTime: 0, // Ensure fresh data on each query
   });
 
   const { data: streamData } = useQuery<StreamWithFlows>({
@@ -444,6 +445,7 @@ export const MenuBar = () => {
       return response.data;
     },
     enabled: !!orionConfig?.flow?.streamId,
+    staleTime: 0, // Ensure fresh data on each query
   });
 
   const flows = streamData?.flows || [];
@@ -577,7 +579,20 @@ export const MenuBar = () => {
               </SystemIcon>
 
               <div className="transform -translate-x-[4.5px]">
-                <DropdownMenu onOpenChange={setDropdownOpen}>
+                <DropdownMenu
+                  onOpenChange={(open) => {
+                    setDropdownOpen(open);
+                    if (open) {
+                      // Refresh both queries when dropdown opens
+                      queryClient.invalidateQueries({
+                        queryKey: ["orion-config"],
+                      });
+                      queryClient.invalidateQueries({
+                        queryKey: ["orion-stream", orionConfig?.flow?.streamId],
+                      });
+                    }
+                  }}
+                >
                   <DropdownMenuTrigger asChild>
                     <motion.button
                       className="relative p-2 rounded-md flex items-center justify-center hover:bg-white/5"
