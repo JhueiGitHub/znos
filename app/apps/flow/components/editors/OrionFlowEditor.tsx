@@ -42,6 +42,10 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
     x: number;
     y: number;
   } | null>(null);
+  const [selectedComponents, setSelectedComponents] = useState<
+    OrionFlowComponent[]
+  >([]);
+  const [lastSelectedId, setLastSelectedId] = useState<string | null>(null);
 
   const [canvasViewState, setCanvasViewState] = useState<{
     zoom: number;
@@ -112,34 +116,36 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
     mediaItem: MediaItem,
     type: "fill" | "outline" = "fill"
   ) => {
-    if (!selectedComponent) return;
+    if (selectedComponents.length === 0) return;
 
-    // Update canvas immediately
+    // Update canvas immediately for all selected components
     if (fabricRef.current) {
-      const objectToUpdate = fabricRef.current
-        .getObjects()
-        .find((obj) => obj.data?.id === selectedComponent.id);
+      selectedComponents.forEach((component) => {
+        const objectToUpdate = fabricRef
+          .current!.getObjects()
+          .find((obj) => obj.data?.id === component.id);
 
-      if (objectToUpdate) {
-        const img = new Image();
-        img.crossOrigin = "anonymous";
-        img.onload = () => {
-          const pattern = new fabric.Pattern({
-            source: img,
-            repeat: "no-repeat",
-          });
-          if (type === "outline") {
-            objectToUpdate.set({
-              stroke: pattern as any,
-              strokeWidth: 2,
+        if (objectToUpdate) {
+          const img = new Image();
+          img.crossOrigin = "anonymous";
+          img.onload = () => {
+            const pattern = new fabric.Pattern({
+              source: img,
+              repeat: "no-repeat",
             });
-          } else {
-            objectToUpdate.set("fill", pattern);
-          }
-          fabricRef.current?.renderAll();
-        };
-        img.src = mediaItem.url;
-      }
+            if (type === "outline") {
+              objectToUpdate.set({
+                stroke: pattern as any,
+                strokeWidth: 2,
+              });
+            } else {
+              objectToUpdate.set("fill", pattern);
+            }
+            fabricRef.current?.renderAll();
+          };
+          img.src = mediaItem.url;
+        }
+      });
     }
 
     // Create appropriate updates based on type
@@ -157,7 +163,7 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
             tokenId: undefined,
           };
 
-    // Update flow cache directly
+    // Update flow cache directly for all selected components
     queryClient.setQueryData(
       ["flow", flowId],
       (oldData: { components: OrionFlowComponent[] } | undefined) => {
@@ -165,7 +171,7 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
         return {
           ...oldData,
           components: oldData.components.map((component) =>
-            component.id === selectedComponent.id
+            selectedComponents.some((selected) => selected.id === component.id)
               ? { ...component, ...updates }
               : component
           ),
@@ -173,32 +179,35 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
       }
     );
 
-    // Update component in backend
-    await handleComponentUpdate(selectedComponent.id, updates);
+    // Update all components in backend
+    const componentIds = selectedComponents.map((c) => c.id);
+    await handleComponentUpdate(componentIds, updates);
     setMediaSelector(null);
   };
 
   const handleMacOSIconSelect = async (iconUrl: string) => {
-    if (!selectedComponent) return;
+    if (selectedComponents.length === 0) return;
 
-    // Update canvas immediately
+    // Update canvas immediately for all selected components
     if (fabricRef.current) {
-      const obj = fabricRef.current
-        .getObjects()
-        .find((obj) => obj.data?.id === selectedComponent.id);
-      if (obj) {
-        const img = new Image();
-        img.crossOrigin = "anonymous";
-        img.src = iconUrl;
-        img.onload = () => {
-          const pattern = new fabric.Pattern({
-            source: img,
-            repeat: "no-repeat",
-          });
-          obj.set("fill", pattern);
-          fabricRef.current?.renderAll();
-        };
-      }
+      selectedComponents.forEach((component) => {
+        const obj = fabricRef
+          .current!.getObjects()
+          .find((obj) => obj.data?.id === component.id);
+        if (obj) {
+          const img = new Image();
+          img.crossOrigin = "anonymous";
+          img.src = iconUrl;
+          img.onload = () => {
+            const pattern = new fabric.Pattern({
+              source: img,
+              repeat: "no-repeat",
+            });
+            obj.set("fill", pattern);
+            fabricRef.current?.renderAll();
+          };
+        }
+      });
     }
 
     const updates: ComponentUpdate = {
@@ -208,7 +217,7 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
       tokenId: undefined,
     };
 
-    // Update flow cache directly
+    // Update flow cache directly for all selected components
     queryClient.setQueryData(
       ["flow", flowId],
       (oldData: { components: OrionFlowComponent[] } | undefined) => {
@@ -216,7 +225,7 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
         return {
           ...oldData,
           components: oldData.components.map((component) =>
-            component.id === selectedComponent.id
+            selectedComponents.some((selected) => selected.id === component.id)
               ? { ...component, ...updates }
               : component
           ),
@@ -224,33 +233,62 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
       }
     );
 
-    // Update component in backend
-    await handleComponentUpdate(selectedComponent.id, updates);
+    // Update all components in backend
+    const componentIds = selectedComponents.map((c) => c.id);
+    await handleComponentUpdate(componentIds, updates);
     setMacOSIconSelector(null);
   };
 
   const { handleComponentUpdate, saveStatus } = useAutosave({
-    onSave: async (id: string, updates: ComponentUpdate) => {
-      const response = await axios.patch<OrionFlowComponent>(
-        `/api/flows/${flowId}/components/${id}`,
-        updates
-      );
-      return response.data;
+    onSave: async (ids: string | string[], updates: ComponentUpdate) => {
+      if (Array.isArray(ids)) {
+        // Bulk update
+        const response = await axios.patch<OrionFlowComponent[]>(
+          `/api/flows/${flowId}/components/bulk`,
+          { componentIds: ids, updates }
+        );
+        return response.data;
+      } else {
+        // Single update (backward compatibility)
+        const response = await axios.patch<OrionFlowComponent>(
+          `/api/flows/${flowId}/components/${ids}`,
+          updates
+        );
+        return response.data;
+      }
     },
-    onSuccess: (updatedComponent: OrionFlowComponent) => {
+    onSuccess: (
+      updatedComponents: OrionFlowComponent | OrionFlowComponent[]
+    ) => {
       // Update flow cache directly
       queryClient.setQueryData(
         ["flow", flowId],
         (oldData: { components: OrionFlowComponent[] } | undefined) => {
           if (!oldData?.components) return oldData;
-          return {
-            ...oldData,
-            components: oldData.components.map((component) =>
-              component.id === updatedComponent.id
-                ? { ...component, ...updatedComponent }
-                : component
-            ),
-          };
+          if (Array.isArray(updatedComponents)) {
+            // Handle bulk updates
+            return {
+              ...oldData,
+              components: oldData.components.map((component) => {
+                const updatedComponent = updatedComponents.find(
+                  (uc) => uc.id === component.id
+                );
+                return updatedComponent
+                  ? { ...component, ...updatedComponent }
+                  : component;
+              }),
+            };
+          } else {
+            // Handle single update
+            return {
+              ...oldData,
+              components: oldData.components.map((component) =>
+                component.id === updatedComponents.id
+                  ? { ...component, ...updatedComponents }
+                  : component
+              ),
+            };
+          }
         }
       );
     },
@@ -259,20 +297,58 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
     },
   });
 
-  const handleComponentSelect = (componentId: string) => {
-    const component =
-      flow?.components.find((c) => c.id === componentId) || null;
-    setSelectedComponent(component);
+  const handleComponentSelect = (
+    componentId: string,
+    modifiers: { shift?: boolean; meta?: boolean }
+  ) => {
+    const component = flow?.components.find((c) => c.id === componentId);
+    if (!component) return;
 
-    if (fabricRef.current) {
-      const canvasObject = fabricRef.current
-        .getObjects()
-        .find((obj) => obj.data?.id === componentId);
+    let newSelection: OrionFlowComponent[] = [];
 
-      if (canvasObject) {
-        fabricRef.current.setActiveObject(canvasObject);
-        fabricRef.current.renderAll();
+    if (modifiers.meta) {
+      // Command/Ctrl click: Toggle selection
+      const isSelected = selectedComponents.some((c) => c.id === componentId);
+      if (isSelected) {
+        newSelection = selectedComponents.filter((c) => c.id !== componentId);
+      } else {
+        newSelection = [...selectedComponents, component];
       }
+    } else if (modifiers.shift && lastSelectedId && flow?.components) {
+      // Shift click: Select range
+      const dockIcons = flow.components.filter((c) => c.type === "DOCK_ICON");
+      const lastIndex = dockIcons.findIndex((c) => c.id === lastSelectedId);
+      const currentIndex = dockIcons.findIndex((c) => c.id === componentId);
+      const [start, end] = [
+        Math.min(lastIndex, currentIndex),
+        Math.max(lastIndex, currentIndex),
+      ];
+      newSelection = dockIcons.slice(start, end + 1);
+    } else {
+      // Normal click: Single selection
+      newSelection = [component];
+    }
+
+    setSelectedComponents(newSelection);
+    setLastSelectedId(componentId);
+    setSelectedComponent(component); // Keep for backward compatibility
+
+    // Update canvas selection
+    if (fabricRef.current) {
+      fabricRef.current.discardActiveObject();
+      const objects = fabricRef.current
+        .getObjects()
+        .filter((obj) => newSelection.some((c) => c.id === obj.data?.id));
+
+      if (objects.length > 1) {
+        const selection = new fabric.ActiveSelection(objects, {
+          canvas: fabricRef.current,
+        });
+        fabricRef.current.setActiveObject(selection);
+      } else if (objects.length === 1) {
+        fabricRef.current.setActiveObject(objects[0]);
+      }
+      fabricRef.current.requestRenderAll();
     }
   };
 
@@ -478,7 +554,7 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
               isVisible={areSidebarsVisible}
               components={flow?.components || []}
               onComponentSelect={handleComponentSelect}
-              selectedComponentId={selectedComponent?.id}
+              selectedComponentIds={selectedComponents.map((c) => c.id)}
             />
             <motion.div
               initial={{ x: 264 }}
@@ -488,9 +564,11 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
               className="absolute right-0 top-0 bottom-0 w-[264px] border-l border-white/[0.09] bg-black/30 backdrop-blur-sm z-10"
             >
               <OrionEditorSidebar
-                selectedComponent={selectedComponent}
+                selectedComponents={selectedComponents}
                 designSystem={designSystem}
-                onUpdateComponent={handleComponentUpdate}
+                onUpdateComponent={(ids, updates) =>
+                  handleComponentUpdate(ids, updates)
+                }
                 onMediaSelect={(type) =>
                   setMediaSelector({
                     x: window.innerWidth - 700,

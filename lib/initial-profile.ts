@@ -99,7 +99,13 @@ export const initialProfile = async () => {
               { name: "latte-thin", value: "#4C4F69", opacity: 54 },
               { name: "latte-glass", value: "#4C4F69", opacity: 30 },
               { name: "latte-inner", value: "#1E202A", opacity: 100 },
-              { name: "latte-outer", value: "#35374A", opacity: 100 },
+              { name: "latte-outer", value: "#4C4F69", opacity: 100 },
+              { name: "daimon-inner", value: "#281719", opacity: 100 },
+              { name: "daimon-outer", value: "#5F3A3E", opacity: 100 },
+              { name: "onyx-inner", value: "#262331", opacity: 100 },
+              { name: "onyx-outer", value: "#534C6A", opacity: 100 },
+              { name: "mariana-inner", value: "#152020", opacity: 100 },
+              { name: "mariana-outer", value: "#375454", opacity: 100 },
             ],
           },
         },
@@ -331,7 +337,7 @@ export const initialProfile = async () => {
                   name: "Cursor",
                   type: "CURSOR",
                   mode: "color",
-                  tokenId: "smoke-med", // Inner color: #1e202a closest to our token is night
+                  tokenId: "latte-inner", // Inner color: #1e202a closest to our token is night
                   outlineMode: "color",
                   outlineTokenId: "latte-outer", // Outer color: #35374a closest to our token is latte
                   order: 9,

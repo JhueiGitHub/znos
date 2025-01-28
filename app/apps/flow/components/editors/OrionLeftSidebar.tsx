@@ -7,8 +7,11 @@ interface OrionLeftSidebarProps {
   flowName: string;
   isVisible: boolean;
   components: OrionFlowComponent[];
-  onComponentSelect: (componentId: string) => void;
-  selectedComponentId?: string;
+  onComponentSelect: (
+    componentId: string,
+    modifiers: { shift?: boolean; meta?: boolean }
+  ) => void;
+  selectedComponentIds: string[]; // Changed from selectedComponentId
 }
 
 export const OrionLeftSidebar: React.FC<OrionLeftSidebarProps> = ({
@@ -16,7 +19,7 @@ export const OrionLeftSidebar: React.FC<OrionLeftSidebarProps> = ({
   isVisible,
   components,
   onComponentSelect,
-  selectedComponentId,
+  selectedComponentIds,
 }) => {
   const { getColor, getFont } = useStyles();
 
@@ -80,8 +83,10 @@ export const OrionLeftSidebar: React.FC<OrionLeftSidebarProps> = ({
                 key={component.id}
                 name={component.name}
                 value={component.id}
-                isSelected={component.id === selectedComponentId}
-                handleSelect={onComponentSelect}
+                isSelected={selectedComponentIds.includes(component.id)}
+                handleSelect={(id, modifiers) =>
+                  onComponentSelect(id, modifiers)
+                }
               />
             ))}
           </FileTreeFolder>
@@ -91,8 +96,10 @@ export const OrionLeftSidebar: React.FC<OrionLeftSidebarProps> = ({
                 key={component.id}
                 name={component.name}
                 value={component.id}
-                isSelected={component.id === selectedComponentId}
-                handleSelect={onComponentSelect}
+                isSelected={selectedComponentIds.includes(component.id)}
+                handleSelect={(id, modifiers) =>
+                  onComponentSelect(id, modifiers)
+                }
               />
             ))}
           </FileTreeFolder>
@@ -102,8 +109,10 @@ export const OrionLeftSidebar: React.FC<OrionLeftSidebarProps> = ({
                 key={component.id}
                 name={component.name}
                 value={component.id}
-                isSelected={component.id === selectedComponentId}
-                handleSelect={onComponentSelect}
+                isSelected={selectedComponentIds.includes(component.id)}
+                handleSelect={(id, modifiers) =>
+                  onComponentSelect(id, modifiers)
+                }
               />
             ))}
           </FileTreeFolder>

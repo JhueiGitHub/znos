@@ -1,6 +1,3 @@
-// Explicit component type with all required fields
-// orion-flow-types.ts
-// orion-flow-types.ts
 // orion-flow-types.ts
 export interface OrionFlowComponent {
   id: string;
@@ -18,7 +15,6 @@ export interface OrionFlowComponent {
   outlineTokenId?: string;
 }
 
-// Type for component updates
 export type ComponentUpdate = Partial<
   Pick<
     OrionFlowComponent,
@@ -32,11 +28,8 @@ export type ComponentUpdate = Partial<
   >
 >;
 
-// Full sidebar props interface
-// orion-flow-types.ts
-// Full sidebar props interface
 export interface OrionSidebarProps {
-  selectedComponent: OrionFlowComponent | null;
+  selectedComponents: OrionFlowComponent[];
   designSystem: {
     colorTokens: Array<{
       id: string;
@@ -44,7 +37,18 @@ export interface OrionSidebarProps {
       value: string;
     }>;
   } | null;
-  onUpdateComponent: (id: string, updates: Partial<OrionFlowComponent>) => void;
+  onUpdateComponent: (ids: string[], updates: ComponentUpdate) => void;
   onMediaSelect: (type?: "fill" | "outline") => void;
   onMacOSIconSelect?: () => void;
+}
+
+export interface OrionLeftSidebarProps {
+  flowName: string;
+  isVisible: boolean;
+  components: OrionFlowComponent[];
+  onComponentSelect: (
+    componentId: string,
+    modifiers: { shift?: boolean; meta?: boolean }
+  ) => void;
+  selectedComponentIds: string[]; // Changed to support multiple selections
 }

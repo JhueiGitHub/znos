@@ -10,7 +10,7 @@ import {
 import { VideoPreview } from "@/app/components/media/previews/VideoPreview";
 
 const OrionEditorSidebar = ({
-  selectedComponent,
+  selectedComponents,
   designSystem,
   onUpdateComponent,
   onMediaSelect,
@@ -18,7 +18,7 @@ const OrionEditorSidebar = ({
 }: OrionSidebarProps) => {
   const { getColor, getFont } = useStyles();
 
-  if (!selectedComponent) {
+  if (selectedComponents.length === 0) {
     return (
       <div
         className="absolute right-0 top-0 bottom-0 w-[264px] border-l flex flex-col bg-[#010203]/80 backdrop-blur-sm"
@@ -51,14 +51,20 @@ const OrionEditorSidebar = ({
     );
   }
 
-  const isDockIcon = selectedComponent.type === "DOCK_ICON";
-  const isCursor = selectedComponent.type === "CURSOR";
+  // Get the first selected component as reference
+  const primaryComponent = selectedComponents[0];
+  const componentIds = selectedComponents.map((c) => c.id);
+
+  // Check if all selected components are of the same type
+  const allSameType = selectedComponents.every(
+    (c) => c.type === primaryComponent.type
+  );
+  const isDockIcon = allSameType && primaryComponent.type === "DOCK_ICON";
+  const isCursor = allSameType && primaryComponent.type === "CURSOR";
 
   const renderMediaContent = (type: "fill" | "outline" = "fill") => {
     const value =
-      type === "fill"
-        ? selectedComponent.value
-        : selectedComponent.outlineValue;
+      type === "fill" ? primaryComponent.value : primaryComponent.outlineValue;
     const isVideo = value?.match(/\.(mp4|webm|mov)$/i);
 
     return (
@@ -70,7 +76,7 @@ const OrionEditorSidebar = ({
             fontFamily: getFont("Text Secondary"),
           }}
         >
-          {type === "fill" ? "Media" : "Outline Media"}
+          {`${type === "fill" ? "Media" : "Outline Media"} (${selectedComponents.length} selected)`}
         </label>
         <div
           className="aspect-video rounded border overflow-hidden"
@@ -106,7 +112,7 @@ const OrionEditorSidebar = ({
             }}
           >
             {type === "fill"
-              ? selectedComponent.type === "WALLPAPER"
+              ? primaryComponent.type === "WALLPAPER"
                 ? value
                   ? "Change wallpaper..."
                   : "Choose wallpaper..."
@@ -154,12 +160,12 @@ const OrionEditorSidebar = ({
       <Select
         value={
           type === "fill"
-            ? selectedComponent.tokenId || ""
-            : selectedComponent.outlineTokenId || ""
+            ? primaryComponent.tokenId || ""
+            : primaryComponent.outlineTokenId || ""
         }
         onValueChange={(value) =>
           onUpdateComponent(
-            selectedComponent.id,
+            componentIds,
             type === "fill" ? { tokenId: value } : { outlineTokenId: value }
           )
         }
@@ -190,7 +196,40 @@ const OrionEditorSidebar = ({
     </div>
   );
 
-  // For cursor, we only show color options
+  if (!allSameType) {
+    return (
+      <div
+        className="absolute right-0 top-0 bottom-0 w-[264px] border-l flex flex-col bg-[#010203]/80 backdrop-blur-sm"
+        style={{
+          borderColor: getColor("Brd"),
+          backgroundColor: getColor("Glass"),
+        }}
+      >
+        <div className="h-10 px-4 flex items-center gap-8">
+          <span
+            className="text-[11px] font-semibold"
+            style={{
+              color: getColor("Text Primary (Hd)"),
+              fontFamily: getFont("Text Primary"),
+            }}
+          >
+            Multiple Types Selected
+          </span>
+        </div>
+        <div className="p-4">
+          <span
+            className="text-[11px]"
+            style={{
+              color: getColor("Text Secondary (Bd)"),
+            }}
+          >
+            Selected components must be of the same type to edit properties
+          </span>
+        </div>
+      </div>
+    );
+  }
+
   if (isCursor) {
     return (
       <div
@@ -212,10 +251,7 @@ const OrionEditorSidebar = ({
           </span>
         </div>
         <div className="flex-1 p-4 space-y-4 overflow-y-auto">
-          {/* Inner Color */}
           {renderColorContent("fill")}
-
-          {/* Outer Color */}
           <div className="pt-4 border-t border-white/[0.09]">
             {renderColorContent("outline")}
           </div>
@@ -224,7 +260,6 @@ const OrionEditorSidebar = ({
     );
   }
 
-  // Return original sidebar content for other component types
   return (
     <div
       className="absolute right-0 top-0 bottom-0 w-[264px] border-l flex flex-col bg-[#010203]/80 backdrop-blur-sm"
@@ -241,11 +276,10 @@ const OrionEditorSidebar = ({
             fontFamily: getFont("Text Primary"),
           }}
         >
-          Design
+          Design ({selectedComponents.length} selected)
         </span>
       </div>
       <div className="flex-1 p-4 space-y-4 overflow-y-auto">
-        {/* Fill Section */}
         <div className="space-y-4">
           <div className="space-y-2">
             <label
@@ -258,9 +292,9 @@ const OrionEditorSidebar = ({
               Fill Mode
             </label>
             <Select
-              value={selectedComponent.mode}
+              value={primaryComponent.mode}
               onValueChange={(value: "color" | "media") =>
-                onUpdateComponent(selectedComponent.id, { mode: value })
+                onUpdateComponent(componentIds, { mode: value })
               }
             >
               <SelectTrigger
@@ -279,11 +313,10 @@ const OrionEditorSidebar = ({
             </Select>
           </div>
 
-          {selectedComponent.mode === "media" && renderMediaContent("fill")}
-          {selectedComponent.mode === "color" && renderColorContent("fill")}
+          {primaryComponent.mode === "media" && renderMediaContent("fill")}
+          {primaryComponent.mode === "color" && renderColorContent("fill")}
         </div>
 
-        {/* Outline Section (Only for dock icons) */}
         {isDockIcon && (
           <div className="space-y-4 pt-4 border-t border-white/[0.09]">
             <div className="space-y-2">
@@ -297,9 +330,9 @@ const OrionEditorSidebar = ({
                 Outline Mode
               </label>
               <Select
-                value={selectedComponent.outlineMode || "color"}
+                value={primaryComponent.outlineMode || "color"}
                 onValueChange={(value: "color" | "media") =>
-                  onUpdateComponent(selectedComponent.id, {
+                  onUpdateComponent(componentIds, {
                     outlineMode: value,
                   })
                 }
@@ -320,9 +353,9 @@ const OrionEditorSidebar = ({
               </Select>
             </div>
 
-            {(selectedComponent.outlineMode || "color") === "media" &&
+            {(primaryComponent.outlineMode || "color") === "media" &&
               renderMediaContent("outline")}
-            {(selectedComponent.outlineMode || "color") === "color" &&
+            {(primaryComponent.outlineMode || "color") === "color" &&
               renderColorContent("outline")}
           </div>
         )}
