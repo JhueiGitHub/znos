@@ -77,7 +77,6 @@ export function FoldersArea() {
   const queryClient = useQueryClient();
 
   // Local state management
-  const [isLoading, setIsLoading] = useState(true);
   const [navigationStack, setNavigationStack] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [items, setItems] = useState<CanvasItem[]>([]);
@@ -113,61 +112,67 @@ export function FoldersArea() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const inputContainerRef = useRef<HTMLDivElement>(null);
 
-  // Enhanced folder data query
-  const { data: folderData } = useQuery({
+  // Improved query with proper error handling and enabled state
+  const {
+    data: folderData,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ["folder", currentFolderId],
     queryFn: async () => {
-      const response = await axios.get(
-        currentFolderId
-          ? `/api/stellar/folders/${currentFolderId}`
-          : "/api/stellar/folders"
-      );
+      try {
+        const response = await axios.get(
+          currentFolderId
+            ? `/api/stellar/folders/${currentFolderId}`
+            : "/api/stellar/folders"
+        );
 
-      const folderData = currentFolderId
-        ? response.data.folder
-        : response.data.rootFolder;
+        const folderData = currentFolderId
+          ? response.data.folder
+          : response.data.rootFolder;
 
-      if (response.data.folder) {
-        const newPath =
-          response.data.folder.path?.map((folder: any) => ({
-            id: folder.id,
-            name: folder.name,
-          })) || [];
+        // Handle path updates
+        if (response.data.folder) {
+          const newPath =
+            response.data.folder.path?.map((folder: any) => ({
+              id: folder.id,
+              name: folder.name,
+            })) || [];
 
-        if (newPath.length > 0 && newPath[0].name !== "Root") {
-          newPath.unshift({ id: response.data.rootFolder.id, name: "Root" });
+          if (newPath.length > 0 && newPath[0].name !== "Root") {
+            newPath.unshift({ id: response.data.rootFolder.id, name: "Root" });
+          }
+          setFolderPath(newPath);
+        } else {
+          setFolderPath([]);
         }
-        setFolderPath(newPath);
-      } else {
-        setFolderPath([]);
+
+        return {
+          items: [
+            ...(folderData.children || []).map((folderItem: any) => ({
+              id: folderItem.id,
+              itemType: "folder" as const,
+              data: { ...folderItem, itemType: "folder" },
+              position: folderItem.position || findNextAvailablePosition([]),
+            })),
+            ...(folderData.files || []).map((fileItem: any) => ({
+              id: fileItem.id,
+              itemType: "file" as const,
+              data: { ...fileItem, itemType: "file" },
+              position: fileItem.position || { x: 0, y: 0 },
+            })),
+          ],
+          rawData: folderData,
+        };
+      } catch (err) {
+        console.error("Error fetching folder data:", err);
+        throw err;
       }
-
-      setIsLoading(false);
-
-      return {
-        items: [
-          ...folderData.children.map((folderItem: any) => ({
-            id: folderItem.id,
-            itemType: "folder" as const,
-            data: { ...folderItem, itemType: "folder" },
-            position:
-              folderItem.position ||
-              findNextAvailablePosition(
-                folderData.children
-                  .filter((i: any) => i.position)
-                  .map((i: any) => i.position)
-              ),
-          })),
-          ...folderData.files.map((fileItem: any) => ({
-            id: fileItem.id,
-            itemType: "file" as const,
-            data: { ...fileItem, itemType: "file" },
-            position: fileItem.position || { x: 0, y: 0 },
-          })),
-        ],
-        rawData: folderData,
-      };
     },
+    enabled: true, // Always enabled
+    retry: 2, // Retry failed requests twice
+    staleTime: 2000, // Consider data fresh for 2 seconds
+    refetchOnWindowFocus: true,
   });
 
   // Position mutation with optimistic updates
@@ -527,9 +532,21 @@ export function FoldersArea() {
     };
   }, [currentFolderId, queryClient]);
 
-  if (isLoading) {
+  // Enhanced error UI
+  if (error) {
     return (
-      <div className="grid grid-cols-4 gap-4 h-full p-4">
+      <div className="flex items-center justify-center h-full">
+        <div className="text-red-500">
+          Error loading folder contents. Please try again.
+        </div>
+      </div>
+    );
+  }
+
+  // Loading state with proper skeleton UI
+  if (isLoading || !folderData) {
+    return (
+      <div className="grid grid-cols-4 gap-4 p-4">
         {[...Array(8)].map((_, index) => (
           <div
             key={index}
