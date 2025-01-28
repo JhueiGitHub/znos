@@ -376,6 +376,16 @@ const OrionFlowEditor = ({ flowId, onClose }: OrionFlowEditorProps) => {
       selection: false,
     });
 
+    // Set global selection styles
+    fabric.Object.prototype.set({
+      borderColor: "#4C4F69",
+      cornerColor: "#4C4F69",
+      cornerStrokeColor: "#4C4F69",
+      cornerSize: 6,
+      transparentCorners: false,
+      cornerStyle: "rect",
+    });
+
     fabricRef.current = canvas;
 
     // Restore previous view state if it exists
@@ -565,7 +575,7 @@ const OrionFlowEditor = ({ flowId, onClose }: OrionFlowEditorProps) => {
               animate={{ x: 0 }}
               exit={{ x: -264 }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="fixed left-0 top-0 bottom-0 w-[264px] border-r border-white/[0.09] bg-[#010203]/50 backdrop-blur-md z-10"
+              className="fixed left-0 top-0 bottom-0 w-[264px] border-r border-white/[0.09] bg-[#01020387] backdrop-blur-md z-10"
             >
               <OrionLeftSidebar
                 flowName={flow?.name || ""}
