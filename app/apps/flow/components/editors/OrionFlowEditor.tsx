@@ -305,26 +305,52 @@ const OrionFlowEditor = ({ flowId, onClose }: OrionFlowEditorProps) => {
     const component = flow?.components.find((c) => c.id === componentId);
     if (!component) return;
 
+    // Clear selection if clicking a different type when something is already selected
+    if (
+      selectedComponents.length > 0 &&
+      selectedComponents[0].type !== component.type &&
+      !modifiers.meta &&
+      !modifiers.shift
+    ) {
+      setSelectedComponents([]);
+      setLastSelectedId(null);
+    }
+
     let newSelection: OrionFlowComponent[] = [];
 
     if (modifiers.meta) {
-      // Command/Ctrl click: Toggle selection
+      // Command/Ctrl click: Toggle selection only within same type
       const isSelected = selectedComponents.some((c) => c.id === componentId);
       if (isSelected) {
         newSelection = selectedComponents.filter((c) => c.id !== componentId);
-      } else {
+      } else if (
+        selectedComponents.length === 0 ||
+        selectedComponents[0].type === component.type
+      ) {
         newSelection = [...selectedComponents, component];
+      } else {
+        newSelection = [component]; // Reset selection if different type
       }
     } else if (modifiers.shift && lastSelectedId && flow?.components) {
-      // Shift click: Select range
-      const dockIcons = flow.components.filter((c) => c.type === "DOCK_ICON");
-      const lastIndex = dockIcons.findIndex((c) => c.id === lastSelectedId);
-      const currentIndex = dockIcons.findIndex((c) => c.id === componentId);
-      const [start, end] = [
-        Math.min(lastIndex, currentIndex),
-        Math.max(lastIndex, currentIndex),
-      ];
-      newSelection = dockIcons.slice(start, end + 1);
+      const typeComponents = flow.components.filter(
+        (c) => c.type === component.type
+      );
+      const lastIndex = typeComponents.findIndex(
+        (c) => c.id === lastSelectedId
+      );
+      if (lastIndex !== -1) {
+        // Only do range select if last selected was same type
+        const currentIndex = typeComponents.findIndex(
+          (c) => c.id === componentId
+        );
+        const [start, end] = [
+          Math.min(lastIndex, currentIndex),
+          Math.max(lastIndex, currentIndex),
+        ];
+        newSelection = typeComponents.slice(start, end + 1);
+      } else {
+        newSelection = [component];
+      }
     } else {
       // Normal click: Single selection
       newSelection = [component];
@@ -332,7 +358,7 @@ const OrionFlowEditor = ({ flowId, onClose }: OrionFlowEditorProps) => {
 
     setSelectedComponents(newSelection);
     setLastSelectedId(componentId);
-    setSelectedComponent(component); // Keep for backward compatibility
+    setSelectedComponent(newSelection[0]); // Always use first component for compatibility
 
     // Update canvas selection
     if (fabricRef.current) {
@@ -486,14 +512,25 @@ const OrionFlowEditor = ({ flowId, onClose }: OrionFlowEditorProps) => {
     });
 
     canvas.on("selection:created", (options) => {
-      const selectedObject = options.selected?.[0];
-      if (selectedObject && selectedObject.data) {
-        setSelectedComponent(selectedObject.data as OrionFlowComponent);
-      }
+      if (!options.selected) return;
+
+      // Handle multi-selection from canvas
+      const selectedObjects = Array.isArray(options.selected)
+        ? options.selected
+        : [options.selected];
+      const selectedComponents = selectedObjects
+        .map((obj) => obj.data as OrionFlowComponent)
+        .filter(Boolean);
+
+      setSelectedComponents(selectedComponents);
+      setSelectedComponent(selectedComponents[0]); // For backward compatibility
+      setLastSelectedId(selectedComponents[0]?.id || null);
     });
 
     canvas.on("selection:cleared", () => {
+      setSelectedComponents([]);
       setSelectedComponent(null);
+      setLastSelectedId(null);
     });
 
     canvas.on("mouse:wheel", (opt) => {

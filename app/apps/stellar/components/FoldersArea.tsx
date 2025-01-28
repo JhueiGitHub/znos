@@ -8,6 +8,7 @@ import { ChevronLeft } from "lucide-react";
 import localFont from "next/font/local";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useSidebarDrag } from "../hooks/useSidebarDrag";
+import { useDropZone } from "../hooks/useDropZone";
 
 // Import exemplar font
 const exemplarPro = localFont({
@@ -292,6 +293,51 @@ export function FoldersArea() {
     [currentFolderId, setCurrentFolder]
   );
 
+  const handleFilesDrop = useCallback(
+    async (files: FileList, position: { x: number; y: number }) => {
+      for (const file of Array.from(files)) {
+        try {
+          setIsUploading(true);
+          const formData = new FormData();
+          formData.append("file", file);
+          formData.append("UPLOADCARE_PUB_KEY", "cdaf26bf5b990f72f7ae");
+
+          const uploadResponse = await axios.post(
+            "https://upload.uploadcare.com/base/",
+            formData
+          );
+
+          if (!uploadResponse?.data?.file) {
+            throw new Error("Upload failed");
+          }
+
+          const cdnUrl = `https://ucarecdn.com/${uploadResponse.data.file}/`;
+
+          const fileResponse = await axios.post("/api/stellar/files", {
+            name: file.name,
+            url: cdnUrl,
+            size: file.size,
+            mimeType: file.type,
+            folderId: currentFolderId || profile?.rootFolder?.id,
+            position: position,
+          });
+
+          queryClient.invalidateQueries({
+            queryKey: ["folder", currentFolderId],
+          });
+        } catch (error) {
+          console.error("Upload error:", error);
+        }
+      }
+      setIsUploading(false);
+    },
+    [currentFolderId, profile?.rootFolder?.id, queryClient]
+  );
+
+  const { isDragActive, dragHandlers } = useDropZone({
+    onDrop: handleFilesDrop,
+  });
+
   const handleBack = useCallback(() => {
     const previousFolder = navigationStack[navigationStack.length - 1];
     setNavigationStack((previousStack) => previousStack.slice(0, -1));
@@ -354,8 +400,21 @@ export function FoldersArea() {
     [handleFolderOpen]
   );
 
+  // Enhanced drag and drop handlers
   const handleDragOver = useCallback((event: React.DragEvent) => {
     event.preventDefault();
+    event.stopPropagation();
+
+    // Check if the dragged items contain files
+    if (event.dataTransfer.types.includes("Files")) {
+      setFileDropActive(true);
+    }
+  }, []);
+
+  const handleDragEnter = useCallback((event: React.DragEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+
     if (event.dataTransfer.types.includes("Files")) {
       setFileDropActive(true);
     }
@@ -363,12 +422,17 @@ export function FoldersArea() {
 
   const handleDragLeave = useCallback((event: React.DragEvent) => {
     event.preventDefault();
+    event.stopPropagation();
+
+    // Only deactivate if actually leaving the drop zone
     const rect = event.currentTarget.getBoundingClientRect();
+    const { clientX, clientY } = event;
+
     if (
-      event.clientY <= rect.top ||
-      event.clientY >= rect.bottom ||
-      event.clientX <= rect.left ||
-      event.clientX >= rect.right
+      clientX <= rect.left ||
+      clientX >= rect.right ||
+      clientY <= rect.top ||
+      clientY >= rect.bottom
     ) {
       setFileDropActive(false);
     }
@@ -423,6 +487,7 @@ export function FoldersArea() {
   const handleDrop = useCallback(
     async (event: React.DragEvent) => {
       event.preventDefault();
+      event.stopPropagation();
       setFileDropActive(false);
 
       const dropPosition = {
@@ -546,7 +611,7 @@ export function FoldersArea() {
   // Loading state with proper skeleton UI
   if (isLoading || !folderData) {
     return (
-      <div className="grid grid-cols-4 gap-4 p-4">
+      <div className="h-full w-full grid grid-cols-4 gap-4 p-4">
         {[...Array(8)].map((_, index) => (
           <div
             key={index}
@@ -560,27 +625,45 @@ export function FoldersArea() {
   return (
     <div
       className="relative flex-1 overflow-hidden bg-[#010203]/30"
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
-    >
-      {currentFolderId && (
-        <div className="absolute top-4 left-4 z-10">
-          <button
-            onClick={handleBack}
-            className="p-2 rounded-lg bg-[#4C4F69]/10 hover:bg-[#4C4F69]/20 transition"
-          >
-            <ChevronLeft className="w-4 h-4 text-[#626581]" />
-          </button>
-        </div>
-      )}
+      onDragOver={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setFileDropActive(true);
+      }}
+      onDrop={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setFileDropActive(false);
 
+        const dropPosition = {
+          x: e.clientX - e.currentTarget.getBoundingClientRect().left,
+          y: e.clientY - e.currentTarget.getBoundingClientRect().top,
+        };
+
+        const { files } = e.dataTransfer;
+        if (files?.length) {
+          Array.from(files).forEach((file) => {
+            handleFileUpload(file, dropPosition);
+          });
+        }
+      }}
+      onDragLeave={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        // Only deactivate if we're leaving the drop target itself
+        if (e.currentTarget === e.target) {
+          setFileDropActive(false);
+        }
+      }}
+    >
       <AnimatePresence>
         {fileDropActive && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
             className="absolute inset-0 z-50 bg-[#4C4F69]/20 border-2 border-dashed border-[#4C4F69]/40 rounded-lg pointer-events-none"
           >
             <div className="flex items-center justify-center h-full">
