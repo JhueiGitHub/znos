@@ -265,7 +265,6 @@ const OrionEditorSidebar = ({
       className="absolute right-0 top-0 bottom-0 w-[264px] border-l flex flex-col bg-[#010203]/80 backdrop-blur-sm"
       style={{
         borderColor: getColor("Brd"),
-        backgroundColor: getColor("Glass"),
       }}
     >
       <div className="h-10 px-4 flex items-center gap-8">

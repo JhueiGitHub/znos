@@ -33,7 +33,11 @@ export const OrionLeftSidebar: React.FC<OrionLeftSidebarProps> = ({
       animate={{ x: 0 }}
       exit={{ x: -264 }}
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
-      className="absolute left-0 top-0 bottom-0 w-[264px] border-r border-white/[0.09] flex flex-col bg-black/30 backdrop-blur-sm z-10"
+      className="absolute left-0 top-0 bottom-0 w-[264px] border-r border-white/[0.09] flex flex-col backdrop-blur-sm z-10 bg-rose-500 "
+      style={{
+        borderColor: getColor("Brd"),
+        backgroundColor: getColor("Glass"),
+      }}
     >
       <div className="h-[57px] border-b border-white/[0.09] p-4 flex flex-col justify-center">
         <span

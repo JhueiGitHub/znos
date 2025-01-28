@@ -20,9 +20,10 @@ import { MacOSIconsSelector } from "./MacOSIconsSelector";
 
 interface OrionFlowEditorProps {
   flowId: string;
+  onClose: () => void; // Add onClose prop
 }
 
-const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
+const OrionFlowEditor = ({ flowId, onClose }: OrionFlowEditorProps) => {
   const others = useOthers();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fabricRef = useRef<fabric.Canvas | null>(null);
@@ -353,21 +354,23 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
   };
 
   useEffect(() => {
-    const handleKeyPress = (e: KeyboardEvent) => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Only handle § key here since Escape is handled by parent
       if (e.key === "§") {
         setAreSidebarsVisible((prev) => !prev);
       }
     };
 
-    window.addEventListener("keypress", handleKeyPress);
-    return () => window.removeEventListener("keypress", handleKeyPress);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
   useEffect(() => {
     if (!canvasRef.current || !flow?.components || !designSystem) return;
 
+    // Create canvas with full window dimensions
     const canvas = new fabric.Canvas(canvasRef.current, {
-      width: window.innerWidth - (areSidebarsVisible ? 560 : 0),
+      width: window.innerWidth,
       height: window.innerHeight,
       backgroundColor: "#010203",
       selection: false,
@@ -521,8 +524,9 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
           ? [...fabricRef.current.viewportTransform]
           : null;
 
+        // Update canvas to always use full window dimensions
         fabricRef.current.setDimensions({
-          width: window.innerWidth - (areSidebarsVisible ? 560 : 0),
+          width: window.innerWidth,
           height: window.innerHeight,
         });
 
@@ -542,33 +546,48 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
       canvas.dispose();
       window.removeEventListener("resize", handleResize);
     };
-  }, [canvasRef, flow, designSystem, areSidebarsVisible, canvasViewState]);
+  }, [canvasRef, flow, designSystem, canvasViewState]);
 
   return (
-    <div className="h-full w-full bg-[#010203] relative">
+    <div className="h-full w-full relative">
+      {/* Canvas container - always full width/height */}
+      <div className="absolute inset-0">
+        <canvas ref={canvasRef} />
+      </div>
+
+      {/* Overlaying sidebars */}
       <AnimatePresence>
         {areSidebarsVisible && (
           <>
-            <OrionLeftSidebar
-              flowName={flow?.name || ""}
-              isVisible={areSidebarsVisible}
-              components={flow?.components || []}
-              onComponentSelect={handleComponentSelect}
-              selectedComponentIds={selectedComponents.map((c) => c.id)}
-            />
+            {/* Left Sidebar */}
+            <motion.div
+              initial={{ x: -264 }}
+              animate={{ x: 0 }}
+              exit={{ x: -264 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              className="fixed left-0 top-0 bottom-0 w-[264px] border-r border-white/[0.09] bg-[#010203]/50 backdrop-blur-md z-10"
+            >
+              <OrionLeftSidebar
+                flowName={flow?.name || ""}
+                isVisible={areSidebarsVisible}
+                components={flow?.components || []}
+                onComponentSelect={handleComponentSelect}
+                selectedComponentIds={selectedComponents.map((c) => c.id)}
+              />
+            </motion.div>
+
+            {/* Right Sidebar */}
             <motion.div
               initial={{ x: 264 }}
               animate={{ x: 0 }}
               exit={{ x: 264 }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="absolute right-0 top-0 bottom-0 w-[264px] border-l border-white/[0.09] bg-black/30 backdrop-blur-sm z-10"
+              className="fixed right-0 top-0 bottom-0 w-[264px] border-l border-white/[0.09] bg-[#010203]/50 backdrop-blur-md z-10"
             >
               <OrionEditorSidebar
                 selectedComponents={selectedComponents}
                 designSystem={designSystem}
-                onUpdateComponent={(ids, updates) =>
-                  handleComponentUpdate(ids, updates)
-                }
+                onUpdateComponent={handleComponentUpdate}
                 onMediaSelect={(type) =>
                   setMediaSelector({
                     x: window.innerWidth - 700,
@@ -588,16 +607,7 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
         )}
       </AnimatePresence>
 
-      <div
-        className="absolute inset-0"
-        style={{
-          marginLeft: areSidebarsVisible ? "264px" : "0",
-          marginRight: areSidebarsVisible ? "264px" : "0",
-        }}
-      >
-        <canvas ref={canvasRef} />
-      </div>
-
+      {/* Media selector */}
       <AnimatePresence>
         {mediaSelector && (
           <MediaSelector
@@ -610,6 +620,7 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
         )}
       </AnimatePresence>
 
+      {/* Top-right status */}
       <div className="fixed top-4 right-4 flex items-center gap-4 z-20">
         <SaveStatusIndicator status={saveStatus} />
         <div className="text-[#cccccc]/70 text-xs">
@@ -617,10 +628,12 @@ const OrionFlowEditor = ({ flowId }: OrionFlowEditorProps) => {
         </div>
       </div>
 
-      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-[#cccccc]/50 text-xs">
+      {/* Bottom help text */}
+      <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 text-[#cccccc]/50 text-xs">
         Press § to toggle sidebars
       </div>
 
+      {/* MacOS icon selector */}
       <AnimatePresence>
         {macOSIconSelector && (
           <MacOSIconsSelector

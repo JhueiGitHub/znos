@@ -1,4 +1,4 @@
-// app/apps/flow/components/editors/OrionEditorView.tsx
+// OrionEditorView.tsx
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
@@ -16,7 +16,6 @@ export const OrionEditorView = ({ flowId, onClose }: OrionEditorViewProps) => {
   const [areSidebarsVisible, setAreSidebarsVisible] = useState(true);
   const { getColor } = useStyles();
 
-  // Add query to check flow data loading state
   const { data: flow, isLoading } = useQuery({
     queryKey: ["flow", flowId],
     queryFn: async () => {
@@ -31,24 +30,26 @@ export const OrionEditorView = ({ flowId, onClose }: OrionEditorViewProps) => {
   useEffect(() => {
     document.body.style.overflow = "hidden";
 
-    const handleKeyPress = (e: KeyboardEvent) => {
-      if (e.key === "§") {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose();
+      } else if (e.key === "§") {
         setAreSidebarsVisible((prev) => !prev);
       }
     };
 
-    window.addEventListener("keypress", handleKeyPress);
+    window.addEventListener("keydown", handleKeyDown);
 
     return () => {
       document.body.style.overflow = "auto";
-      window.removeEventListener("keypress", handleKeyPress);
+      window.removeEventListener("keydown", handleKeyDown);
     };
-  }, []);
+  }, [onClose]);
 
   const EditorSkeleton = () => (
     <div className="absolute inset-0 bg-black/80 backdrop-blur-sm">
       {/* Left Sidebar Skeleton */}
-      <div className="absolute left-0 top-0 bottom-0 w-[264px] border-r border-white/[0.09]">
+      <div className="fixed left-0 top-0 bottom-0 w-[264px] border-r border-white/[0.09]">
         <Skeleton className="h-[57px] w-full bg-white/5" />
         <div className="p-4 space-y-4">
           {[...Array(8)].map((_, i) => (
@@ -58,7 +59,7 @@ export const OrionEditorView = ({ flowId, onClose }: OrionEditorViewProps) => {
       </div>
 
       {/* Canvas Area Skeleton */}
-      <div className="absolute left-[264px] right-[264px] top-0 bottom-0">
+      <div className="fixed left-[264px] right-[264px] top-0 bottom-0">
         {[...Array(4)].map((_, i) => (
           <Skeleton
             key={i}
@@ -74,7 +75,7 @@ export const OrionEditorView = ({ flowId, onClose }: OrionEditorViewProps) => {
       </div>
 
       {/* Right Sidebar Skeleton */}
-      <div className="absolute right-0 top-0 bottom-0 w-[264px] border-l border-white/[0.09]">
+      <div className="fixed right-0 top-0 bottom-0 w-[264px] border-l border-white/[0.09]">
         <Skeleton className="h-10 w-full bg-white/5" />
         <div className="p-4 space-y-4">
           {[...Array(6)].map((_, i) => (
@@ -93,12 +94,12 @@ export const OrionEditorView = ({ flowId, onClose }: OrionEditorViewProps) => {
         ) : (
           <>
             <div className="absolute inset-0">
-              <OrionFlowEditor flowId={flowId} />
+              <OrionFlowEditor flowId={flowId} onClose={onClose} />
             </div>
 
             <button
               onClick={onClose}
-              className="absolute top-4 right-4 text-white/70 hover:text-white"
+              className="absolute top-4 right-4 text-white/70 hover:text-white z-50"
             >
               ESC
             </button>
