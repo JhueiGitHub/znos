@@ -494,6 +494,14 @@ const ALL_PLAYLISTS: Playlist[] = [
         thumbnail: "/media/songs/nxra/wanderlust.png",
         videoUrl: "https://www.youtube.com/watch?v=9_smMqZhnkY",
       },
+      {
+        id: "aftr-10",
+        title: "sacrafice",
+        artist: "AFTR",
+        path: "/audio/nxra/sacrafice.mp4",
+        thumbnail: "/media/songs/nxra/sacrafice.png",
+        videoUrl: "https://www.youtube.com/watch?v=yDFbpYdcK-Q",
+      },
     ],
   },
 ];
