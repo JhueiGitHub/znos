@@ -725,6 +725,30 @@ const CATEGORIES_DATA: Category[] = [
     name: "Magna",
     content: [
       {
+        type: "movie",
+        id: "philly",
+        title: "Bill Burr Philly Rant",
+        rating: "94% Google User Review",
+        thumbnail: "/apps/glory/philly_thumbnail.png",
+        description:
+          "A martial artist agrees to spy on a reclusive crime lord using his invitation to a tournament there as cover.",
+        maturityRating: "18+",
+        videoId: "x3zkg5m",
+        duration: "1:42:00",
+      },
+      {
+        type: "movie",
+        id: "boomerang",
+        title: "Boomerang HD",
+        rating: "90% Google User Review",
+        thumbnail: "/apps/glory/boomerang_thumbnail.png",
+        description:
+          "A martial artist agrees to spy on a reclusive crime lord using his invitation to a tournament there as cover.",
+        maturityRating: "18+",
+        videoId: "x2lzd57",
+        duration: "1:42:00",
+      },
+      {
         type: "series",
         id: "fonejacker",
         title: "Fonejacker",
@@ -893,18 +917,6 @@ const CATEGORIES_DATA: Category[] = [
             duration: "59:00",
           },
         ],
-      },
-      {
-        type: "movie",
-        id: "philly",
-        title: "Bill Burr Philly Rant",
-        rating: "94% Google User Review",
-        thumbnail: "/apps/glory/philly_thumbnail.png",
-        description:
-          "A martial artist agrees to spy on a reclusive crime lord using his invitation to a tournament there as cover.",
-        maturityRating: "18+",
-        videoId: "x3zkg5m",
-        duration: "1:42:00",
       },
     ],
   },
