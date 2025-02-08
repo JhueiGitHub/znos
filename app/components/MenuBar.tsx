@@ -45,6 +45,31 @@ const formatTime = (seconds: number): string => {
   return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
 };
 
+// First, let's create a simpler IconButton component for the non-dropdown icons
+// First, let's create a simpler IconButton component for the non-dropdown icons
+const IconButton: React.FC<{ src: string; onClick?: () => void }> = ({
+  src,
+  onClick,
+}) => {
+  return (
+    <motion.button
+      className="relative p-2 rounded-md flex items-center justify-center hover:bg-white/5"
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+      onClick={onClick}
+    >
+      <motion.img
+        src={src}
+        alt="System Icon"
+        className="w-4 h-4"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.1 }}
+      />
+    </motion.button>
+  );
+};
+
 // Update the MusicDropdown interface
 interface MusicDropdownProps {
   currentSong?: {
@@ -111,6 +136,7 @@ const MusicDropdown: React.FC<MusicDropdownProps> = ({
     <DropdownMenuContent
       className="w-[300px] p-3 space-y-3"
       align="end"
+      alignOffset={-3}
       sideOffset={4}
       style={{
         backgroundColor: getColor("black-thick"),
@@ -539,51 +565,17 @@ export const MenuBar = () => {
             }}
           >
             <div className="flex items-center gap-3">
-              <SystemIcon src="/icns/system/_dopa.png">
-                <DropdownMenuContent
-                  className="min-w-[280px] p-1"
-                  style={{
-                    backgroundColor: getColor("black-thick"),
-                    borderColor: getColor("Brd"),
-                  }}
-                >
-                  <DropdownMenuItem
-                    onClick={() => resetAllData.mutate()}
-                    className="flex items-center justify-between px-3 py-2 hover:bg-white/5 rounded-md cursor-pointer"
-                    style={{
-                      color: "rgba(76, 79, 105, 0.81)",
-                    }}
-                  >
-                    <span className="text-sm">Reset All App Data</span>
-                  </DropdownMenuItem>
-                  <div className="px-3 py-2">
-                    <span className="text-sm opacity-50">
-                      Resets both Obsidian and Loom data
-                    </span>
-                  </div>
-                </DropdownMenuContent>
-              </SystemIcon>
-
-              <SystemIcon src="/icns/system/_stellar.png">
-                <DropdownMenuContent
-                  className="min-w-[280px] p-4"
-                  style={{
-                    backgroundColor: getColor("black-thick"),
-                    borderColor: getColor("Brd"),
-                  }}
-                >
-                  <span className="text-sm opacity-50">
-                    Media system coming soon
-                  </span>
-                </DropdownMenuContent>
-              </SystemIcon>
+              <IconButton src="/icns/system/_dopa.png" />
+              <IconButton
+                src="/icns/system/_stellar.png"
+                onClick={() => {}} // Empty handler for now
+              />
 
               <div className="transform -translate-x-[4.5px]">
                 <DropdownMenu
                   onOpenChange={(open) => {
                     setDropdownOpen(open);
                     if (open) {
-                      // Refresh both queries when dropdown opens
                       queryClient.invalidateQueries({
                         queryKey: ["orion-config"],
                       });
@@ -612,7 +604,7 @@ export const MenuBar = () => {
                   <DropdownMenuContent
                     className="min-w-[280px] p-1"
                     align="start"
-                    alignOffset={-10}
+                    alignOffset={-3}
                     sideOffset={4}
                     style={{
                       backgroundColor: getColor("black-med"),
