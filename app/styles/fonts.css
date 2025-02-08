@@ -1,0 +1,10 @@
+@font-face {
+  font-family: "ExemplarPro";
+  src:
+    url("/fonts/ExemplarPro.woff2") format("woff2"),
+    url("/fonts/ExemplarPro.woff") format("woff"),
+    url("/fonts/ExemplarPro.otf") format("opentype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}

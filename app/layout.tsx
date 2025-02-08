@@ -9,6 +9,7 @@ import QueryProvider from "@/app/components/providers/query-provider";
 import { SocketProvider } from "./apps/discord/components/providers/socket-provider";
 import { Analytics } from "@vercel/analytics/react";
 import { ReduxProvider } from "@/redux/provider";
+import "./styles/fonts.css";
 
 export const metadata = {
   title: "Orion",
@@ -22,6 +23,15 @@ export default function RootLayout({
 }) {
   return (
     <ClerkProvider>
+      <head>
+        <link
+          rel="preload"
+          href="/fonts/ExemplarPro.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+        />
+      </head>
       <html lang="en" className="overflow-hidden">
         <SocketProvider>
           <QueryProvider>

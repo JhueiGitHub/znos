@@ -8,7 +8,6 @@ import debounce from "lodash/debounce";
 import { useShorthand } from "../hooks/useShorthand";
 import { useShorthandStore } from "../stores/shorthand-store";
 
-
 // Updated regex pattern to include both arrows and bullet points while preserving their original form
 const SYMBOL_PATTERN = /(->|- |"|"|"|:|;)/g;
 
@@ -32,7 +31,7 @@ const getSymbolType = (symbol: string) => {
 };
 
 // Enhanced PreviewContent component to handle both arrows and bullets
-const PreviewContent: React.FC<{ content: string; accentColor: string }> = 
+const PreviewContent: React.FC<{ content: string; accentColor: string }> =
   React.memo(({ content, accentColor }) => {
     // Split content by our symbol pattern while preserving the symbols
     const parts = content.split(SYMBOL_PATTERN).map((part, index) => {
@@ -68,23 +67,27 @@ const PreviewContent: React.FC<{ content: string; accentColor: string }> =
     return <div className="whitespace-pre-wrap">{parts}</div>;
   });
 
-  const Editor: React.FC = () => {
-    const { getColor } = useStyles();
-    const { activeNote, activeNoteId, saveScrollPosition, getScrollPosition } = useNote();
-    const { accentColor } = useDailyColor();
-    const [content, setContent] = useState(activeNote?.content || "");
-    const queryClient = useQueryClient();
-    const editorRef = useRef<HTMLTextAreaElement>(null);
-    const previewRef = useRef<HTMLDivElement>(null);
-    const containerRef = useRef<HTMLDivElement>(null);
-  
-    // Enhanced scroll sync with requestAnimationFrame for performance
-    // Enhanced scroll sync with requestAnimationFrame for performance
-  const syncScroll = useCallback((sourceElement: HTMLElement, targetElement: HTMLElement) => {
-    requestAnimationFrame(() => {
-      targetElement.scrollTop = sourceElement.scrollTop;
-    });
-  }, []);
+const Editor: React.FC = () => {
+  const { getColor } = useStyles();
+  const { activeNote, activeNoteId, saveScrollPosition, getScrollPosition } =
+    useNote();
+  const { accentColor } = useDailyColor();
+  const [content, setContent] = useState(activeNote?.content || "");
+  const queryClient = useQueryClient();
+  const editorRef = useRef<HTMLTextAreaElement>(null);
+  const previewRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Enhanced scroll sync with requestAnimationFrame for performance
+  // Enhanced scroll sync with requestAnimationFrame for performance
+  const syncScroll = useCallback(
+    (sourceElement: HTMLElement, targetElement: HTMLElement) => {
+      requestAnimationFrame(() => {
+        targetElement.scrollTop = sourceElement.scrollTop;
+      });
+    },
+    []
+  );
 
   const saveScrollDebounced = useCallback(
     debounce((noteId: string, position: number) => {
@@ -93,20 +96,23 @@ const PreviewContent: React.FC<{ content: string; accentColor: string }> =
     [saveScrollPosition]
   );
 
-  const handleScroll = useCallback((e: React.UIEvent<HTMLElement>) => {
-    const source = e.target as HTMLElement;
-    if (editorRef.current && previewRef.current) {
-      if (source === editorRef.current) {
-        syncScroll(editorRef.current, previewRef.current);
-      } else if (source === previewRef.current) {
-        syncScroll(previewRef.current, editorRef.current);
+  const handleScroll = useCallback(
+    (e: React.UIEvent<HTMLElement>) => {
+      const source = e.target as HTMLElement;
+      if (editorRef.current && previewRef.current) {
+        if (source === editorRef.current) {
+          syncScroll(editorRef.current, previewRef.current);
+        } else if (source === previewRef.current) {
+          syncScroll(previewRef.current, editorRef.current);
+        }
       }
-    }
-    
-    if (activeNoteId && editorRef.current) {
-      saveScrollDebounced(activeNoteId, editorRef.current.scrollTop);
-    }
-  }, [activeNoteId, saveScrollDebounced, syncScroll]);
+
+      if (activeNoteId && editorRef.current) {
+        saveScrollDebounced(activeNoteId, editorRef.current.scrollTop);
+      }
+    },
+    [activeNoteId, saveScrollDebounced, syncScroll]
+  );
 
   // Update scroll position when note changes
   useEffect(() => {
@@ -116,7 +122,6 @@ const PreviewContent: React.FC<{ content: string; accentColor: string }> =
       previewRef.current.scrollTop = savedPosition;
     }
   }, [activeNoteId, getScrollPosition]);
-  
 
   // Update content when note changes
   useEffect(() => {
@@ -292,18 +297,17 @@ const PreviewContent: React.FC<{ content: string; accentColor: string }> =
         <h1
           className="text-2xl font-bold mb-4 flex-shrink-0"
           style={{
-            fontFamily: "ExemplarPro",
+            fontFamily: "'ExemplarPro', system-ui",
             color: activeNote.isDaily ? accentColor : "#4C4F69",
             opacity: 0.81,
+            WebkitFontSmoothing: "antialiased",
+            MozOsxFontSmoothing: "grayscale",
           }}
         >
           {activeNote.title}
         </h1>
-        
-        <div 
-          ref={containerRef}
-          className="relative flex-grow overflow-hidden"
-        >
+
+        <div ref={containerRef} className="relative flex-grow overflow-hidden">
           <textarea
             ref={editorRef}
             value={content}
