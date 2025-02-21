@@ -567,7 +567,7 @@ const ALL_PLAYLISTS: Playlist[] = [
   {
     id: "xo",
     name: "XO",
-    songCount: 3,
+    songCount: 12,
     thumbnail: "/media/playlists/xo.png",
     songs: [
       {
