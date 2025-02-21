@@ -546,21 +546,21 @@ const ALL_PLAYLISTS: Playlist[] = [
       },
       {
         id: "vcnz-5",
-        title: "empty mind",
-        artist: "VCNZ",
-        path: "/audio/vcnz/emptymind.mp4",
-        thumbnail: "/media/songs/vcnz/emptymind.png",
-        videoUrl:
-          "https://www.youtube.com/watch?v=2609nR2di5Y&list=PLP-eBeyXNQLrg6XprN1VTVhRdROfQYZ49&index=20&pp=iAQB8AUB",
-      },
-      {
-        id: "vcnz-6",
         title: "your vacancy",
         artist: "VCNZ",
         path: "/audio/vcnz/yourvacancy.mp4",
         thumbnail: "/media/songs/vcnz/yourvacancy.png",
         videoUrl:
           "https://www.youtube.com/watch?v=sUjtNYhTr7M&list=PLP-eBeyXNQLrg6XprN1VTVhRdROfQYZ49&index=33&pp=iAQB8AUB",
+      },
+      {
+        id: "vcnz-6",
+        title: "empty mind",
+        artist: "VCNZ",
+        path: "/audio/vcnz/emptymind.mp4",
+        thumbnail: "/media/songs/vcnz/emptymind.png",
+        videoUrl:
+          "https://www.youtube.com/watch?v=2609nR2di5Y&list=PLP-eBeyXNQLrg6XprN1VTVhRdROfQYZ49&index=20&pp=iAQB8AUB",
       },
     ],
   },
