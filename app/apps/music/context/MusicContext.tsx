@@ -514,7 +514,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         id: "aftr-1",
         title: "pretty",
         artist: "XO",
-        path: "/audio/nxra/pretty.mp4",
+        path: "/audio/xo/pretty.mp4",
         thumbnail: "/media/songs/nxra/pretty.png",
         videoUrl: "https://www.youtube.com/watch?v=-JVv2TuLyMo",
       },
