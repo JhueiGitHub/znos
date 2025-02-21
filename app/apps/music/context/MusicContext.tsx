@@ -505,6 +505,22 @@ const ALL_PLAYLISTS: Playlist[] = [
     ],
   },
   {
+    id: "xo",
+    name: "XO",
+    songCount: 3,
+    thumbnail: "/media/playlists/xo.png",
+    songs: [
+      {
+        id: "aftr-1",
+        title: "pretty",
+        artist: "XO",
+        path: "/audio/nxra/pretty.mp4",
+        thumbnail: "/media/songs/nxra/pretty.png",
+        videoUrl: "https://www.youtube.com/watch?v=-JVv2TuLyMo",
+      },
+    ],
+  },
+  {
     id: "vcnz",
     name: "VCNZ",
     songCount: 6,
