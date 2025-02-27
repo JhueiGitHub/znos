@@ -27,6 +27,11 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 // Add this new import
 import { useMusicContext } from "../apps/music/context/MusicContext";
+import localFont from "next/font/local";
+
+const exemplarPro = localFont({
+  src: "../../public/fonts/ExemplarPro.otf",
+});
 
 const MENU_HEIGHT = 32;
 const TRIGGER_AREA_HEIGHT = 20;
@@ -150,12 +155,19 @@ const MusicDropdown: React.FC<MusicDropdownProps> = ({
           src={currentSong?.thumbnail || "/media/system/_empty_image.png"}
           alt={currentSong.title}
           className="w-12 h-12 rounded"
+          style={exemplarPro.style}
         />
         <div className="flex-1 min-w-0">
-          <div className="text-sm font-medium truncate text-white">
+          <div
+            className="text-sm font-medium truncate text-white"
+            style={exemplarPro.style}
+          >
             {currentSong.title}
           </div>
-          <div className="text-xs text-white/60 truncate">
+          <div
+            className="text-xs text-white/60 truncate"
+            style={exemplarPro.style}
+          >
             {currentSong.artist}
           </div>
         </div>
@@ -282,6 +294,7 @@ const MusicDropdown: React.FC<MusicDropdownProps> = ({
                       <div
                         className="text-sm font-medium truncate"
                         style={{
+                          ...exemplarPro.style,
                           color:
                             currentPlaylist?.id === playlist.id
                               ? "rgba(76, 79, 105, 0.95)"
