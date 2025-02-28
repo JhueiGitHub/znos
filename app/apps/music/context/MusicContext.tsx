@@ -429,7 +429,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       },
       {
         id: "aftr-10",
-        title: "as you are",
+        title: "song10",
         artist: "AFTR",
         path: "/audio/nxra/asyouare.mp4",
         thumbnail: "/media/songs/nxra/asyouare.png",
@@ -506,6 +506,14 @@ const ALL_PLAYLISTS: Playlist[] = [
         path: "/audio/sn/lake.mp4",
         thumbnail: "/media/songs/lake.png",
         videoUrl: "https://www.youtube.com/watch?v=xF_x4oenM1E",
+      },
+      {
+        id: "sn-8",
+        title: "song9",
+        artist: "SN",
+        path: "/audio/sn/song9.mp4",
+        thumbnail: "/media/songs/lake.png",
+        videoUrl: "https://www.youtube.com/watch?v=zQebdkLvD00",
       },
     ],
   },
