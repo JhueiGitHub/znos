@@ -7,6 +7,7 @@ import React, {
   useState,
   useRef,
   useEffect,
+  useCallback,
 } from "react";
 
 interface Song {
@@ -49,9 +50,13 @@ interface MusicContextType {
   playPlaylist: (playlistId: string) => void;
   isWallpaperMode: boolean;
   toggleWallpaperMode: () => void;
-  // Add these two new properties
   fmModeEnabled: Record<string, boolean>;
   toggleFmMode: (playlistId: string) => void;
+  // New shuffle-related properties
+  shuffleModeEnabled: Record<string, boolean>;
+  toggleShuffleMode: (playlistId: string) => void;
+  resetShuffleForPlaylist: (playlistId: string) => void;
+  shuffledSongIndices: Record<string, number[]>;
 }
 
 // All playlists data combined into one constant
@@ -680,6 +685,9 @@ interface PersistedState {
   volume: number;
   currentPlaylistId: string;
   fmModeEnabled: Record<string, boolean>;
+  // New shuffle-related state
+  shuffleModeEnabled: Record<string, boolean>;
+  shuffledSongIndices: Record<string, number[]>;
 }
 
 const MusicContext = createContext<MusicContextType | undefined>(undefined);
@@ -694,6 +702,8 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
         volume: 1,
         currentPlaylistId: "xpfm",
         fmModeEnabled: {},
+        shuffleModeEnabled: {},
+        shuffledSongIndices: {},
       };
 
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -704,6 +714,8 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
         volume: 1,
         currentPlaylistId: "xpfm",
         fmModeEnabled: {},
+        shuffleModeEnabled: {},
+        shuffledSongIndices: {},
       };
 
     try {
@@ -715,6 +727,8 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
         volume: 1,
         currentPlaylistId: "xpfm",
         fmModeEnabled: {},
+        shuffleModeEnabled: {},
+        shuffledSongIndices: {},
       };
     }
   };
@@ -760,7 +774,167 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
     () => loadPersistedState().fmModeEnabled || {}
   );
 
+  // New shuffle-related state
+  const [shuffleModeEnabled, setShuffleModeEnabled] = useState<
+    Record<string, boolean>
+  >(() => loadPersistedState().shuffleModeEnabled || {});
+  const [shuffledSongIndices, setShuffledSongIndices] = useState<
+    Record<string, number[]>
+  >(() => loadPersistedState().shuffledSongIndices || {});
+
   const audioRef = useRef<HTMLAudioElement>(null);
+
+  // Create a function to shuffle songs for a playlist
+  const shufflePlaylist = useCallback(
+    (playlistId: string) => {
+      const playlist = ALL_PLAYLISTS.find((p) => p.id === playlistId);
+      if (!playlist) return;
+
+      // Create an array of indices and shuffle it
+      const indices = Array.from(
+        { length: playlist.songs.length },
+        (_, i) => i
+      );
+
+      // Fisher-Yates shuffle algorithm
+      for (let i = indices.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [indices[i], indices[j]] = [indices[j], indices[i]];
+      }
+
+      setShuffledSongIndices((prev) => ({
+        ...prev,
+        [playlistId]: indices,
+      }));
+
+      // Update localStorage
+      if (currentPlaylist) {
+        localStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify({
+            currentSongIndex,
+            currentTime,
+            volume,
+            currentPlaylistId: currentPlaylist.id,
+            fmModeEnabled,
+            shuffleModeEnabled,
+            shuffledSongIndices: {
+              ...shuffledSongIndices,
+              [playlistId]: indices,
+            },
+          })
+        );
+      }
+    },
+    [
+      ALL_PLAYLISTS,
+      currentPlaylist,
+      currentSongIndex,
+      currentTime,
+      volume,
+      fmModeEnabled,
+      shuffleModeEnabled,
+      shuffledSongIndices,
+    ]
+  );
+
+  // Toggle shuffle mode for a playlist
+  const toggleShuffleMode = useCallback(
+    (playlistId: string) => {
+      setShuffleModeEnabled((prev) => {
+        const newState = { ...prev, [playlistId]: !prev[playlistId] };
+
+        // If enabling shuffle, create shuffled indices
+        if (
+          newState[playlistId] &&
+          (!shuffledSongIndices[playlistId] ||
+            shuffledSongIndices[playlistId].length === 0)
+        ) {
+          shufflePlaylist(playlistId);
+        }
+
+        // Save to localStorage
+        if (currentPlaylist) {
+          localStorage.setItem(
+            STORAGE_KEY,
+            JSON.stringify({
+              currentSongIndex,
+              currentTime,
+              volume,
+              currentPlaylistId: currentPlaylist.id,
+              fmModeEnabled,
+              shuffleModeEnabled: newState,
+              shuffledSongIndices,
+            })
+          );
+        }
+
+        return newState;
+      });
+    },
+    [
+      currentPlaylist,
+      currentSongIndex,
+      currentTime,
+      volume,
+      fmModeEnabled,
+      shuffledSongIndices,
+      shufflePlaylist,
+    ]
+  );
+
+  // Corrected resetShuffleForPlaylist function for MusicContext.tsx
+  const resetShuffleForPlaylist = useCallback(
+    (playlistId: string) => {
+      // First, clear the shuffled indices for this playlist
+      setShuffledSongIndices((prev) => {
+        const newState = { ...prev };
+        delete newState[playlistId];
+
+        // If this is the current playlist being reset
+        if (currentPlaylist && currentPlaylist.id === playlistId) {
+          // Set the audio to the first track, but paused
+          setCurrentSongIndex(0);
+          setSongProgress(0);
+          setCurrentTime(0);
+          setIsPlaying(false);
+
+          // Immediately update the audio element
+          if (audioRef.current) {
+            audioRef.current.currentTime = 0;
+            audioRef.current.pause();
+          }
+        }
+
+        // Save to localStorage
+        if (currentPlaylist) {
+          localStorage.setItem(
+            STORAGE_KEY,
+            JSON.stringify({
+              currentSongIndex:
+                currentPlaylist.id === playlistId ? 0 : currentSongIndex,
+              currentTime: currentPlaylist.id === playlistId ? 0 : currentTime,
+              volume,
+              currentPlaylistId: currentPlaylist.id,
+              fmModeEnabled,
+              shuffleModeEnabled,
+              shuffledSongIndices: newState,
+            })
+          );
+        }
+
+        return newState;
+      });
+    },
+    [
+      currentPlaylist,
+      currentSongIndex,
+      currentTime,
+      volume,
+      fmModeEnabled,
+      shuffleModeEnabled,
+    ]
+  );
 
   const toggleFmMode = (playlistId: string) => {
     setFmModeEnabled((prev) => {
@@ -774,6 +948,8 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
             volume,
             currentPlaylistId: currentPlaylist.id,
             fmModeEnabled: updated,
+            shuffleModeEnabled,
+            shuffledSongIndices,
           })
         );
       }
@@ -791,10 +967,21 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
           currentTime,
           volume,
           currentPlaylistId: currentPlaylist.id,
+          fmModeEnabled,
+          shuffleModeEnabled,
+          shuffledSongIndices,
         })
       );
     }
-  }, [currentSongIndex, currentTime, volume, currentPlaylist]);
+  }, [
+    currentSongIndex,
+    currentTime,
+    volume,
+    currentPlaylist,
+    fmModeEnabled,
+    shuffleModeEnabled,
+    shuffledSongIndices,
+  ]);
 
   // Restore playback position on mount
   useEffect(() => {
@@ -828,7 +1015,9 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
               currentTime: audio.currentTime,
               volume,
               currentPlaylistId: currentPlaylist.id,
-              fmModeEnabled, // Add this line - it was missing from the periodic save!
+              fmModeEnabled,
+              shuffleModeEnabled,
+              shuffledSongIndices,
             })
           );
         }
@@ -843,7 +1032,15 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
         clearInterval(saveTimeInterval);
       };
     }
-  }, [currentSongIndex, songs.length, volume, currentPlaylist, fmModeEnabled]); // Add fmModeEnabled to deps
+  }, [
+    currentSongIndex,
+    songs.length,
+    volume,
+    currentPlaylist,
+    fmModeEnabled,
+    shuffleModeEnabled,
+    shuffledSongIndices,
+  ]);
 
   const togglePlay = () => {
     if (audioRef.current) {
@@ -856,14 +1053,36 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Update the playNext function to be more robust
+  // Updated playNext with shuffle support
   const playNext = () => {
     if (currentSongIndex < songs.length - 1) {
       setSongProgress(0);
       setCurrentTime(0);
       setDuration(0);
 
-      setCurrentSongIndex((prev) => prev + 1);
+      // Handle shuffle mode if enabled for current playlist
+      if (
+        currentPlaylist &&
+        shuffleModeEnabled[currentPlaylist.id] &&
+        shuffledSongIndices[currentPlaylist.id]
+      ) {
+        const shuffledIndices = shuffledSongIndices[currentPlaylist.id];
+        const currentShuffleIndex = shuffledIndices.findIndex(
+          (idx) => idx === currentSongIndex
+        );
+
+        if (currentShuffleIndex < shuffledIndices.length - 1) {
+          const nextSongIndex = shuffledIndices[currentShuffleIndex + 1];
+          setCurrentSongIndex(nextSongIndex);
+        } else {
+          // Loop back to beginning of shuffle if at the end
+          const nextSongIndex = shuffledIndices[0];
+          setCurrentSongIndex(nextSongIndex);
+        }
+      } else {
+        // Normal sequential play
+        setCurrentSongIndex((prev) => prev + 1);
+      }
 
       // Ensure we reset the audio properly
       if (audioRef.current) {
@@ -889,6 +1108,7 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  // Updated playPrevious with shuffle support
   const playPrevious = () => {
     if (currentSongIndex > 0) {
       // Reset all playback-related states
@@ -897,7 +1117,29 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
       setDuration(0);
       setIsPlaying(false); // Reset playing state first
 
-      setCurrentSongIndex((prev) => prev - 1);
+      // Handle shuffle mode if enabled for current playlist
+      if (
+        currentPlaylist &&
+        shuffleModeEnabled[currentPlaylist.id] &&
+        shuffledSongIndices[currentPlaylist.id]
+      ) {
+        const shuffledIndices = shuffledSongIndices[currentPlaylist.id];
+        const currentShuffleIndex = shuffledIndices.findIndex(
+          (idx) => idx === currentSongIndex
+        );
+
+        if (currentShuffleIndex > 0) {
+          const prevSongIndex = shuffledIndices[currentShuffleIndex - 1];
+          setCurrentSongIndex(prevSongIndex);
+        } else {
+          // Loop to end of shuffle if at beginning
+          const prevSongIndex = shuffledIndices[shuffledIndices.length - 1];
+          setCurrentSongIndex(prevSongIndex);
+        }
+      } else {
+        // Normal sequential play
+        setCurrentSongIndex((prev) => prev - 1);
+      }
 
       if (audioRef.current) {
         audioRef.current.currentTime = 0;
@@ -930,7 +1172,17 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
       // Update playlist and song states
       setCurrentPlaylist(playlist);
       setSongs(playlist.songs);
-      setCurrentSongIndex(0);
+
+      // If shuffle mode is enabled for this playlist, start with the first shuffled index
+      if (
+        shuffleModeEnabled[playlistId] &&
+        shuffledSongIndices[playlistId]?.length > 0
+      ) {
+        setCurrentSongIndex(shuffledSongIndices[playlistId][0]);
+      } else {
+        // Otherwise start from the beginning
+        setCurrentSongIndex(0);
+      }
 
       if (audioRef.current) {
         audioRef.current.currentTime = 0;
@@ -961,7 +1213,6 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Update useEffect for audio ended event
   // Update the handleEnded event handler in the useEffect
   useEffect(() => {
     if (audioRef.current) {
@@ -977,8 +1228,29 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
             setCurrentTime(0);
             setDuration(0);
 
-            // Update index
-            setCurrentSongIndex((prev) => prev + 1);
+            // If shuffle is enabled, play next shuffled song
+            if (
+              currentPlaylist &&
+              shuffleModeEnabled[currentPlaylist.id] &&
+              shuffledSongIndices[currentPlaylist.id]
+            ) {
+              const shuffledIndices = shuffledSongIndices[currentPlaylist.id];
+              const currentShuffleIndex = shuffledIndices.findIndex(
+                (idx) => idx === currentSongIndex
+              );
+
+              if (currentShuffleIndex < shuffledIndices.length - 1) {
+                const nextSongIndex = shuffledIndices[currentShuffleIndex + 1];
+                setCurrentSongIndex(nextSongIndex);
+              } else {
+                // Loop back to beginning of shuffle if at the end
+                const nextSongIndex = shuffledIndices[0];
+                setCurrentSongIndex(nextSongIndex);
+              }
+            } else {
+              // Normal sequential play
+              setCurrentSongIndex((prev) => prev + 1);
+            }
 
             // Reset audio state
             audio.currentTime = 0;
@@ -1002,7 +1274,18 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
             setSongProgress(0);
             setCurrentTime(0);
             setDuration(0);
-            setCurrentSongIndex(0);
+
+            // If shuffle is enabled, start with the first shuffled index
+            if (
+              currentPlaylist &&
+              shuffleModeEnabled[currentPlaylist.id] &&
+              shuffledSongIndices[currentPlaylist.id]?.length > 0
+            ) {
+              setCurrentSongIndex(shuffledSongIndices[currentPlaylist.id][0]);
+            } else {
+              // Otherwise start from the beginning
+              setCurrentSongIndex(0);
+            }
 
             audio.currentTime = 0;
             audio.pause();
@@ -1031,7 +1314,14 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
       audio.addEventListener("ended", handleEnded);
       return () => audio.removeEventListener("ended", handleEnded);
     }
-  }, [currentSongIndex, songs.length, fmModeEnabled, currentPlaylist]);
+  }, [
+    currentSongIndex,
+    songs.length,
+    fmModeEnabled,
+    currentPlaylist,
+    shuffleModeEnabled,
+    shuffledSongIndices,
+  ]);
 
   return (
     <MusicContext.Provider
@@ -1060,6 +1350,11 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
         toggleWallpaperMode,
         fmModeEnabled,
         toggleFmMode,
+        // New shuffle-related properties
+        shuffleModeEnabled,
+        toggleShuffleMode,
+        resetShuffleForPlaylist,
+        shuffledSongIndices,
       }}
     >
       <audio

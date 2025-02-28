@@ -9,6 +9,9 @@ import {
   Pause,
   SkipForward,
   SkipBack,
+  Shuffle,
+  RotateCcw,
+  Repeat,
 } from "lucide-react";
 import { useStyles } from "@/app/hooks/useStyles";
 import { Check } from "lucide-react";
@@ -27,6 +30,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 // Add this new import
 import { useMusicContext } from "../apps/music/context/MusicContext";
+
 import localFont from "next/font/local";
 
 const exemplarPro = localFont({
@@ -91,6 +95,7 @@ interface MusicDropdownProps {
   duration: number;
 }
 
+// This is the complete MusicDropdown component to replace the existing one
 const MusicDropdown: React.FC<MusicDropdownProps> = ({
   currentSong = { title: "song1", artist: "Unknown Artist" },
   isPlaying,
@@ -112,6 +117,10 @@ const MusicDropdown: React.FC<MusicDropdownProps> = ({
     toggleWallpaperMode,
     fmModeEnabled,
     toggleFmMode,
+    // New shuffle-related properties from context
+    shuffleModeEnabled,
+    toggleShuffleMode,
+    resetShuffleForPlaylist,
   } = useMusicContext();
   const [isHovering, setIsHovering] = useState(false);
   const [hoverPosition, setHoverPosition] = useState(0);
@@ -135,6 +144,18 @@ const MusicDropdown: React.FC<MusicDropdownProps> = ({
     if (!progressBarRef.current) return;
     const clickTime = getHoverTime(e.clientX);
     seek(clickTime);
+  };
+
+  // Handle toggling shuffle mode or resetting shuffle
+  const handleShuffleToggle = (playlistId: string) => {
+    if (shuffleModeEnabled[playlistId]) {
+      // If shuffle is already enabled, reset it
+      resetShuffleForPlaylist(playlistId);
+      toggleShuffleMode(playlistId); // Disable shuffle mode
+    } else {
+      // Enable shuffle mode
+      toggleShuffleMode(playlistId);
+    }
   };
 
   return (
@@ -214,13 +235,39 @@ const MusicDropdown: React.FC<MusicDropdownProps> = ({
             )}
           </div>
         </div>
-        <div className="flex justify-between px-1 text-xs text-[rgba(76,79,105,0.81)]">
-          <span>{formatTime(currentTime)}</span>
-          <span>{formatTime(duration)}</span>
+        <div className="flex justify-between px-1">
+          <div className="flex flex-col items-start">
+            <span className="text-xs text-[rgba(76,79,105,0.81)]">
+              {formatTime(currentTime)}
+            </span>
+
+            {/* Shuffle Button - Position under the left timestamp */}
+            {currentPlaylist && (
+              <button
+                onClick={() => handleShuffleToggle(currentPlaylist.id)}
+                className="mt-[7.2px] ml-[3px] opacity-60 hover:opacity-100 transition-opacity"
+                style={{ color: "rgba(76, 79, 105, 0.81)" }}
+                title={
+                  shuffleModeEnabled[currentPlaylist.id]
+                    ? "Reset shuffle"
+                    : "Shuffle playlist"
+                }
+              >
+                {shuffleModeEnabled[currentPlaylist.id] ? (
+                  <Repeat size={18} />
+                ) : (
+                  <Shuffle size={18} />
+                )}
+              </button>
+            )}
+          </div>
+          <span className="text-xs text-[rgba(76,79,105,0.81)]">
+            {formatTime(duration)}
+          </span>
         </div>
       </div>
 
-      {/* Rest of the component stays the same */}
+      {/* Media Controls */}
       <div className="flex justify-center items-center gap-6">
         <button
           onClick={onPrevious}
@@ -316,8 +363,8 @@ const MusicDropdown: React.FC<MusicDropdownProps> = ({
                           FM
                         </span>
                       </div>
-                      <div className="text-xs text-white/40 truncate">
-                        {playlist.songCount} songs
+                      <div className="text-xs text-white/40 truncate flex items-center justify-between">
+                        <span>{playlist.songCount} songs</span>
                       </div>
                     </div>
 
