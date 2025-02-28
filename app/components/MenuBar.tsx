@@ -236,16 +236,19 @@ const MusicDropdown: React.FC<MusicDropdownProps> = ({
           </div>
         </div>
         <div className="flex justify-between px-1">
+          <span className="text-xs text-[rgba(76,79,105,0.81)]">
+            {formatTime(currentTime)}
+          </span>
+
           <div className="flex flex-col items-start">
             <span className="text-xs text-[rgba(76,79,105,0.81)]">
-              {formatTime(currentTime)}
+              {formatTime(duration)}
             </span>
-
             {/* Shuffle Button - Position under the left timestamp */}
             {currentPlaylist && (
               <button
                 onClick={() => handleShuffleToggle(currentPlaylist.id)}
-                className="mt-[7.2px] ml-[3px] opacity-60 hover:opacity-100 transition-opacity"
+                className="mt-[5.7px] ml-[2.1px] opacity-60 hover:opacity-100 transition-opacity"
                 style={{ color: "rgba(76, 79, 105, 0.81)" }}
                 title={
                   shuffleModeEnabled[currentPlaylist.id]
@@ -261,9 +264,6 @@ const MusicDropdown: React.FC<MusicDropdownProps> = ({
               </button>
             )}
           </div>
-          <span className="text-xs text-[rgba(76,79,105,0.81)]">
-            {formatTime(duration)}
-          </span>
         </div>
       </div>
 
