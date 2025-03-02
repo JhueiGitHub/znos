@@ -508,7 +508,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         videoUrl: "https://www.youtube.com/watch?v=xF_x4oenM1E",
       },
       {
-        id: "sn-8",
+        id: "sn-9",
         title: "song9",
         artist: "SN",
         path: "/audio/sn/song9.mp4",
@@ -575,6 +575,14 @@ const ALL_PLAYLISTS: Playlist[] = [
         videoUrl:
           "https://www.youtube.com/watch?v=2609nR2di5Y&list=PLP-eBeyXNQLrg6XprN1VTVhRdROfQYZ49&index=20&pp=iAQB8AUB",
       },
+      {
+        id: "vcnz-7",
+        title: "song7",
+        artist: "VCNZ",
+        path: "/audio/vcnz/song7.mp4",
+        thumbnail: "/media/songs/vcnz/emptymind.png",
+        videoUrl: "https://www.youtube.com/watch?v=mt0iqJ1eULo",
+      },
     ],
   },
   {
@@ -584,7 +592,7 @@ const ALL_PLAYLISTS: Playlist[] = [
     thumbnail: "/media/playlists/xo.png",
     songs: [
       {
-        id: "aftr-1",
+        id: "xo-1",
         title: "pretty",
         artist: "XO",
         path: "/audio/xo/pretty.mp4",
@@ -592,7 +600,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         videoUrl: "https://www.youtube.com/watch?v=-JVv2TuLyMo",
       },
       {
-        id: "aftr-2",
+        id: "xo-2",
         title: "the knowing",
         artist: "XO",
         path: "/audio/xo/theknowing.mp4",
@@ -600,7 +608,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         videoUrl: "https://www.youtube.com/watch?v=ATKejfb_CEo",
       },
       {
-        id: "aftr-3",
+        id: "xo-3",
         title: "the zone",
         artist: "XO",
         path: "/audio/xo/thezone.mp4",
@@ -608,7 +616,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         videoUrl: "https://www.youtube.com/watch?v=KVOde32jFD8",
       },
       {
-        id: "aftr-4",
+        id: "xo-4",
         title: "valerie",
         artist: "XO",
         path: "/audio/xo/valerie.mp4",
@@ -616,7 +624,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         videoUrl: "https://www.youtube.com/watch?v=inDquagdkaY",
       },
       {
-        id: "aftr-5",
+        id: "xo-5",
         title: "professional",
         artist: "XO",
         path: "/audio/xo/professional.mp4",
@@ -624,7 +632,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         videoUrl: "https://www.youtube.com/watch?v=dJ411PNfyXQ",
       },
       {
-        id: "aftr-6",
+        id: "xo-6",
         title: "the town",
         artist: "XO",
         path: "/audio/xo/thetown.mp4",
@@ -633,7 +641,7 @@ const ALL_PLAYLISTS: Playlist[] = [
           "https://www.youtube.com/watch?v=PAN6mc-3cyI&pp=ygUOdGhlIHRvd24gc2xvd2U%3D",
       },
       {
-        id: "aftr-7",
+        id: "xo-7",
         title: "adaptation",
         artist: "XO",
         path: "/audio/xo/adaptation.mp4",
@@ -641,7 +649,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         videoUrl: "https://www.youtube.com/watch?v=dJ411PNfyXQ",
       },
       {
-        id: "aftr-8",
+        id: "xo-8",
         title: "love in the sky",
         artist: "XO",
         path: "/audio/xo/loveinthesky.mp4",
@@ -650,7 +658,7 @@ const ALL_PLAYLISTS: Playlist[] = [
           "https://music.youtube.com/watch?v=sU4UQRxISFU&list=LRYRJTl4K9DP492JeVjOLSR-9AdlIwx3LOhOC",
       },
       {
-        id: "aftr-9",
+        id: "xo-9",
         title: "i was never there",
         artist: "XO",
         path: "/audio/xo/iwasneverthere.mp4",
@@ -658,7 +666,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         videoUrl: "https://www.youtube.com/watch?v=ZIDB9mp0Cn0",
       },
       {
-        id: "aftr-10",
+        id: "xo-10",
         title: "privilege",
         artist: "XO",
         path: "/audio/xo/privilege.mp4",
@@ -666,7 +674,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         videoUrl: "https://www.youtube.com/watch?v=cZdCRW4UWkk",
       },
       {
-        id: "aftr-11",
+        id: "xo-11",
         title: "snowchild",
         artist: "XO",
         path: "/audio/xo/snowchild.mp4",
@@ -674,12 +682,20 @@ const ALL_PLAYLISTS: Playlist[] = [
         videoUrl: "https://www.youtube.com/watch?v=pF7N659wVRg",
       },
       {
-        id: "aftr-12",
+        id: "xo-12",
         title: "shameless",
         artist: "XO",
         path: "/audio/xo/shameless.mp4",
         thumbnail: "/media/songs/nxra/shameless.png",
         videoUrl: "https://www.youtube.com/watch?v=5GetQaksxJ0",
+      },
+      {
+        id: "xo-13",
+        title: "song13",
+        artist: "XO",
+        path: "/audio/xo/song13.mp4",
+        thumbnail: "/media/songs/nxra/song13.png",
+        videoUrl: "https://www.youtube.com/watch?v=OG0AONeJb3w",
       },
     ],
   },
