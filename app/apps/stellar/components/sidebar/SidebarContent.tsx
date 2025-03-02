@@ -14,7 +14,7 @@ interface SidebarFolder {
 
 export function SidebarContent() {
   const { isDraggingFolder, isOverSidebar } = useDrag();
-  const { setCurrentFolder } = useFolder();
+  const { currentFolderId, setCurrentFolder } = useFolder();
 
   const { data: sidebarFolders, isLoading } = useQuery<SidebarFolder[]>({
     queryKey: ["sidebar-folders"],
@@ -24,6 +24,11 @@ export function SidebarContent() {
     },
   });
 
+  const handleClick = (folderId: string) => {
+    setCurrentFolder(folderId);
+  };
+
+  // Keep double-click for future functionality
   const handleDoubleClick = (folderId: string) => {
     setCurrentFolder(folderId);
   };
@@ -43,20 +48,44 @@ export function SidebarContent() {
       {sidebarFolders?.map((folder) => (
         <motion.div
           key={folder.id}
+          onClick={() => handleClick(folder.id)}
           onDoubleClick={() => handleDoubleClick(folder.id)}
-          className="flex items-center gap-2 px-[12px] py-1.5 rounded-md cursor-pointer group select-none"
-          initial={{ backgroundColor: "rgba(76, 79, 105, 0)" }}
-          animate={{ backgroundColor: "rgba(76, 79, 105, 0)" }}
-          whileHover={{ backgroundColor: "rgba(76, 79, 105, 0.2)" }}
+          className={`flex items-center gap-2 px-[12px] py-1.5 rounded-md cursor-pointer group select-none ${
+            currentFolderId === folder.id ? "bg-[#4C4F69]/30" : ""
+          }`}
+          initial={{
+            backgroundColor:
+              currentFolderId === folder.id
+                ? "rgba(76, 79, 105, 0.3)"
+                : "rgba(76, 79, 105, 0)",
+          }}
+          animate={{
+            backgroundColor:
+              currentFolderId === folder.id
+                ? "rgba(76, 79, 105, 0.3)"
+                : "rgba(76, 79, 105, 0)",
+          }}
+          whileHover={{
+            backgroundColor:
+              currentFolderId === folder.id
+                ? "rgba(76, 79, 105, 0.4)"
+                : "rgba(76, 79, 105, 0.2)",
+          }}
           whileTap={{ scale: 0.98 }}
         >
           <img
-            src="/apps/stellar/icns/system/_sidebar_folder.png"
+            src="apps/stellar/icns/system/_sidebar_folder.png"
             alt=""
             className="w-4 h-4"
             draggable={false}
           />
-          <span className="text-sm text-[#cccccc81] truncate group-hover:text-[#cccccc95]">
+          <span
+            className={`text-sm truncate ${
+              currentFolderId === folder.id
+                ? "text-[#ccccccdd]"
+                : "text-[#cccccc81] group-hover:text-[#cccccc95]"
+            }`}
+          >
             {folder.name}
           </span>
         </motion.div>

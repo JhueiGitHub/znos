@@ -1,21 +1,42 @@
+// components/FoldersArea.tsx
 import { useEffect, useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 import { useGrid, defaultGridConfig } from "../hooks/useGrid";
 import { useDrag } from "../contexts/drag-context";
 import { useFolder } from "../contexts/folder-context";
+import { useStellarState } from "../contexts/stellar-state-context";
 import { ChevronLeft } from "lucide-react";
+import {
+  Grid2X2Icon,
+  ListIcon,
+  ArrowUpDownIcon,
+  SortAscIcon,
+  SortDescIcon,
+  ClockIcon,
+} from "lucide-react";
 import localFont from "next/font/local";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useSidebarDrag } from "../hooks/useSidebarDrag";
 import { useDropZone } from "../hooks/useDropZone";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  FolderCreatedEvent,
+  FOLDER_CREATED_EVENT,
+} from "./ui/keyboard-listener";
 
 // Import exemplar font
 const exemplarPro = localFont({
   src: "../../../../public/fonts/SFProTextSemibold.ttf",
 });
 
-// Type definitions remain unchanged
+// Type definitions
 interface Position {
   x: number;
   y: number;
@@ -87,6 +108,9 @@ export function FoldersArea() {
     id: null,
     value: "",
   });
+
+  // Get the persistent state from StellarState
+  const { state, setViewMode, setSortBy, setSortDirection } = useStellarState();
 
   // Context management
   const { currentFolderId, setCurrentFolder, setFolderPath } = useFolder();
@@ -300,7 +324,7 @@ export function FoldersArea() {
           setIsUploading(true);
           const formData = new FormData();
           formData.append("file", file);
-          formData.append("UPLOADCARE_PUB_KEY", "cdaf26bf5b990f72f7ae");
+          formData.append("UPLOADCARE_PUB_KEY", "f23d206ae7780b1a0d26");
 
           const uploadResponse = await axios.post(
             "https://upload.uploadcare.com/base/",
@@ -401,15 +425,18 @@ export function FoldersArea() {
   );
 
   // Enhanced drag and drop handlers
-  const handleDragOver = useCallback((event: React.DragEvent) => {
-    event.preventDefault();
-    event.stopPropagation();
+  const handleDragOver = useCallback(
+    (event: React.DragEvent<HTMLDivElement>) => {
+      event.preventDefault();
+      event.stopPropagation();
 
-    // Check if the dragged items contain files
-    if (event.dataTransfer.types.includes("Files")) {
-      setFileDropActive(true);
-    }
-  }, []);
+      // Check if the dragged items contain files
+      if (event.dataTransfer.types.includes("Files")) {
+        setFileDropActive(true);
+      }
+    },
+    []
+  );
 
   const handleDragEnter = useCallback((event: React.DragEvent) => {
     event.preventDefault();
@@ -444,7 +471,7 @@ export function FoldersArea() {
         setIsUploading(true);
         const formData = new FormData();
         formData.append("file", file);
-        formData.append("UPLOADCARE_PUB_KEY", "cdaf26bf5b990f72f7ae");
+        formData.append("UPLOADCARE_PUB_KEY", "f23d206ae7780b1a0d26");
 
         const uploadResponse = await axios.post(
           "https://upload.uploadcare.com/base/",
@@ -581,21 +608,58 @@ export function FoldersArea() {
 
   // Folder creation event subscription
   useEffect(() => {
-    const handleFolderCreated = (event: CustomEvent) => {
+    const handleFolderCreated = (
+      event: CustomEvent<FolderCreatedEvent["detail"]>
+    ) => {
       queryClient.invalidateQueries({ queryKey: ["folder", currentFolderId] });
+
+      // Update recent folders in state
+      if (event.detail && event.detail.name) {
+        // Our StellarState now tracks this automatically when using setCurrentFolder
+      }
     };
 
     window.addEventListener(
-      "folderCreated",
+      FOLDER_CREATED_EVENT,
       handleFolderCreated as EventListener
     );
     return () => {
       window.removeEventListener(
-        "folderCreated",
+        FOLDER_CREATED_EVENT,
         handleFolderCreated as EventListener
       );
     };
   }, [currentFolderId, queryClient]);
+
+  // Get and sort folder items
+  const getSortedItems = () => {
+    if (!folderData?.items) return [];
+
+    return [...folderData.items].sort((a, b) => {
+      // First separate folders and files if that's the preference
+      if (state.sortBy === "type") {
+        if (a.itemType === "folder" && b.itemType === "file") return -1;
+        if (a.itemType === "file" && b.itemType === "folder") return 1;
+      }
+
+      // Then sort by the selected criteria
+      if (state.sortBy === "name") {
+        return state.sortDirection === "asc"
+          ? a.data.name.localeCompare(b.data.name)
+          : b.data.name.localeCompare(a.data.name);
+      } else if (state.sortBy === "date") {
+        // Assuming items have createdAt or updatedAt properties
+        const aDate = a.data.updatedAt || a.data.createdAt || new Date();
+        const bDate = b.data.updatedAt || b.data.createdAt || new Date();
+        return state.sortDirection === "asc"
+          ? new Date(aDate).getTime() - new Date(bDate).getTime()
+          : new Date(bDate).getTime() - new Date(aDate).getTime();
+      }
+
+      // Default - don't change order
+      return 0;
+    });
+  };
 
   // Enhanced error UI
   if (error) {
@@ -622,239 +686,465 @@ export function FoldersArea() {
     );
   }
 
+  // The sorted items to display
+  const sortedItems = getSortedItems();
+
   return (
-    <div
-      className="relative flex-1 overflow-hidden bg-[#010203]/30"
-      onDragOver={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setFileDropActive(true);
-      }}
-      onDrop={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setFileDropActive(false);
+    <div className="flex flex-col h-full">
+      {/* View Controls */}
+      <div className="flex items-center justify-between p-2 border-b border-[#29292981]">
+        <div className="flex items-center gap-1">
+          {/* Back Button - Only show when we have navigation history */}
+          {navigationStack.length > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleBack}
+              className="px-2 py-1 h-auto"
+            >
+              <ChevronLeft className="w-4 h-4 text-[#cccccc78]" />
+            </Button>
+          )}
 
-        const dropPosition = {
-          x: e.clientX - e.currentTarget.getBoundingClientRect().left,
-          y: e.clientY - e.currentTarget.getBoundingClientRect().top,
-        };
-
-        const { files } = e.dataTransfer;
-        if (files?.length) {
-          Array.from(files).forEach((file) => {
-            handleFileUpload(file, dropPosition);
-          });
-        }
-      }}
-      onDragLeave={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-
-        // Only deactivate if we're leaving the drop target itself
-        if (e.currentTarget === e.target) {
-          setFileDropActive(false);
-        }
-      }}
-    >
-      <AnimatePresence>
-        {fileDropActive && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
-            className="absolute inset-0 z-50 bg-[#4C4F69]/20 border-2 border-dashed border-[#4C4F69]/40 rounded-lg pointer-events-none"
+          {/* View Mode Toggle */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setViewMode("canvas")}
+            className={`px-2 py-1 h-auto ${state.viewMode === "canvas" ? "bg-[#4C4F69]/20" : ""}`}
           >
-            <div className="flex items-center justify-center h-full">
-              <span className="text-[#4C4F69] text-lg">
-                Drop files to upload
-              </span>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <div className="relative w-full h-full">
-        {folderData?.items.map((item) => (
-          <motion.div
-            key={item.id}
-            className="absolute flex flex-col items-center cursor-grab active:cursor-grabbing"
-            drag
-            dragMomentum={false}
-            dragTransition={{ power: 0 }}
-            initial={false}
-            animate={{
-              x: item.position.x,
-              y: item.position.y,
-              zIndex: 999999,
-            }}
-            onDragStart={() => {
-              if (item.itemType === "folder") {
-                setIsDraggingFolder(true);
-                setDraggedFolderId(item.id);
-                setDragStartPosition(item.position);
-              }
-            }}
-            onDrag={(_, info) => {
-              if (item.itemType === "folder") {
-                setPointerPosition({ x: info.point.x, y: info.point.y });
-              }
-            }}
-            // In the motion.div's onDragEnd:
-            onDragEnd={(_, info) => {
-              if (
-                isOverSidebar &&
-                item.itemType === "folder" &&
-                dragStartPosition
-              ) {
-                // Optimistically update UI back to original position
-                queryClient.setQueryData(
-                  ["folder", currentFolderId],
-                  (oldData: any) => ({
-                    ...oldData,
-                    items: oldData.items.map((i: CanvasItem) =>
-                      i.id === item.id
-                        ? { ...i, position: dragStartPosition }
-                        : i
-                    ),
-                  })
-                );
-
-                // Handle sidebar operation
-                handleSidebarDrop(item.id);
-              } else {
-                const finalPosition = {
-                  x: item.position.x + info.offset.x,
-                  y: item.position.y + info.offset.y,
-                };
-                handleDragEnd(item, finalPosition);
-              }
-
-              // Clean up drag state
-              setIsDraggingFolder(false);
-              setDraggedFolderId(null);
-              setPointerPosition(null);
-              setDragStartPosition(null);
-            }}
-            onDoubleClick={(event) => handleDoubleClick(item, event)}
-            dragConstraints={false}
-            dragElastic={0}
+            <motion.svg
+              className="w-4 h-4 text-[#cccccc78]"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M4 8H8V4H4V8ZM10 20H14V16H10V20ZM4 20H8V16H4V20ZM4 14H8V10H4V14ZM10 14H14V10H10V14ZM16 4V8H20V4H16ZM10 8H14V4H10V8ZM16 14H20V10H16V14ZM16 20H20V16H16V20Z"
+                fill="currentColor"
+              />
+            </motion.svg>
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setViewMode("list")}
+            className={`px-2 py-1 h-auto ${state.viewMode === "list" ? "bg-[#4C4F69]/20" : ""}`}
           >
-            {item.itemType === "folder" ? (
-              <>
-                <div className="w-16 h-16 rounded-xl flex items-center justify-center">
-                  <img
-                    src="/apps/stellar/icns/system/_folder.png"
-                    alt={item.data.name}
-                    className="w-[64px] h-[64px] object-contain"
-                    draggable={false}
-                  />
-                </div>
-                {editState.id === item.id ? (
-                  <div
-                    ref={inputContainerRef}
-                    className="absolute mt-[68px] left-1/2 flex items-center justify-center"
-                    style={{
-                      maxWidth: `${MAX_NAME_WIDTH}px`,
-                    }}
-                  >
-                    <textarea
-                      ref={inputRef}
-                      value={editState.value}
-                      onChange={handleInputChange}
-                      onBlur={() => handleInputBlur(item)}
-                      onKeyDown={(event) => handleInputKeyDown(event, item)}
-                      className="resize-none overflow-hidden text-[13px] font-semibold bg-transparent text-[#626581ca] outline-none text-center"
-                      style={{
-                        ...exemplarPro.style,
-                        border: "0.6px solid rgba(255, 255, 255, 0.09)",
-                        padding: "1px 4px",
-                        borderRadius: "3px",
-                        lineHeight: `${LINE_HEIGHT}px`,
-                        width: "100%",
-                        height: "auto",
-                        maxWidth: `${MAX_NAME_WIDTH}px`,
-                      }}
-                      maxLength={255}
-                      rows={1}
-                    />
-                  </div>
-                ) : (
-                  <h3
-                    className="text-[13px] font-semibold text-[#626581ca] mt-1 px-1 text-center break-all"
-                    style={{
-                      ...exemplarPro.style,
-                      display: "-webkit-box",
-                      WebkitLineClamp: MAX_LINES.toString(),
-                      WebkitBoxOrient: "vertical",
-                      overflow: "hidden",
-                      maxWidth: `${MAX_NAME_WIDTH}px`,
-                      lineHeight: `${LINE_HEIGHT}px`,
-                      minWidth: "30px",
-                      width: "fit-content",
-                      maxHeight: `${LINE_HEIGHT * MAX_LINES}px`,
-                    }}
-                  >
-                    {item.data.name}
-                  </h3>
-                )}
-              </>
+            <ListIcon className="w-4 h-4 text-[#cccccc78]" />
+          </Button>
+        </div>
+
+        <div className="flex items-center gap-1">
+          {/* Sort Options */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="px-2 py-1 h-auto">
+                <ArrowUpDownIcon className="w-4 h-4 text-[#cccccc78]" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="end"
+              className="bg-[#01020390] border border-[#29292981] text-[#cccccc]"
+            >
+              <DropdownMenuItem
+                onClick={() => setSortBy("name")}
+                className={`text-xs ${state.sortBy === "name" ? "bg-[#4C4F69]/20" : ""}`}
+              >
+                Sort by Name
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => setSortBy("date")}
+                className={`text-xs ${state.sortBy === "date" ? "bg-[#4C4F69]/20" : ""}`}
+              >
+                Sort by Date
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => setSortBy("type")}
+                className={`text-xs ${state.sortBy === "type" ? "bg-[#4C4F69]/20" : ""}`}
+              >
+                Sort by Type
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Sort Direction */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() =>
+              setSortDirection(state.sortDirection === "asc" ? "desc" : "asc")
+            }
+            className="px-2 py-1 h-auto"
+          >
+            {state.sortDirection === "asc" ? (
+              <SortAscIcon className="w-4 h-4 text-[#cccccc78]" />
             ) : (
-              <>
-                {isStellarFile(item.data) && (
-                  <>
-                    {item.data.mimeType?.startsWith("video/") ? (
-                      <div className="relative w-16 h-16 flex items-center justify-center">
-                        <div className="w-full h-12">
-                          <video
-                            src={item.data.url}
-                            className="w-full h-full object-cover rounded-[9px]"
-                            autoPlay
-                            muted
-                            loop
-                            playsInline
-                          />
-                        </div>
-                      </div>
-                    ) : item.data.mimeType?.startsWith("image/") ? (
-                      <div className="w-16 h-16">
-                        <img
-                          src={item.data.url}
-                          alt={item.data.name}
-                          className="w-full h-full object-cover rounded-lg"
-                          draggable={false}
-                        />
-                      </div>
+              <SortDescIcon className="w-4 h-4 text-[#cccccc78]" />
+            )}
+          </Button>
+
+          {/* Recent Folders */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="px-2 py-1 h-auto">
+                <ClockIcon className="w-4 h-4 text-[#cccccc78]" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="end"
+              className="bg-[#01020390] border border-[#29292981] text-[#cccccc]"
+            >
+              {state.recentFolders.length > 0 ? (
+                state.recentFolders.map((folder) => (
+                  <DropdownMenuItem
+                    key={folder.id}
+                    onClick={() => setCurrentFolder(folder.id)}
+                    className="text-xs"
+                  >
+                    {folder.name}
+                  </DropdownMenuItem>
+                ))
+              ) : (
+                <DropdownMenuItem disabled className="text-xs opacity-50">
+                  No recent folders
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
+
+      {/* Main Content Area - Switch between views based on state */}
+      {state.viewMode === "list" ? (
+        // List View
+        <div className="flex-1 p-2 overflow-auto" {...dragHandlers}>
+          <AnimatePresence>
+            {fileDropActive && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.15 }}
+                className="fixed inset-0 z-50 bg-[#4C4F69]/20 border-2 border-dashed border-[#4C4F69]/40 rounded-lg pointer-events-none"
+              >
+                <div className="flex items-center justify-center h-full">
+                  <span className="text-[#4C4F69] text-lg">
+                    Drop files to upload
+                  </span>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* List header */}
+          <div className="flex items-center px-4 py-2 border-b border-[#29292981] text-xs text-[#cccccc60] font-medium">
+            <div className="flex-1">Name</div>
+            <div className="w-24 text-right">Size</div>
+            <div className="w-32 text-right">Type</div>
+            <div className="w-32 text-right">Modified</div>
+          </div>
+
+          {sortedItems.length > 0 ? (
+            <div className="space-y-1 mt-1">
+              {sortedItems.map((item) => (
+                <motion.div
+                  key={item.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.15 }}
+                  className="flex items-center px-4 py-2 rounded-md hover:bg-[#01020340] transition-colors cursor-pointer"
+                  onDoubleClick={() => {
+                    if (item.itemType === "folder") {
+                      handleFolderOpen(item.id);
+                    }
+                  }}
+                >
+                  <div className="flex-1 flex items-center">
+                    {item.itemType === "folder" ? (
+                      <img
+                        src="/apps/stellar/icns/system/_folder.png"
+                        alt=""
+                        className="w-5 h-5 mr-2"
+                        draggable={false}
+                      />
                     ) : (
-                      <div className="w-16 h-16 flex items-center justify-center">
-                        <img
-                          src="/apps/stellar/icns/system/_file.png"
-                          alt={item.data.name}
-                          className="w-[64px] h-[64px] object-contain"
-                          draggable={false}
-                        />
-                      </div>
+                      <img
+                        src="/apps/stellar/icns/system/_file.png"
+                        alt=""
+                        className="w-5 h-5 mr-2"
+                        draggable={false}
+                      />
                     )}
-                    <h3
-                      className="text-[13px] font-semibold truncate max-w-[150px] text-[#626581ca] mt-1"
+                    <span
+                      className="text-sm text-[#cccccc90] truncate"
                       style={exemplarPro.style}
                     >
                       {item.data.name}
-                    </h3>
+                    </span>
+                  </div>
+                  <div className="w-24 text-right text-xs text-[#cccccc70]">
+                    {item.itemType === "file" && isStellarFile(item.data)
+                      ? formatFileSize(item.data.size)
+                      : "--"}
+                  </div>
+                  <div className="w-32 text-right text-xs text-[#cccccc70]">
+                    {item.itemType === "folder"
+                      ? "Folder"
+                      : (isStellarFile(item.data) && item.data.mimeType) ||
+                        "File"}
+                  </div>
+                  <div className="w-32 text-right text-xs text-[#cccccc70]">
+                    {formatDate(item.data.updatedAt || item.data.createdAt)}
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex items-center justify-center h-32">
+              <div className="text-sm text-[#cccccc60]">
+                This folder is empty
+              </div>
+            </div>
+          )}
+
+          {isUploading && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+              <div className="text-[#ABC4C3]">Uploading...</div>
+            </div>
+          )}
+        </div>
+      ) : (
+        // Canvas View
+        <div
+          className="relative flex-1 overflow-hidden bg-[#010203]/30"
+          onDragOver={handleDragOver}
+          onDragEnter={handleDragEnter}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+        >
+          <AnimatePresence>
+            {fileDropActive && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.15 }}
+                className="absolute inset-0 z-50 bg-[#4C4F69]/20 border-2 border-dashed border-[#4C4F69]/40 rounded-lg pointer-events-none"
+              >
+                <div className="flex items-center justify-center h-full">
+                  <span className="text-[#4C4F69] text-lg">
+                    Drop files to upload
+                  </span>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <div className="relative w-full h-full">
+            {sortedItems.map((item) => (
+              <motion.div
+                key={item.id}
+                className="absolute flex flex-col items-center cursor-grab active:cursor-grabbing"
+                drag
+                dragMomentum={false}
+                dragTransition={{ power: 0 }}
+                initial={false}
+                animate={{
+                  x: item.position.x,
+                  y: item.position.y,
+                  zIndex: editState.id === item.id ? 1000 : 1,
+                }}
+                onDragStart={() => {
+                  if (item.itemType === "folder") {
+                    setIsDraggingFolder(true);
+                    setDraggedFolderId(item.id);
+                    setDragStartPosition(item.position);
+                  }
+                }}
+                onDrag={(_, info) => {
+                  if (item.itemType === "folder") {
+                    setPointerPosition({ x: info.point.x, y: info.point.y });
+                  }
+                }}
+                onDragEnd={(_, info) => {
+                  if (
+                    isOverSidebar &&
+                    item.itemType === "folder" &&
+                    dragStartPosition
+                  ) {
+                    // Optimistically update UI back to original position
+                    queryClient.setQueryData(
+                      ["folder", currentFolderId],
+                      (oldData: any) => ({
+                        ...oldData,
+                        items: oldData.items.map((i: CanvasItem) =>
+                          i.id === item.id
+                            ? { ...i, position: dragStartPosition }
+                            : i
+                        ),
+                      })
+                    );
+
+                    // Handle sidebar operation
+                    handleSidebarDrop(item.id);
+                  } else {
+                    const finalPosition = {
+                      x: item.position.x + info.offset.x,
+                      y: item.position.y + info.offset.y,
+                    };
+                    handleDragEnd(item, finalPosition);
+                  }
+
+                  // Clean up drag state
+                  setIsDraggingFolder(false);
+                  setDraggedFolderId(null);
+                  setPointerPosition(null);
+                  setDragStartPosition(null);
+                }}
+                onDoubleClick={(event) => handleDoubleClick(item, event)}
+                dragConstraints={false}
+                dragElastic={0}
+              >
+                {item.itemType === "folder" ? (
+                  <>
+                    <div className="w-16 h-16 rounded-xl flex items-center justify-center">
+                      <img
+                        src="/apps/stellar/icns/system/_folder.png"
+                        alt={item.data.name}
+                        className="w-[64px] h-[64px] object-contain"
+                        draggable={false}
+                      />
+                    </div>
+                    {editState.id === item.id ? (
+                      <div
+                        ref={inputContainerRef}
+                        className="absolute mt-[68px] left-1/2 flex items-center justify-center"
+                        style={{
+                          maxWidth: `${MAX_NAME_WIDTH}px`,
+                        }}
+                      >
+                        <textarea
+                          ref={inputRef}
+                          value={editState.value}
+                          onChange={handleInputChange}
+                          onBlur={() => handleInputBlur(item)}
+                          onKeyDown={(event) => handleInputKeyDown(event, item)}
+                          className="resize-none overflow-hidden text-[13px] font-semibold bg-transparent text-[#626581ca] outline-none text-center"
+                          style={{
+                            ...exemplarPro.style,
+                            border: "0.6px solid rgba(255, 255, 255, 0.09)",
+                            padding: "1px 4px",
+                            borderRadius: "3px",
+                            lineHeight: `${LINE_HEIGHT}px`,
+                            width: "100%",
+                            height: "auto",
+                            maxWidth: `${MAX_NAME_WIDTH}px`,
+                          }}
+                          maxLength={255}
+                          rows={1}
+                        />
+                      </div>
+                    ) : (
+                      <h3
+                        className="text-[13px] font-semibold text-[#626581ca] mt-1 px-1 text-center break-all"
+                        style={{
+                          ...exemplarPro.style,
+                          display: "-webkit-box",
+                          WebkitLineClamp: MAX_LINES.toString(),
+                          WebkitBoxOrient: "vertical",
+                          overflow: "hidden",
+                          maxWidth: `${MAX_NAME_WIDTH}px`,
+                          lineHeight: `${LINE_HEIGHT}px`,
+                          minWidth: "30px",
+                          width: "fit-content",
+                          maxHeight: `${LINE_HEIGHT * MAX_LINES}px`,
+                        }}
+                      >
+                        {item.data.name}
+                      </h3>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    {isStellarFile(item.data) && (
+                      <>
+                        {item.data.mimeType?.startsWith("video/") ? (
+                          <div className="relative w-16 h-16 flex items-center justify-center">
+                            <div className="w-full h-12">
+                              <video
+                                src={item.data.url}
+                                className="w-full h-full object-cover rounded-[9px]"
+                                autoPlay
+                                muted
+                                loop
+                                playsInline
+                              />
+                            </div>
+                          </div>
+                        ) : item.data.mimeType?.startsWith("image/") ? (
+                          <div className="w-16 h-16">
+                            <img
+                              src={item.data.url}
+                              alt={item.data.name}
+                              className="w-full h-full object-cover rounded-lg"
+                              draggable={false}
+                            />
+                          </div>
+                        ) : (
+                          <div className="w-16 h-16 flex items-center justify-center">
+                            <img
+                              src="/apps/stellar/icns/system/_file.png"
+                              alt={item.data.name}
+                              className="w-[64px] h-[64px] object-contain"
+                              draggable={false}
+                            />
+                          </div>
+                        )}
+                        <h3
+                          className="text-[13px] font-semibold truncate max-w-[150px] text-[#626581ca] mt-1"
+                          style={exemplarPro.style}
+                        >
+                          {item.data.name}
+                        </h3>
+                      </>
+                    )}
                   </>
                 )}
-              </>
-            )}
-          </motion.div>
-        ))}
-      </div>
+              </motion.div>
+            ))}
+          </div>
 
-      {isUploading && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="text-[#ABC4C3]">Uploading...</div>
+          {isUploading && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+              <div className="text-[#ABC4C3]">Uploading...</div>
+            </div>
+          )}
         </div>
       )}
     </div>
   );
+}
+
+// Helper function to format file size
+function formatFileSize(bytes: number): string {
+  if (!bytes || bytes === 0) return "0 B";
+
+  const k = 1024;
+  const sizes = ["B", "KB", "MB", "GB", "TB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
+}
+
+// Helper function to format date
+function formatDate(dateString: string | undefined): string {
+  if (!dateString) return "--";
+
+  const date = new Date(dateString);
+  return date.toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
 }
