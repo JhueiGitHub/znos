@@ -425,112 +425,46 @@ export function FoldersArea() {
   );
 
   // Enhanced drag and drop handlers
-  const handleDragOver = useCallback(
-    (event: React.DragEvent<HTMLDivElement>) => {
-      event.preventDefault();
-      event.stopPropagation();
-
-      // Check if the dragged items contain files
-      if (event.dataTransfer.types.includes("Files")) {
-        setFileDropActive(true);
-      }
-    },
-    []
-  );
-
-  const handleDragEnter = useCallback((event: React.DragEvent) => {
-    event.preventDefault();
-    event.stopPropagation();
-
-    if (event.dataTransfer.types.includes("Files")) {
+  const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.dataTransfer.types.includes("Files")) {
       setFileDropActive(true);
     }
-  }, []);
+  };
 
-  const handleDragLeave = useCallback((event: React.DragEvent) => {
-    event.preventDefault();
-    event.stopPropagation();
-
-    // Only deactivate if actually leaving the drop zone
-    const rect = event.currentTarget.getBoundingClientRect();
-    const { clientX, clientY } = event;
-
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const rect = e.currentTarget.getBoundingClientRect();
     if (
-      clientX <= rect.left ||
-      clientX >= rect.right ||
-      clientY <= rect.top ||
-      clientY >= rect.bottom
+      e.clientX <= rect.left ||
+      e.clientX >= rect.right ||
+      e.clientY <= rect.top ||
+      e.clientY >= rect.bottom
     ) {
       setFileDropActive(false);
     }
-  }, []);
+  };
 
-  const handleFileUpload = useCallback(
-    async (file: File, dropPosition: Position) => {
-      try {
-        setIsUploading(true);
-        const formData = new FormData();
-        formData.append("file", file);
-        formData.append("UPLOADCARE_PUB_KEY", "f23d206ae7780b1a0d26");
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.dataTransfer.types.includes("Files")) {
+      setFileDropActive(true);
+    }
+  };
 
-        const uploadResponse = await axios.post(
-          "https://upload.uploadcare.com/base/",
-          formData
-        );
-
-        if (!uploadResponse?.data?.file) {
-          throw new Error("Upload failed");
-        }
-
-        const cdnUrl = `https://ucarecdn.com/${uploadResponse.data.file}/`;
-
-        const fileResponse = await axios.post("/api/stellar/files", {
-          name: file.name,
-          url: cdnUrl,
-          size: file.size,
-          mimeType: file.type,
-          folderId: currentFolderId || profile?.rootFolder?.id,
-          position: dropPosition,
-        });
-
-        setItems((previousItems) => [
-          ...previousItems,
-          {
-            id: fileResponse.data.id,
-            itemType: "file",
-            data: { ...fileResponse.data, itemType: "file" },
-            position: dropPosition,
-          },
-        ]);
-      } catch (error) {
-        console.error("Upload error:", error);
-      } finally {
-        setIsUploading(false);
-      }
-    },
-    [currentFolderId, profile?.rootFolder?.id]
-  );
-
-  const handleDrop = useCallback(
-    async (event: React.DragEvent) => {
-      event.preventDefault();
-      event.stopPropagation();
-      setFileDropActive(false);
-
-      const dropPosition = {
-        x: event.clientX - event.currentTarget.getBoundingClientRect().left,
-        y: event.clientY - event.currentTarget.getBoundingClientRect().top,
-      };
-
-      const { files } = event.dataTransfer;
-      if (files?.length) {
-        for (const file of Array.from(files)) {
-          await handleFileUpload(file, dropPosition);
-        }
-      }
-    },
-    [handleFileUpload]
-  );
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setFileDropActive(false);
+    const dropPosition = {
+      x: e.clientX - e.currentTarget.getBoundingClientRect().left,
+      y: e.clientY - e.currentTarget.getBoundingClientRect().top,
+    };
+    handleFilesDrop(e.dataTransfer.files, dropPosition);
+  };
 
   const handleInputBlur = useCallback(
     (item: CanvasItem) => {
@@ -691,134 +625,16 @@ export function FoldersArea() {
 
   return (
     <div className="flex flex-col h-full">
-      {/* View Controls */}
-      <div className="flex items-center justify-between p-2 border-b border-[#29292981]">
-        <div className="flex items-center gap-1">
-          {/* Back Button - Only show when we have navigation history */}
-          {navigationStack.length > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleBack}
-              className="px-2 py-1 h-auto"
-            >
-              <ChevronLeft className="w-4 h-4 text-[#cccccc78]" />
-            </Button>
-          )}
-
-          {/* View Mode Toggle */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setViewMode("canvas")}
-            className={`px-2 py-1 h-auto ${state.viewMode === "canvas" ? "bg-[#4C4F69]/20" : ""}`}
-          >
-            <motion.svg
-              className="w-4 h-4 text-[#cccccc78]"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M4 8H8V4H4V8ZM10 20H14V16H10V20ZM4 20H8V16H4V20ZM4 14H8V10H4V14ZM10 14H14V10H10V14ZM16 4V8H20V4H16ZM10 8H14V4H10V8ZM16 14H20V10H16V14ZM16 20H20V16H16V20Z"
-                fill="currentColor"
-              />
-            </motion.svg>
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setViewMode("list")}
-            className={`px-2 py-1 h-auto ${state.viewMode === "list" ? "bg-[#4C4F69]/20" : ""}`}
-          >
-            <ListIcon className="w-4 h-4 text-[#cccccc78]" />
-          </Button>
-        </div>
-
-        <div className="flex items-center gap-1">
-          {/* Sort Options */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="px-2 py-1 h-auto">
-                <ArrowUpDownIcon className="w-4 h-4 text-[#cccccc78]" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              align="end"
-              className="bg-[#01020390] border border-[#29292981] text-[#cccccc]"
-            >
-              <DropdownMenuItem
-                onClick={() => setSortBy("name")}
-                className={`text-xs ${state.sortBy === "name" ? "bg-[#4C4F69]/20" : ""}`}
-              >
-                Sort by Name
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => setSortBy("date")}
-                className={`text-xs ${state.sortBy === "date" ? "bg-[#4C4F69]/20" : ""}`}
-              >
-                Sort by Date
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => setSortBy("type")}
-                className={`text-xs ${state.sortBy === "type" ? "bg-[#4C4F69]/20" : ""}`}
-              >
-                Sort by Type
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          {/* Sort Direction */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() =>
-              setSortDirection(state.sortDirection === "asc" ? "desc" : "asc")
-            }
-            className="px-2 py-1 h-auto"
-          >
-            {state.sortDirection === "asc" ? (
-              <SortAscIcon className="w-4 h-4 text-[#cccccc78]" />
-            ) : (
-              <SortDescIcon className="w-4 h-4 text-[#cccccc78]" />
-            )}
-          </Button>
-
-          {/* Recent Folders */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="px-2 py-1 h-auto">
-                <ClockIcon className="w-4 h-4 text-[#cccccc78]" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              align="end"
-              className="bg-[#01020390] border border-[#29292981] text-[#cccccc]"
-            >
-              {state.recentFolders.length > 0 ? (
-                state.recentFolders.map((folder) => (
-                  <DropdownMenuItem
-                    key={folder.id}
-                    onClick={() => setCurrentFolder(folder.id)}
-                    className="text-xs"
-                  >
-                    {folder.name}
-                  </DropdownMenuItem>
-                ))
-              ) : (
-                <DropdownMenuItem disabled className="text-xs opacity-50">
-                  No recent folders
-                </DropdownMenuItem>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
-
       {/* Main Content Area - Switch between views based on state */}
       {state.viewMode === "list" ? (
         // List View
-        <div className="flex-1 p-2 overflow-auto" {...dragHandlers}>
+        <div
+          className="flex-1 p-2 overflow-auto"
+          onDragEnter={handleDragEnter}
+          onDragLeave={handleDragLeave}
+          onDragOver={handleDragOver}
+          onDrop={handleDrop}
+        >
           <AnimatePresence>
             {fileDropActive && (
               <motion.div
@@ -918,9 +734,9 @@ export function FoldersArea() {
         // Canvas View
         <div
           className="relative flex-1 overflow-hidden bg-[#010203]/30"
-          onDragOver={handleDragOver}
           onDragEnter={handleDragEnter}
           onDragLeave={handleDragLeave}
+          onDragOver={handleDragOver}
           onDrop={handleDrop}
         >
           <AnimatePresence>

@@ -88,7 +88,7 @@ export function Sidebar() {
   return (
     <div
       ref={sidebarRef}
-      className="relative w-[210px] pt-[6px] bg-black/30 border-r border-[#29292981]"
+      className="relative w-[210px] pt-[24px] bg-black/30 border-r border-[#29292981]"
     >
       <AnimatePresence>
         {isDraggingFolder && isOverSidebar && (
