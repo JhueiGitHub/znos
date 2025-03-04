@@ -13,7 +13,7 @@ interface TreeComponentProps {
   children?: React.ReactNode;
 }
 
-export const FileTreeFolder: React.FC<TreeComponentProps> = ({
+const Folder: React.FC<TreeComponentProps> = ({
   name,
   children,
   isSelectable = true,
@@ -41,7 +41,7 @@ export const FileTreeFolder: React.FC<TreeComponentProps> = ({
   );
 };
 
-export const FileTreeFile: React.FC<TreeComponentProps> = ({
+const File: React.FC<TreeComponentProps> = ({
   name,
   value,
   isSelectable = true,
@@ -70,4 +70,14 @@ export const FileTreeFile: React.FC<TreeComponentProps> = ({
       <span className="text-[11px] text-[#cccccc]/70">{name}</span>
     </div>
   );
+};
+
+// This explicitly exports the FileTreeFolder and FileTreeFile names
+// as well as the CoreFileTree object for compatibility
+export const FileTreeFolder = Folder;
+export const FileTreeFile = File;
+
+export const CoreFileTree = {
+  Folder,
+  File,
 };

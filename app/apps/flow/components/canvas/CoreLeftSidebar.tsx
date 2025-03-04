@@ -2,51 +2,36 @@ import React from "react";
 import { motion } from "framer-motion";
 import { FileTreeFolder, FileTreeFile } from "./CoreFileTree";
 import { useStyles } from "@/app/hooks/useStyles";
-import { ColorToken } from "@prisma/client";
+import { CoreFlowComponent } from "./CoreFlowEditor";
 
-interface CoreLeftSidebarProps {
+export interface CoreLeftSidebarProps {
   flowName: string;
   isVisible: boolean;
-  designSystem: {
-    colorTokens: ColorToken[];
-  } | null;
-  onColorSelect: (tokenId: string) => void;
-  selectedTokenId: string | null;
+  components: CoreFlowComponent[];
+  onComponentSelect: (
+    componentId: string,
+    modifiers: { shift?: boolean; meta?: boolean }
+  ) => void;
+  selectedComponentIds: string[];
 }
 
 export const CoreLeftSidebar: React.FC<CoreLeftSidebarProps> = ({
   flowName,
   isVisible,
-  designSystem,
-  onColorSelect,
-  selectedTokenId,
+  components,
+  onComponentSelect,
+  selectedComponentIds,
 }) => {
   const { getColor, getFont } = useStyles();
 
-  const baseTokens =
-    designSystem?.colorTokens.filter(
-      (token) =>
-        !token.name.includes("-") &&
-        ![
-          "Underlying BG",
-          "Overlaying BG",
-          "Brd",
-          "Black",
-          "Glass",
-          "White",
-        ].includes(token.name)
-    ) || [];
-
-  const variantTokens =
-    designSystem?.colorTokens.filter((token) => token.name.includes("-")) || [];
+  const colorComponents = components.filter((c) => c.type === "COLOR");
+  const typographyComponents = components.filter(
+    (c) => c.type === "TYPOGRAPHY"
+  );
 
   return (
-    <motion.div
-      initial={{ x: -264 }}
-      animate={{ x: 0 }}
-      exit={{ x: -264 }}
-      transition={{ type: "spring", stiffness: 300, damping: 30 }}
-      className="absolute left-0 top-0 bottom-0 w-[264px] border-r border-white/[0.09] flex flex-col backdrop-blur-sm z-10"
+    <div
+      className="absolute left-0 top-0 bottom-0 w-[264px] border-r flex flex-col backdrop-blur-sm z-10"
       style={{
         borderColor: getColor("Brd"),
         backgroundColor: getColor("Glass"),
@@ -79,7 +64,7 @@ export const CoreLeftSidebar: React.FC<CoreLeftSidebarProps> = ({
             className="text-[11px] font-semibold"
             style={{ color: getColor("Text Primary (Hd)") }}
           >
-            Colors
+            Components
           </span>
         </button>
         <button className="px-[9px] py-2">
@@ -87,36 +72,42 @@ export const CoreLeftSidebar: React.FC<CoreLeftSidebarProps> = ({
             className="text-[11px] font-semibold"
             style={{ color: getColor("Text Secondary (Bd)") }}
           >
-            Typography
+            Assets
           </span>
         </button>
       </div>
 
       <div className="flex-1 overflow-auto p-2">
-        <FileTreeFolder name="Base Colors" isSelectable={false}>
-          {baseTokens.map((token) => (
-            <FileTreeFile
-              key={token.id}
-              name={token.name}
-              value={token.id}
-              isSelected={selectedTokenId === token.id}
-              handleSelect={(id) => onColorSelect(id)}
-            />
-          ))}
-        </FileTreeFolder>
-        <FileTreeFolder name="Variants" isSelectable={false}>
-          {variantTokens.map((token) => (
-            <FileTreeFile
-              key={token.id}
-              name={token.name}
-              value={token.id}
-              isSelected={selectedTokenId === token.id}
-              handleSelect={(id) => onColorSelect(id)}
-            />
-          ))}
+        <FileTreeFolder name="Design Tokens" isSelectable={false}>
+          <FileTreeFolder name="Colors" isSelectable={false}>
+            {colorComponents.map((component) => (
+              <FileTreeFile
+                key={component.id}
+                name={component.name}
+                value={component.id}
+                isSelected={selectedComponentIds.includes(component.id)}
+                handleSelect={(id, modifiers) =>
+                  onComponentSelect(id, modifiers)
+                }
+              />
+            ))}
+          </FileTreeFolder>
+          <FileTreeFolder name="Typography" isSelectable={false}>
+            {typographyComponents.map((component) => (
+              <FileTreeFile
+                key={component.id}
+                name={component.name}
+                value={component.id}
+                isSelected={selectedComponentIds.includes(component.id)}
+                handleSelect={(id, modifiers) =>
+                  onComponentSelect(id, modifiers)
+                }
+              />
+            ))}
+          </FileTreeFolder>
         </FileTreeFolder>
       </div>
-    </motion.div>
+    </div>
   );
 };
 

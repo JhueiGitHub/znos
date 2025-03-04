@@ -6,7 +6,7 @@ import { FlowGrid } from "./FlowGrid";
 import { AppsGrid } from "./AppsGrid";
 import { StreamView } from "./StreamView";
 import { AppView } from "./AppView";
-import { EditorView } from "./canvas/EditorView";
+import { EditorView } from "./canvas/CoreEditorView";
 import { OrionEditorView } from "./editors/OrionEditorView";
 import { CommunityView } from "./CommunityView";
 import { ViewState, ViewType } from "../types/view";
