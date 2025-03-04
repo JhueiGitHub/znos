@@ -601,19 +601,19 @@ const ALL_PLAYLISTS: Playlist[] = [
       },
       {
         id: "xo-2",
+        title: "wicked games",
+        artist: "XO",
+        path: "/audio/xo/wickedgames.mp4",
+        thumbnail: "/media/songs/nxra/song13.png",
+        videoUrl: "https://www.youtube.com/watch?v=OG0AONeJb3w",
+      },
+      {
+        id: "xo-3",
         title: "the knowing",
         artist: "XO",
         path: "/audio/xo/theknowing.mp4",
         thumbnail: "/media/songs/nxra/theknowing.png",
         videoUrl: "https://www.youtube.com/watch?v=ATKejfb_CEo",
-      },
-      {
-        id: "xo-3",
-        title: "the zone",
-        artist: "XO",
-        path: "/audio/xo/thezone.mp4",
-        thumbnail: "/media/songs/nxra/thezone.png",
-        videoUrl: "https://www.youtube.com/watch?v=KVOde32jFD8",
       },
       {
         id: "xo-4",
@@ -637,8 +637,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "XO",
         path: "/audio/xo/thetown.mp4",
         thumbnail: "/media/songs/nxra/thetown.png",
-        videoUrl:
-          "https://www.youtube.com/watch?v=PAN6mc-3cyI&pp=ygUOdGhlIHRvd24gc2xvd2U%3D",
+        videoUrl: "https://www.youtube.com/watch?v=PAN6mc-3cyI",
       },
       {
         id: "xo-7",
@@ -654,8 +653,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "XO",
         path: "/audio/xo/loveinthesky.mp4",
         thumbnail: "/media/songs/nxra/loveinthesky.png",
-        videoUrl:
-          "https://music.youtube.com/watch?v=sU4UQRxISFU&list=LRYRJTl4K9DP492JeVjOLSR-9AdlIwx3LOhOC",
+        videoUrl: "https://www.youtube.com/watch?v=sU4UQRxISFU",
       },
       {
         id: "xo-9",
@@ -695,7 +693,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "XO",
         path: "/audio/xo/song13.mp4",
         thumbnail: "/media/songs/nxra/song13.png",
-        videoUrl: "https://www.youtube.com/watch?v=OG0AONeJb3w",
+        videoUrl: "https://www.youtube.com/watch?v=JpK2qaejBOk",
       },
     ],
   },
