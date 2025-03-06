@@ -105,7 +105,7 @@ export function NavBar() {
       : "Root";
 
   return (
-    <div className="h-8 w-full flex justify-between border-b border-[#29292981]">
+    <div className="h-8 w-full flex justify-between border-b border-[#29292981] bg-[#00000045]">
       <nav className="h-full px-4 flex items-center w-fit">
         {!currentFolderId ? (
           // When at root, just show "Root" text without breadcrumb
@@ -126,13 +126,13 @@ export function NavBar() {
               {visiblePath.map((folder, index) => (
                 <React.Fragment key={folder.id}>
                   {folder.id === "ellipsis" ? (
-                    <BreadcrumbEllipsis className="text-[#cccccc60]" />
+                    <BreadcrumbEllipsis className="text-[#4C4F69]" />
                   ) : (
                     <>
-                      <BreadcrumbSeparator className="text-[#cccccc60]" />
+                      <BreadcrumbSeparator className="text-[#4C4F69]" />
                       <BreadcrumbItem>
                         {index === visiblePath.length - 1 ? (
-                          <BreadcrumbPage className="text-[#ccccccbb]">
+                          <BreadcrumbPage className="text-[#cccccc78]">
                             {folder.name}
                           </BreadcrumbPage>
                         ) : (
@@ -165,7 +165,7 @@ export function NavBar() {
               variant="ghost"
               size="sm"
               onClick={handleBack}
-              className="px-2 py-1 h-auto"
+              className="px-2 py-1 h-auto hover:bg-[#4C4F69]/20"
             >
               <ChevronLeft className="w-4 h-4 text-[#cccccc78]" />
             </Button>
@@ -176,7 +176,7 @@ export function NavBar() {
             variant="ghost"
             size="sm"
             onClick={() => setViewMode("canvas")}
-            className={`px-2 py-1 h-auto ${state.viewMode === "canvas" ? "bg-[#4C4F69]/20" : ""}`}
+            className={`px-2 py-1 h-auto hover:bg-[#4C4F69]/20 ${state.viewMode === "canvas" ? "bg-[#4C4F69]/20" : ""}`}
           >
             <motion.svg
               className="w-4 h-4 text-[#cccccc78]"
@@ -194,7 +194,7 @@ export function NavBar() {
             variant="ghost"
             size="sm"
             onClick={() => setViewMode("list")}
-            className={`px-2 py-1 h-auto ${state.viewMode === "list" ? "bg-[#4C4F69]/20" : ""}`}
+            className={`px-2 py-1 h-auto hover:bg-[#4C4F69]/20 ${state.viewMode === "list" ? "bg-[#4C4F69]/20" : ""}`}
           >
             <ListIcon className="w-4 h-4 text-[#cccccc78]" />
           </Button>
@@ -206,7 +206,11 @@ export function NavBar() {
           {/* Sort Options */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="px-2 py-1 h-auto">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="px-2 py-1 h-auto hover:bg-[#4C4F69]/20"
+              >
                 <ArrowUpDownIcon className="w-4 h-4 text-[#cccccc78]" />
               </Button>
             </DropdownMenuTrigger>
@@ -242,7 +246,7 @@ export function NavBar() {
             onClick={() =>
               setSortDirection(state.sortDirection === "asc" ? "desc" : "asc")
             }
-            className="px-2 py-1 h-auto"
+            className="px-2 py-1 h-auto hover:bg-[#4C4F69]/20"
           >
             {state.sortDirection === "asc" ? (
               <SortAscIcon className="w-4 h-4 text-[#cccccc78]" />
@@ -254,7 +258,11 @@ export function NavBar() {
           {/* Recent Folders */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="px-2 py-1 h-auto">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="px-2 py-1 h-auto hover:bg-[#4C4F69]/20"
+              >
                 <ClockIcon className="w-4 h-4 text-[#cccccc78]" />
               </Button>
             </DropdownMenuTrigger>

@@ -609,7 +609,7 @@ export function FoldersArea() {
   // Loading state with proper skeleton UI
   if (isLoading || !folderData) {
     return (
-      <div className="h-full w-full grid grid-cols-4 gap-4 p-4">
+      <div className="h-full w-full grid grid-cols-4 gap-4 p-4 bg-black/30">
         {[...Array(8)].map((_, index) => (
           <div
             key={index}
