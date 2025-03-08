@@ -1,115 +1,104 @@
-// app/apps/milanote/hooks/useCanvasState.ts
-import { useEffect, useCallback } from "react";
-import { debounce } from "lodash";
+// app/apps/mila/hooks/useCanvasState.ts
+import { useState, useEffect, useCallback } from "react";
 import { Position } from "../types";
 
-export interface CanvasState {
+interface CanvasState {
   position: Position;
   scale: number;
-  timestamp: number;
 }
 
-// Generate a storage key for each board and user
-const getStorageKey = (boardId: string, userId?: string) => {
-  const userPart = userId ? `-${userId}` : "";
-  return `milanote-canvas-state-${boardId}${userPart}`;
-};
+interface CanvasStateOptions {
+  profileId: string;
+  boardId: string;
+  defaultPosition?: Position;
+  defaultScale?: number;
+}
 
-export const useCanvasState = (boardId: string, userId?: string) => {
-  // Save canvas state to localStorage
-  // Save canvas state to localStorage
-  const saveState = useCallback(
-    (position: Position, scale: number) => {
-      const state: CanvasState = {
-        position,
-        scale,
-        timestamp: Date.now(),
-      };
+/**
+ * Hook for persisting and restoring canvas position and zoom level
+ * Stores canvas state in localStorage with a unique key for each user and board
+ */
+export const useCanvasState = ({
+  profileId,
+  boardId,
+  defaultPosition = { x: 0, y: 0 },
+  defaultScale = 1,
+}: CanvasStateOptions) => {
+  // Generate a unique storage key for this user and board
+  const storageKey = `milanote_canvas_state_${profileId}_${boardId}`;
 
-      try {
-        const key = getStorageKey(boardId, userId);
-        localStorage.setItem(key, JSON.stringify(state));
-        console.log(`Canvas state saved for board ${boardId}:`, state);
-      } catch (error) {
-        console.warn("Failed to save canvas state to localStorage:", error);
-      }
-    },
-    [boardId, userId]
-  );
-
-  // Create a debounced version of saveState to avoid excessive writes
-  const debouncedSaveState = useCallback(
-    debounce((position: Position, scale: number) => {
-      saveState(position, scale);
-    }, 300),
-    [saveState]
-  );
-
-  // Load canvas state from localStorage
-  // Load canvas state from localStorage
-  const loadState = useCallback((): CanvasState | null => {
+  // Initialize state from localStorage or defaults
+  const [canvasPosition, setCanvasPosition] = useState<Position>(() => {
     try {
-      const key = getStorageKey(boardId, userId);
-      const storedState = localStorage.getItem(key);
-
-      if (!storedState) {
-        console.log(`No saved state found for board ${boardId}`);
-        return null;
+      const savedState = localStorage.getItem(storageKey);
+      if (savedState) {
+        const parsed = JSON.parse(savedState) as CanvasState;
+        return parsed.position;
       }
-
-      const parsedState = JSON.parse(storedState) as CanvasState;
-      console.log(`Canvas state loaded for board ${boardId}:`, parsedState);
-      return parsedState;
     } catch (error) {
-      console.warn("Failed to load canvas state from localStorage:", error);
-      return null;
+      console.warn("Error loading canvas state from localStorage:", error);
     }
-  }, [boardId, userId]);
+    return defaultPosition;
+  });
 
-  // Clear saved state (useful if needed)
-  const clearState = useCallback(() => {
+  const [scale, setScale] = useState<number>(() => {
     try {
-      localStorage.removeItem(getStorageKey(boardId, userId));
+      const savedState = localStorage.getItem(storageKey);
+      if (savedState) {
+        const parsed = JSON.parse(savedState) as CanvasState;
+        return parsed.scale;
+      }
     } catch (error) {
-      console.warn("Failed to clear canvas state from localStorage:", error);
+      console.warn("Error loading canvas scale from localStorage:", error);
     }
-  }, [boardId, userId]);
+    return defaultScale;
+  });
 
-  // Clean up old board states to prevent localStorage from becoming too full
+  // Save state to localStorage whenever it changes
+  // Using useEffect because we want to save after render and not block UI
   useEffect(() => {
-    const MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
-    const now = Date.now();
-
     try {
-      // Get all milanote-related keys
-      const allKeys = Object.keys(localStorage).filter((key) =>
-        key.startsWith("milanote-canvas-state-")
-      );
-
-      // Check each key for expired data
-      allKeys.forEach((key) => {
-        try {
-          const stateStr = localStorage.getItem(key);
-          if (!stateStr) return;
-
-          const state = JSON.parse(stateStr) as CanvasState;
-          if (now - state.timestamp > MAX_AGE_MS) {
-            localStorage.removeItem(key);
-          }
-        } catch (e) {
-          // If we can't parse it, just remove it
-          localStorage.removeItem(key);
-        }
-      });
+      const state: CanvasState = {
+        position: canvasPosition,
+        scale,
+      };
+      localStorage.setItem(storageKey, JSON.stringify(state));
     } catch (error) {
-      console.warn("Error cleaning up old canvas states:", error);
+      console.warn("Error saving canvas state to localStorage:", error);
     }
+  }, [canvasPosition, scale, storageKey]);
+
+  // Helper method to update canvas position
+  const updatePosition = useCallback((newPosition: Position) => {
+    setCanvasPosition(newPosition);
   }, []);
 
+  // Helper method to update scale
+  const updateScale = useCallback((newScale: number) => {
+    setScale(newScale);
+  }, []);
+
+  // Helper method to update both position and scale at once
+  const updateCanvasState = useCallback(
+    (newPosition: Position, newScale: number) => {
+      setCanvasPosition(newPosition);
+      setScale(newScale);
+    },
+    []
+  );
+
+  // Helper to reset canvas to default state
+  const resetCanvasState = useCallback(() => {
+    setCanvasPosition(defaultPosition);
+    setScale(defaultScale);
+  }, [defaultPosition, defaultScale]);
+
   return {
-    saveState,
-    debouncedSaveState,
-    loadState,
-    clearState,
+    canvasPosition,
+    scale,
+    updatePosition,
+    updateScale,
+    updateCanvasState,
+    resetCanvasState,
   };
 };

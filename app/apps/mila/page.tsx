@@ -53,7 +53,7 @@ const SAMPLE_BOARDS: Record<string, MilanoteBoard> = {
         position: { x: 100, y: 300 },
         content: {
           title: "Welcome to Milanote",
-          text: "This is a clone of Milanote, a tool for organizing creative projects.\n\nDrag items from the toolbar onto the canvas to get started, or double-click boards to navigate into them.",
+          text: "Welcome to Milanote, a tool for organizing creative projects visually. Drag items from the toolbar, double-click boards to navigate, or double-click the canvas to create link notes. Paste URLs into notes for rich previews: YouTube videos and Sketchfab 3D models embed directly.",
           color: "night-med",
         } as NoteContent,
         zIndex: 4,

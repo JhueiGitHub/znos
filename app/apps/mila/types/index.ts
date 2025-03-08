@@ -1,6 +1,6 @@
-// app/apps/milanote/types/index.ts
+// app/apps/mila/types/index.ts (updated)
 
-export type ItemType = 'note' | 'board' | 'image' | 'link';
+export type ItemType = "note" | "board" | "image" | "link";
 
 export interface Position {
   x: number;
@@ -27,6 +27,7 @@ export interface BoardContent {
 export interface ImageContent {
   url: string;
   alt?: string;
+  color?: string;
 }
 
 export interface LinkContent {
@@ -34,9 +35,14 @@ export interface LinkContent {
   title: string;
   description?: string;
   thumbnail?: string;
+  color?: string; // Added color property to match other content types
 }
 
-export type ItemContent = NoteContent | BoardContent | ImageContent | LinkContent;
+export type ItemContent =
+  | NoteContent
+  | BoardContent
+  | ImageContent
+  | LinkContent;
 
 export interface MilanoteItem {
   id: string;
@@ -50,7 +56,7 @@ export interface MilanoteItem {
 export interface MilanoteBoard {
   id: string;
   name: string;
-  icon?: string; 
+  icon?: string;
   items: MilanoteItem[];
   parentId?: string;
 }

@@ -1,4 +1,4 @@
-// app/apps/milanote/components/MilanoteToolbar.tsx
+// app/apps/mila/components/MilanoteToolbar.tsx (updated version)
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMilanoteStore } from "../store/milanoteStore";
@@ -21,7 +21,6 @@ const MilanoteToolbar: React.FC = () => {
   const currentBoardId = useMilanoteStore((state) => state.currentBoardId);
   const addItem = useMilanoteStore((state) => state.addItem);
 
-  // Function to create items on drop
   // Function to create items on drop
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
@@ -105,14 +104,14 @@ const MilanoteToolbar: React.FC = () => {
         );
         break;
       case "link":
-        // For demo purposes, we're adding a placeholder note
+        // Updated to create a link item
         addItem(
           currentBoardId,
-          "note",
+          "link",
           { x, y },
           {
-            title: "Link Placeholder",
-            text: "This would be a link component.",
+            url: "", // Start with empty URL
+            title: "New Link",
             color: "night-med",
           }
         );
@@ -122,7 +121,6 @@ const MilanoteToolbar: React.FC = () => {
     setDraggedItem(null);
   };
 
-  // Handle drag start
   // Handle drag start
   const handleDragStart = (type: string) => (e: React.DragEvent) => {
     setDraggedItem(type);
@@ -262,6 +260,20 @@ const MilanoteToolbar: React.FC = () => {
           label="Layers"
         />
       </motion.div>
+
+      {/* tooltip about double-click capability */}
+      {/* <div
+        className="absolute left-full ml-3 top-1/2 -translate-y-1/2 p-2 rounded-md text-xs"
+        style={{
+          backgroundColor: getColor("black-thick"),
+          color: getColor("smoke-thin"),
+          maxWidth: "150px",
+          whiteSpace: "normal",
+          display: isCollapsed ? "none" : "block",
+        }}
+      >
+        <p>Double-click canvas to create a new link note</p>
+      </div> */}
     </div>
   );
 };

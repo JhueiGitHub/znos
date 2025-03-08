@@ -31,11 +31,11 @@ const MilanoteBreadcrumb: React.FC = () => {
         borderColor: getColor("black-thin"),
       }}
     >
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center space-x-2 pl-[17px] pt-[4px]">
         {/* Menu button */}
         <button
           className="w-8 h-8 rounded-md flex items-center justify-center hover:bg-black/20"
-          style={{ color: getColor("smoke-med") }}
+          style={{ color: getColor("latte") }}
         >
           <Menu size={16} />
         </button>
@@ -43,7 +43,7 @@ const MilanoteBreadcrumb: React.FC = () => {
         {/* Home button */}
         <button
           className="w-8 h-8 rounded-md flex items-center justify-center hover:bg-black/20"
-          style={{ color: getColor("smoke-med") }}
+          style={{ color: getColor("latte") }}
           onClick={() => setCurrentBoard("root")}
         >
           <Home size={16} />
@@ -67,7 +67,7 @@ const MilanoteBreadcrumb: React.FC = () => {
                 style={{
                   color:
                     index === breadcrumb.length - 1
-                      ? getColor("smoke")
+                      ? "#4c4f69"
                       : getColor("smoke-thin"),
                   fontFamily: getFont("Text Primary"),
                 }}
