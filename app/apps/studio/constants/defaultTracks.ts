@@ -1,0 +1,142 @@
+// app/apps/studio/constants/defaultTracks.ts
+import { Track } from "../types/track";
+import { v4 as uuidv4 } from "uuid";
+
+export const DEFAULT_TRACKS: Track[] = [
+  {
+    id: uuidv4(),
+    name: "Synth Lead",
+    steps: [
+      ["C4"],
+      null,
+      ["E4"],
+      null,
+      ["G4"],
+      null,
+      ["E4"],
+      null,
+      ["C4"],
+      null,
+      ["A3"],
+      null,
+      ["G3"],
+      null,
+      ["C4"],
+      null,
+    ],
+    instrument: {
+      type: "monoSynth",
+      oscillatorType: "sawtooth",
+      settings: {
+        envelope: {
+          attack: 0.01,
+          decay: 0.2,
+          sustain: 0.5,
+          release: 0.5,
+        },
+      },
+    },
+    volume: -12,
+    pan: 0,
+    effects: [
+      {
+        id: uuidv4(),
+        type: "freeverb",
+        settings: {
+          roomSize: 0.7,
+          dampening: 0.5,
+          wet: 0.3,
+          dry: 0.5,
+        },
+      },
+    ],
+    isMuted: false,
+    isSolo: false,
+  },
+  {
+    id: uuidv4(),
+    name: "Bass",
+    steps: [
+      ["C2"],
+      null,
+      null,
+      null,
+      ["G1"],
+      null,
+      null,
+      null,
+      ["A1"],
+      null,
+      null,
+      null,
+      ["F1"],
+      null,
+      ["G1"],
+      null,
+    ],
+    instrument: {
+      type: "synth",
+      oscillatorType: "triangle",
+      settings: {
+        envelope: {
+          attack: 0.04,
+          decay: 0.2,
+          sustain: 0.9,
+          release: 0.5,
+        },
+      },
+    },
+    volume: -8,
+    pan: 0,
+    effects: [
+      {
+        id: uuidv4(),
+        type: "feedbackDelay",
+        settings: {
+          delayTime: 0.25,
+          feedback: 0.3,
+          wet: 0.2,
+        },
+      },
+    ],
+    isMuted: false,
+    isSolo: false,
+  },
+  {
+    id: uuidv4(),
+    name: "Drums",
+    steps: [
+      ["C2"],
+      null,
+      ["D2"],
+      null,
+      ["C2"],
+      ["E2"],
+      ["D2"],
+      null,
+      ["C2"],
+      null,
+      ["D2"],
+      ["E2"],
+      ["C2"],
+      null,
+      ["D2"],
+      ["C2"],
+    ],
+    instrument: {
+      type: "sampler",
+      settings: {
+        samples: {
+          C2: "/apps/studio/audio/kick.wav",
+          D2: "/apps/studio/audio/snare.wav",
+          E2: "/apps/studio/audio/hihat-loop.wav",
+        },
+      },
+    },
+    volume: -5,
+    pan: 0,
+    effects: [],
+    isMuted: false,
+    isSolo: false,
+  },
+];

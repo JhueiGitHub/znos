@@ -1,4 +1,4 @@
-// types/track.ts
+// app/apps/studio/types/track.ts
 import type { StepType } from "reactronica";
 
 export interface TrackEffect {

@@ -1,8 +1,10 @@
-import React, { useState, useRef } from "react";
+// app/apps/studio/components/PianoRoll.tsx
+import React, { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import type { StepType } from "reactronica";
+import { useStyles } from "@/app/hooks/useStyles";
 
-// Full note range from C0 to C8 - ordered from low to high (bottom to top)
+// Full note range from C1 to B7
 const NOTES = (() => {
   const notes: string[] = [];
   const noteNames = [
@@ -19,121 +21,324 @@ const NOTES = (() => {
     "A#",
     "B",
   ];
-  for (let octave = 0; octave <= 7; octave++) {
+
+  for (let octave = 1; octave <= 7; octave++) {
     noteNames.forEach((note) => {
       notes.push(`${note}${octave}`);
     });
   }
+
   return notes.reverse(); // Reverse to display high notes at top
 })();
 
 interface PianoRollProps {
-  steps: StepType[][];
-  onNoteChange: (
+  steps: StepType[];
+  trackId: string;
+  onStepChange: (
     stepIndex: number,
     noteIndex: number,
     value: string | null
   ) => void;
+  zoomLevel?: number;
+  quantizeValue?: string;
+  snapToGrid?: boolean;
 }
 
 export const PianoRoll: React.FC<PianoRollProps> = ({
   steps,
-  onNoteChange,
+  trackId,
+  onStepChange,
+  zoomLevel = 1,
+  quantizeValue = "8n",
+  snapToGrid = true,
 }) => {
+  const { getColor, getFont } = useStyles();
   const [selectedStep, setSelectedStep] = useState<number | null>(null);
-  const CELL_HEIGHT = 24; // Height matches Reactronica's grid
+  const [hoverNote, setHoverNote] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const rollContainerRef = useRef<HTMLDivElement>(null);
+  const pianoKeysRef = useRef<HTMLDivElement>(null);
+
+  const CELL_HEIGHT = 24;
+  const CELL_WIDTH = Math.max(24, 24 * zoomLevel);
+  const stepCount = steps.length;
+
+  // Handle scrolling
+  useEffect(() => {
+    if (!rollContainerRef.current) return;
+
+    // Initial scroll position - center on middle C
+    const midCIndex = NOTES.findIndex((note) => note === "C4");
+    if (midCIndex >= 0) {
+      const scrollPos = midCIndex * CELL_HEIGHT;
+      rollContainerRef.current.scrollTop =
+        scrollPos - rollContainerRef.current.clientHeight / 2;
+    }
+  }, []);
+
+  // Synchronize piano keys scroll with grid scroll
+  useEffect(() => {
+    if (!rollContainerRef.current || !pianoKeysRef.current) return;
+
+    const handleScroll = () => {
+      if (rollContainerRef.current && pianoKeysRef.current) {
+        pianoKeysRef.current.scrollTop = rollContainerRef.current.scrollTop;
+      }
+    };
+
+    rollContainerRef.current.addEventListener("scroll", handleScroll);
+    return () => {
+      if (rollContainerRef.current) {
+        rollContainerRef.current.removeEventListener("scroll", handleScroll);
+      }
+    };
+  }, []);
+
+  // Check if a cell has a note
+  const hasNote = (stepIndex: number, noteName: string): boolean => {
+    const step = steps[stepIndex];
+    if (!step) return false;
+
+    if (Array.isArray(step)) {
+      return step.some((n) =>
+        typeof n === "string" ? n === noteName : n.name === noteName
+      );
+    }
+
+    return typeof step === "string"
+      ? step === noteName
+      : step.name === noteName;
+  };
+
+  // Handle adding/removing notes
+  const toggleNote = (stepIndex: number, noteName: string) => {
+    const step = steps[stepIndex];
+    const noteIndex = NOTES.indexOf(noteName);
+
+    if (hasNote(stepIndex, noteName)) {
+      // Remove the note
+      onStepChange(stepIndex, noteIndex, null);
+    } else {
+      // Add the note
+      onStepChange(stepIndex, noteIndex, noteName);
+    }
+  };
+
+  // Keyboard piano handling
+  const playNote = (noteName: string) => {
+    // This would be implemented to preview the note sound
+    console.log("Playing note:", noteName);
+  };
 
   return (
-    <div className="flex h-[50vh] bg-[#010203]/30">
-      {/* Main scrollable container that wraps both keyboard and grid */}
-      <div className="flex flex-1 overflow-auto">
-        {/* Keyboard column */}
-        <div className="w-24 flex-shrink-0 bg-[#292929] border-r border-[#4C4F69]/20">
-          {NOTES.map((note) => {
-            const isBlackKey = note.includes("#");
-            const noteName = note.slice(0, -1);
-            const octave = note.slice(-1);
-
-            return (
-              <div
-                key={note}
-                className={cn(
-                  "flex items-center justify-between px-2 select-none",
-                  "border-b border-[#4C4F69]/20",
-                  isBlackKey
-                    ? "bg-[#292929] text-white/50"
-                    : "bg-white text-black/70" // Pure white background for white keys
-                )}
-                style={{ height: CELL_HEIGHT }}
-              >
-                <span className="text-xs font-medium">{noteName}</span>
-                <span className="text-xs opacity-50">{octave}</span>
-              </div>
-            );
-          })}
+    <div
+      className="w-full h-full flex flex-col"
+      style={{
+        color: getColor("Text Primary (Hd)"),
+        fontFamily: getFont("Text Primary"),
+      }}
+    >
+      {/* Header bar */}
+      <div
+        className="h-10 border-b flex items-center justify-between px-4"
+        style={{ borderColor: getColor("Brd") }}
+      >
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium">Piano Roll</span>
+          <span className="text-xs px-2 py-0.5 rounded bg-[#4C4F69]/10 opacity-70">
+            {trackId}
+          </span>
         </div>
 
-        {/* Grid section */}
-        <div className="flex-1 relative">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-1">
+            <span className="text-xs opacity-70">Zoom:</span>
+            <span className="text-xs">{Math.round(zoomLevel * 100)}%</span>
+          </div>
+
+          <div className="flex items-center gap-1">
+            <span className="text-xs opacity-70">Quantize:</span>
+            <span className="text-xs">{quantizeValue}</span>
+          </div>
+
+          <div className="flex items-center gap-1">
+            <span className="text-xs opacity-70">Snap:</span>
+            <span className="text-xs">{snapToGrid ? "On" : "Off"}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Main piano roll area */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Piano keyboard */}
+        <div
+          ref={pianoKeysRef}
+          className="w-[80px] flex-shrink-0 border-r overflow-hidden"
+          style={{ borderColor: getColor("Brd") }}
+        >
+          <div className="flex flex-col h-fit">
+            {NOTES.map((note) => {
+              const isBlackKey = note.includes("#");
+              const noteName = note.slice(0, -1); // Remove octave
+              const octave = note.slice(-1);
+              const isC = noteName === "C";
+
+              return (
+                <div
+                  key={note}
+                  className={cn(
+                    "flex items-center justify-between px-2 select-none border-b flex-shrink-0",
+                    isBlackKey
+                      ? "bg-[#292929] text-white/70 h-6"
+                      : "bg-white text-black/80 h-6",
+                    hoverNote === note && "bg-[#7B6CBD]/10"
+                  )}
+                  style={{
+                    borderColor: getColor("Brd"),
+                    height: CELL_HEIGHT,
+                  }}
+                  onMouseEnter={() => setHoverNote(note)}
+                  onMouseLeave={() => setHoverNote(null)}
+                  onMouseDown={() => playNote(note)}
+                >
+                  <span
+                    className={cn(
+                      "text-xs font-medium",
+                      isBlackKey ? "text-white/70" : "text-black/80"
+                    )}
+                  >
+                    {noteName}
+                  </span>
+                  {isC && (
+                    <span
+                      className={cn(
+                        "text-xs opacity-80",
+                        isBlackKey ? "text-white/50" : "text-black/50"
+                      )}
+                    >
+                      {octave}
+                    </span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Grid and notes */}
+        <div
+          ref={rollContainerRef}
+          className="flex-1 overflow-auto relative"
+          onMouseDown={() => setIsDragging(true)}
+          onMouseUp={() => setIsDragging(false)}
+          onMouseLeave={() => setIsDragging(false)}
+        >
+          {/* Fixed header with beat numbers */}
           <div
-            className="grid relative"
+            className="sticky top-0 left-0 z-10 flex h-8 border-b"
             style={{
-              gridTemplateColumns: `repeat(${steps.length}, minmax(${CELL_HEIGHT}px, 1fr))`,
+              borderColor: getColor("Brd"),
+            }}
+          >
+            {Array.from({ length: stepCount }).map((_, i) => (
+              <div
+                key={i}
+                className={cn(
+                  "flex items-center justify-center text-xs border-r",
+                  i % 4 === 0 ? "font-medium opacity-80" : "opacity-50"
+                )}
+                style={{
+                  borderColor: getColor("Brd"),
+                  width: CELL_WIDTH,
+                  minWidth: CELL_WIDTH,
+                }}
+              >
+                {Math.floor(i / 4) + 1}.{(i % 4) + 1}
+              </div>
+            ))}
+          </div>
+
+          {/* Main grid */}
+          <div
+            className="grid h-fit"
+            style={{
               gridTemplateRows: `repeat(${NOTES.length}, ${CELL_HEIGHT}px)`,
             }}
           >
-            {/* Background pattern for white/black keys */}
-            <div className="absolute inset-0 grid grid-rows-12 pointer-events-none">
-              {NOTES.map((note) => (
+            {/* Horizontal row separators */}
+            <div className="absolute inset-0 pointer-events-none">
+              {NOTES.map((note, i) => (
                 <div
-                  key={`bg-${note}`}
+                  key={`sep-${i}`}
                   className={cn(
-                    "w-full",
-                    note.includes("#") ? "bg-[#292929]/10" : "bg-transparent"
+                    "absolute left-0 right-0 border-b",
+                    note.includes("#")
+                      ? "border-[#4C4F69]/10"
+                      : "border-[#4C4F69]/20",
+                    note.startsWith("C") && "border-[#4C4F69]/40"
                   )}
+                  style={{
+                    top: i * CELL_HEIGHT,
+                    borderColor: getColor("Brd"),
+                  }}
                 />
               ))}
             </div>
 
-            {/* Vertical measure lines */}
-            {steps.map((_, stepIndex) => (
-              <div
-                key={`measure-${stepIndex}`}
-                className={cn(
-                  "absolute h-full border-r border-[#4C4F69]/20",
-                  stepIndex % 4 === 0 && "border-r-[#4C4F69]/40"
-                )}
-                style={{ left: `${(stepIndex / steps.length) * 100}%` }}
-              />
-            ))}
+            {/* Vertical beat separators */}
+            <div className="absolute inset-0 pointer-events-none flex">
+              {Array.from({ length: Math.ceil(stepCount / 4) }).map((_, i) => (
+                <div
+                  key={`vsep-${i}`}
+                  className="border-r h-full"
+                  style={{
+                    left: i * 4 * CELL_WIDTH,
+                    width: 4 * CELL_WIDTH,
+                    borderColor: getColor("Brd"),
+                    borderRightWidth: 2,
+                  }}
+                />
+              ))}
+            </div>
 
             {/* Note cells */}
-            {NOTES.map((note, noteIndex) => (
-              <React.Fragment key={`row-${note}`}>
-                {steps.map((step, stepIndex) => {
-                  const isActive = step?.includes(note as StepType);
-                  return (
-                    <div
-                      key={`cell-${stepIndex}-${noteIndex}`}
-                      className={cn(
-                        "border border-[#4C4F69]/10 cursor-pointer",
-                        "hover:bg-[#7B6CBD]/10 transition-colors duration-75",
-                        isActive && "bg-[#7B6CBD]/30",
-                        selectedStep === stepIndex && "ring-1 ring-[#ABC4C3]/30"
-                      )}
-                      onMouseDown={() => {
-                        setSelectedStep(stepIndex);
-                        onNoteChange(
-                          stepIndex,
-                          noteIndex,
-                          isActive ? null : note
-                        );
-                      }}
-                    />
-                  );
-                })}
-              </React.Fragment>
-            ))}
+            <div className="absolute inset-0">
+              {NOTES.map((note, y) => (
+                <div key={`row-${note}`} className="flex">
+                  {Array.from({ length: stepCount }).map((_, x) => {
+                    const hasNoteActive = hasNote(x, note);
+                    const isBlackKey = note.includes("#");
+
+                    return (
+                      <div
+                        key={`cell-${x}-${y}`}
+                        className={cn(
+                          "flex items-center justify-center cursor-pointer border-r",
+                          hasNoteActive && "bg-[#4C4F69]/80 hover:bg-[#4C4F69]",
+                          !hasNoteActive && "hover:bg-[#4C4F69]/20",
+                          isBlackKey ? "bg-[#4C4F69]/5" : ""
+                        )}
+                        style={{
+                          width: CELL_WIDTH,
+                          height: CELL_HEIGHT,
+                          borderColor: getColor("Brd"),
+                        }}
+                        onMouseDown={() => toggleNote(x, note)}
+                        onMouseEnter={() => {
+                          if (isDragging) {
+                            toggleNote(x, note);
+                          }
+                        }}
+                      >
+                        {hasNoteActive && (
+                          <div className="w-2 h-2 bg-white rounded-full" />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -142,4 +347,3 @@ export const PianoRoll: React.FC<PianoRollProps> = ({
 };
 
 export default PianoRoll;
-
