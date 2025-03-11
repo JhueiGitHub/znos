@@ -3,6 +3,11 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { Canvas, Node, StarfieldOptions } from "./types";
 import { v4 as uuidv4 } from "uuid";
+import { isEqual } from "lodash";
+
+// Define a flag to track whether we're in the middle of updating
+// This helps prevent infinite loops by breaking cycles
+let isUpdatingViewport = false;
 
 interface OrionState {
   // Canvas management
@@ -11,8 +16,10 @@ interface OrionState {
   selectedNodeIds: string[];
 
   // Viewport state
-  zoom: number;
-  pan: { x: number; y: number };
+  viewport: {
+    zoom: number;
+    pan: { x: number; y: number };
+  };
 
   // Star background options
   starfieldOptions: StarfieldOptions;
@@ -33,7 +40,11 @@ interface OrionState {
   deleteNode: (id: string) => void;
   selectNode: (id: string, isMultiSelect?: boolean) => void;
   clearNodeSelection: () => void;
-  updateViewport: (zoom: number, pan: { x: number; y: number }) => void;
+  setViewport: (newViewport: {
+    zoom: number;
+    pan: { x: number; y: number };
+  }) => void;
+  syncCanvasViewport: (canvasId: string) => void;
   updateStarfieldOptions: (options: Partial<StarfieldOptions>) => void;
   toggleSidebar: () => void;
   toggleToolbar: () => void;
@@ -46,8 +57,10 @@ export const useOrionStore = create<OrionState>()(
       activeCanvasId: null,
       canvases: {},
       selectedNodeIds: [],
-      zoom: 1,
-      pan: { x: 0, y: 0 },
+      viewport: {
+        zoom: 1,
+        pan: { x: 0, y: 0 },
+      },
       starfieldOptions: {
         density: 50,
         size: [0.5, 3],
@@ -81,7 +94,21 @@ export const useOrionStore = create<OrionState>()(
       },
 
       setActiveCanvas: (id) => {
+        // First set the active canvas
         set({ activeCanvasId: id });
+
+        // Then synchronize the viewport from the canvas to the global state
+        // But delay it to prevent it from being part of the same render cycle
+        setTimeout(() => {
+          const store = get();
+          if (store.activeCanvasId && store.canvases[store.activeCanvasId]) {
+            const canvasViewport =
+              store.canvases[store.activeCanvasId].viewportTransform;
+            if (!isEqual(store.viewport, canvasViewport)) {
+              store.setViewport(canvasViewport);
+            }
+          }
+        }, 0);
       },
 
       createNode: (type, content, position) => {
@@ -159,23 +186,56 @@ export const useOrionStore = create<OrionState>()(
         set({ selectedNodeIds: [] });
       },
 
-      updateViewport: (zoom, pan) => {
-        const { activeCanvasId } = get();
+      // COMPLETELY REDESIGNED VIEWPORT MANAGEMENT
+      // This is the key to fixing our infinite loop
+      setViewport: (newViewport) => {
+        // Prevent recursive calls
+        if (isUpdatingViewport) return;
 
-        // Update global viewport state
-        set({ zoom, pan });
+        try {
+          isUpdatingViewport = true;
 
-        // Update active canvas viewport state
-        if (activeCanvasId) {
-          set((state) => ({
-            canvases: {
-              ...state.canvases,
-              [activeCanvasId]: {
-                ...state.canvases[activeCanvasId],
-                viewportTransform: { zoom, pan },
-              },
-            },
-          }));
+          // Check if viewport actually changed to prevent unnecessary updates
+          const currentViewport = get().viewport;
+          if (
+            currentViewport.zoom === newViewport.zoom &&
+            currentViewport.pan.x === newViewport.pan.x &&
+            currentViewport.pan.y === newViewport.pan.y
+          ) {
+            return; // Skip if nothing changed
+          }
+
+          // Simply update the global viewport state
+          // We don't update the canvas viewportTransform here anymore
+          set({ viewport: newViewport });
+
+          // Synchronize to canvas in a separate, delayed operation
+          setTimeout(() => {
+            const { activeCanvasId, canvases } = get();
+            if (activeCanvasId && canvases[activeCanvasId]) {
+              set((state) => ({
+                canvases: {
+                  ...state.canvases,
+                  [activeCanvasId]: {
+                    ...state.canvases[activeCanvasId],
+                    viewportTransform: newViewport,
+                  },
+                },
+              }));
+            }
+          }, 0);
+        } finally {
+          isUpdatingViewport = false;
+        }
+      },
+
+      // New function to sync viewport from active canvas to global state
+      syncCanvasViewport: (canvasId) => {
+        const { canvases } = get();
+        const canvas = canvases[canvasId];
+
+        if (canvas) {
+          set({ viewport: canvas.viewportTransform });
         }
       },
 

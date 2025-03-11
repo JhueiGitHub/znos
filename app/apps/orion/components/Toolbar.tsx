@@ -28,9 +28,8 @@ export function Toolbar() {
     toggleSidebar,
     isToolbarOpen,
     toggleToolbar,
-    zoom,
-    updateViewport,
-    pan,
+    viewport,
+    setViewport,
     starfieldOptions,
     updateStarfieldOptions,
     activeCanvasId,
@@ -40,13 +39,19 @@ export function Toolbar() {
   const [showStarSettings, setShowStarSettings] = useState(false);
 
   const handleZoomIn = () => {
-    const newZoom = Math.min(10, zoom * 1.2);
-    updateViewport(newZoom, pan);
+    const newZoom = Math.min(10, viewport.zoom * 1.2);
+    setViewport({
+      zoom: newZoom,
+      pan: viewport.pan,
+    });
   };
 
   const handleZoomOut = () => {
-    const newZoom = Math.max(0.1, zoom * 0.8);
-    updateViewport(newZoom, pan);
+    const newZoom = Math.max(0.1, viewport.zoom * 0.8);
+    setViewport({
+      zoom: newZoom,
+      pan: viewport.pan,
+    });
   };
 
   const handleDensityChange = (value: number[]) => {
@@ -118,7 +123,7 @@ export function Toolbar() {
             <ZoomOut size={18} />
           </button>
 
-          <span className="text-sm">{Math.round(zoom * 100)}%</span>
+          <span className="text-sm">{Math.round(viewport.zoom * 100)}%</span>
 
           <button
             className="p-1.5 rounded hover:bg-black/20 transition-colors"

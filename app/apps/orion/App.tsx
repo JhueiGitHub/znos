@@ -8,15 +8,8 @@ import { Toolbar } from "./components/Toolbar";
 import { useOrionStore } from "./lib/store";
 
 export default function OrionPage() {
-  const {
-    canvases,
-    createCanvas,
-    activeCanvasId,
-    setActiveCanvas,
-    zoom,
-    pan,
-    updateViewport,
-  } = useOrionStore();
+  const { canvases, createCanvas, activeCanvasId, setActiveCanvas } =
+    useOrionStore();
 
   // Initialize with a canvas if none exists
   useEffect(() => {
@@ -30,9 +23,8 @@ export default function OrionPage() {
       setActiveCanvas(Object.keys(canvases)[0]);
     }
 
-    // Reset zoom and pan when the component mounts
-    updateViewport(1, { x: 0, y: 0 });
-  }, [canvases, createCanvas, setActiveCanvas, activeCanvasId, updateViewport]);
+    // We don't set viewport here anymore - this breaks the cycle
+  }, [canvases, createCanvas, setActiveCanvas, activeCanvasId]);
 
   return (
     <div className="w-full h-full bg-black overflow-hidden relative">

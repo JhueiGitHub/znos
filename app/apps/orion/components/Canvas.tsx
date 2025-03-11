@@ -17,10 +17,9 @@ export function OrionCanvas() {
   const {
     activeCanvasId,
     canvases,
-    zoom,
-    pan,
+    viewport,
     starfieldOptions,
-    updateViewport,
+    setViewport,
     createNode,
     selectNode,
     clearNodeSelection,
@@ -115,12 +114,15 @@ export function OrionCanvas() {
         lastPosY = evt.clientY;
 
         // Get current viewport transform from the store
-        const { x, y } = pan;
+        const { pan } = viewport;
 
         // Update pan in the store
-        updateViewport(zoom, {
-          x: x + deltaX,
-          y: y + deltaY,
+        setViewport({
+          zoom: viewport.zoom,
+          pan: {
+            x: pan.x + deltaX,
+            y: pan.y + deltaY,
+          },
         });
 
         // Update fabric canvas viewport
@@ -155,29 +157,32 @@ export function OrionCanvas() {
       evt.preventDefault();
 
       // Calculate new zoom
-      let newZoom = zoom;
+      let newZoom = viewport.zoom;
       if (delta > 0) {
-        newZoom = Math.max(0.1, zoom * 0.95);
+        newZoom = Math.max(0.1, viewport.zoom * 0.95);
       } else {
-        newZoom = Math.min(10, zoom * 1.05);
+        newZoom = Math.min(10, viewport.zoom * 1.05);
       }
 
       // Calculate zoom point in canvas coordinates
       const point = new fabric.Point(evt.offsetX, evt.offsetY);
 
       // Get current pan from the store
-      const { x, y } = pan;
+      const { pan } = viewport;
 
       // Calculate new pan
-      const zoomRatio = newZoom / zoom;
-      const panPoint = new fabric.Point(x, y);
+      const zoomRatio = newZoom / viewport.zoom;
+      const panPoint = new fabric.Point(pan.x, pan.y);
       const pointOnCanvas = point.subtract(panPoint);
       const newPanPoint = point.subtract(pointOnCanvas.multiply(zoomRatio));
 
       // Update zoom and pan in the store
-      updateViewport(newZoom, {
-        x: newPanPoint.x,
-        y: newPanPoint.y,
+      setViewport({
+        zoom: newZoom,
+        pan: {
+          x: newPanPoint.x,
+          y: newPanPoint.y,
+        },
       });
 
       // Apply zoom to canvas
@@ -274,15 +279,15 @@ export function OrionCanvas() {
     };
   }, [
     isInitialized,
-    zoom,
-    pan,
-    updateViewport,
+    viewport,
+    setViewport,
     createNode,
     selectNode,
     clearNodeSelection,
     updateNode,
   ]);
 
+  // Load and render canvas nodes
   // Load and render canvas nodes
   useEffect(() => {
     if (
@@ -361,10 +366,8 @@ export function OrionCanvas() {
     // Apply viewport transform
     const storedViewport = canvases[activeCanvasId].viewportTransform;
     if (storedViewport) {
-      // Set zoom and pan in the store
-      updateViewport(storedViewport.zoom, storedViewport.pan);
-
-      // Apply zoom and pan to canvas
+      // Apply zoom and pan to canvas - BUT DON'T update the store
+      // This breaks the infinite loop
       canvas.setZoom(storedViewport.zoom);
       canvas.absolutePan(
         new fabric.Point(-storedViewport.pan.x, -storedViewport.pan.y)
@@ -372,7 +375,7 @@ export function OrionCanvas() {
     }
 
     canvas.renderAll();
-  }, [isInitialized, activeCanvasId, canvases, updateViewport]);
+  }, [isInitialized, activeCanvasId, canvases]);
 
   return (
     <div className="w-full h-full overflow-hidden relative">
@@ -384,7 +387,7 @@ export function OrionCanvas() {
         <StarField
           options={{
             ...starfieldOptions,
-            viewportTransform: { zoom, pan },
+            viewportTransform: viewport,
           }}
         />
       </div>
