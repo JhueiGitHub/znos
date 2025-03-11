@@ -29,7 +29,7 @@ export function OrionCanvas() {
 
   const [isInitialized, setIsInitialized] = useState(false);
 
-  // Initialize fabric canvas
+  // Initialize fabric canvas - with minimal dependencies
   useEffect(() => {
     if (!canvasRef.current || fabricCanvasRef.current) return;
 
@@ -60,12 +60,29 @@ export function OrionCanvas() {
 
     window.addEventListener("resize", handleResize);
 
+    // Only set initialized once the canvas is ready
+    setIsInitialized(true);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      canvas.dispose();
+      fabricCanvasRef.current = null;
+      setIsInitialized(false);
+    };
+  }, []); // Empty dependency array - this only runs once on mount
+
+  // Setup event handlers AFTER initialization
+  useEffect(() => {
+    if (!isInitialized || !fabricCanvasRef.current) return;
+
+    const canvas = fabricCanvasRef.current;
+
     // Pan and zoom handlers
     let isDragging = false;
     let lastPosX = 0;
     let lastPosY = 0;
 
-    canvas.on("mouse:down", (opt) => {
+    const handleMouseDown = (opt: fabric.IEvent) => {
       const evt = opt.e as MouseEvent;
 
       // Only start dragging on middle mouse or when alt is pressed
@@ -86,9 +103,9 @@ export function OrionCanvas() {
         canvas.discardActiveObject();
         canvas.renderAll();
       }
-    });
+    };
 
-    canvas.on("mouse:move", (opt) => {
+    const handleMouseMove = (opt: fabric.IEvent) => {
       const evt = opt.e as MouseEvent;
 
       if (isDragging) {
@@ -115,9 +132,9 @@ export function OrionCanvas() {
         evt.preventDefault();
         evt.stopPropagation();
       }
-    });
+    };
 
-    canvas.on("mouse:up", (opt) => {
+    const handleMouseUp = (opt: fabric.IEvent) => {
       const evt = opt.e as MouseEvent;
 
       if (isDragging) {
@@ -128,9 +145,9 @@ export function OrionCanvas() {
         evt.preventDefault();
         evt.stopPropagation();
       }
-    });
+    };
 
-    canvas.on("mouse:wheel", (opt) => {
+    const handleMouseWheel = (opt: fabric.IEvent) => {
       const evt = opt.e as WheelEvent;
       const delta = evt.deltaY;
 
@@ -167,59 +184,56 @@ export function OrionCanvas() {
       canvas.zoomToPoint(point, newZoom);
 
       canvas.requestRenderAll();
-    });
+    };
 
-    // Object selection handler
-    canvas.on("selection:created", (opt) => {
-      if (opt.selected && opt.selected.length > 0) {
-        const nodeId = opt.selected[0].data?.id;
-        if (nodeId) {
-          // Use the event's shiftKey property directly
-          const isMultiSelect = opt.e ? (opt.e as MouseEvent).shiftKey : false;
-          selectNode(nodeId, isMultiSelect);
-        }
+    const handleSelectionCreated = (opt: fabric.IEvent) => {
+      if (!opt.selected || !opt.selected.length) return;
+
+      const nodeId = opt.selected[0].data?.id;
+      if (nodeId) {
+        // Use the event's shiftKey property directly
+        const isMultiSelect = opt.e ? (opt.e as MouseEvent).shiftKey : false;
+        selectNode(nodeId, isMultiSelect);
       }
-    });
+    };
 
-    canvas.on("selection:updated", (opt) => {
-      if (opt.selected && opt.selected.length > 0) {
-        const nodeId = opt.selected[0].data?.id;
-        if (nodeId) {
-          // Use the event's shiftKey property directly
-          const isMultiSelect = opt.e ? (opt.e as MouseEvent).shiftKey : false;
-          selectNode(nodeId, isMultiSelect);
-        }
+    const handleSelectionUpdated = (opt: fabric.IEvent) => {
+      if (!opt.selected || !opt.selected.length) return;
+
+      const nodeId = opt.selected[0].data?.id;
+      if (nodeId) {
+        // Use the event's shiftKey property directly
+        const isMultiSelect = opt.e ? (opt.e as MouseEvent).shiftKey : false;
+        selectNode(nodeId, isMultiSelect);
       }
-    });
+    };
 
-    // Object modification handlers
-    canvas.on("object:moving", (opt) => {
-      if (opt.target && opt.target.data?.id) {
-        const nodeId = opt.target.data.id;
-        const { left, top } = opt.target;
+    const handleObjectMoving = (opt: fabric.IEvent) => {
+      if (!opt.target || !opt.target.data?.id) return;
 
-        updateNode(nodeId, {
-          position: { x: left || 0, y: top || 0 },
-        });
-      }
-    });
+      const nodeId = opt.target.data.id;
+      const { left, top } = opt.target;
 
-    canvas.on("object:scaling", (opt) => {
-      if (opt.target && opt.target.data?.id) {
-        const nodeId = opt.target.data.id;
-        const { width, height, scaleX, scaleY } = opt.target;
+      updateNode(nodeId, {
+        position: { x: left || 0, y: top || 0 },
+      });
+    };
 
-        updateNode(nodeId, {
-          size: {
-            width: (width || 0) * (scaleX || 1),
-            height: (height || 0) * (scaleY || 1),
-          },
-        });
-      }
-    });
+    const handleObjectScaling = (opt: fabric.IEvent) => {
+      if (!opt.target || !opt.target.data?.id) return;
 
-    // Double click to create a new note
-    canvas.on("mouse:dblclick", (opt) => {
+      const nodeId = opt.target.data.id;
+      const { width, height, scaleX, scaleY } = opt.target;
+
+      updateNode(nodeId, {
+        size: {
+          width: (width || 0) * (scaleX || 1),
+          height: (height || 0) * (scaleY || 1),
+        },
+      });
+    };
+
+    const handleDoubleClick = (opt: fabric.IEvent) => {
       const evt = opt.e as MouseEvent;
 
       // Don't create a new note if clicking an existing object
@@ -233,16 +247,33 @@ export function OrionCanvas() {
         x: canvasPointer.x,
         y: canvasPointer.y,
       });
-    });
+    };
 
-    setIsInitialized(true);
+    // Attach all event handlers
+    canvas.on("mouse:down", handleMouseDown);
+    canvas.on("mouse:move", handleMouseMove);
+    canvas.on("mouse:up", handleMouseUp);
+    canvas.on("mouse:wheel", handleMouseWheel);
+    canvas.on("selection:created", handleSelectionCreated);
+    canvas.on("selection:updated", handleSelectionUpdated);
+    canvas.on("object:moving", handleObjectMoving);
+    canvas.on("object:scaling", handleObjectScaling);
+    canvas.on("mouse:dblclick", handleDoubleClick);
 
+    // Return cleanup function to remove event handlers
     return () => {
-      window.removeEventListener("resize", handleResize);
-      canvas.dispose();
-      fabricCanvasRef.current = null;
+      canvas.off("mouse:down", handleMouseDown);
+      canvas.off("mouse:move", handleMouseMove);
+      canvas.off("mouse:up", handleMouseUp);
+      canvas.off("mouse:wheel", handleMouseWheel);
+      canvas.off("selection:created", handleSelectionCreated);
+      canvas.off("selection:updated", handleSelectionUpdated);
+      canvas.off("object:moving", handleObjectMoving);
+      canvas.off("object:scaling", handleObjectScaling);
+      canvas.off("mouse:dblclick", handleDoubleClick);
     };
   }, [
+    isInitialized,
     zoom,
     pan,
     updateViewport,
