@@ -38,8 +38,8 @@ export const appDefinitions: AppDefinition[] = [
     animationType: "magnify",
   },
   {
-    id: "mila",
-    name: "Caso",
+    id: "orion",
+    name: "Orion",
     icon: "/media/figma.png",
     dockPosition: 4,
     animationType: "magnify",
