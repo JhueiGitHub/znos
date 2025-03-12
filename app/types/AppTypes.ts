@@ -52,8 +52,8 @@ export const appDefinitions: AppDefinition[] = [
     animationType: "magnify",
   },
   {
-    id: "msm",
-    name: "Etheria",
+    id: "pacman",
+    name: "Pacman",
     icon: "/media/desktop.png",
     dockPosition: 6,
     animationType: "magnify",
