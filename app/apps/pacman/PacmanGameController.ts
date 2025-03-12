@@ -138,6 +138,11 @@ export class PacmanGameController {
     // Play start sound
     this.levelStartSound.play();
 
+    // Reset any game state if needed
+    this.won = false;
+    this.lost = false;
+    this.numDotsEaten = 0;
+
     // Start animation loop
     this.previousFrameTime = performance.now();
     this.animationLoop();

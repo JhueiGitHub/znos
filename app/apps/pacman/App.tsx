@@ -1,4 +1,3 @@
-// app/apps/pacman/App.tsx
 "use client";
 
 import { useEffect, useRef, useState } from "react";
@@ -34,8 +33,10 @@ const App: React.FC = () => {
   }, []);
 
   const handleStartGame = () => {
-    if (gameRef.current && !gameStarted) {
+    if (gameRef.current) {
       gameRef.current.start();
+
+      // Ensure state updates immediately
       setGameStarted(true);
 
       // Store game state in the app store
@@ -44,6 +45,11 @@ const App: React.FC = () => {
         score: 0,
         lives: 3,
       });
+
+      // Force focus on game container for key inputs
+      if (containerRef.current) {
+        containerRef.current.focus();
+      }
     }
   };
 
@@ -55,7 +61,11 @@ const App: React.FC = () => {
 
   return (
     <div className="h-full w-full flex flex-col">
-      <div className="relative flex-grow" ref={containerRef}>
+      <div
+        className="relative flex-grow"
+        ref={containerRef}
+        tabIndex={0} // Make div focusable for keyboard input
+      >
         {isLoading && (
           <div
             className="absolute inset-0 flex items-center justify-center"
