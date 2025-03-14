@@ -5,7 +5,6 @@ interface SoundOptions {
   volume?: number;
   loop?: boolean;
   autoplay?: boolean;
-  preload?: boolean;
 }
 
 // Sound IDs
@@ -21,10 +20,10 @@ const SOUND_PATHS: Record<SoundId, string> = {
 
 // Default options for each sound
 const SOUND_OPTIONS: Record<SoundId, SoundOptions> = {
-  chomp: { volume: 0.5, loop: true, preload: true },
-  death: { volume: 0.7, preload: true },
-  start: { volume: 0.7, preload: true },
-  ghostEat: { volume: 0.7, preload: true },
+  chomp: { volume: 0.5, loop: true },
+  death: { volume: 0.7 },
+  start: { volume: 0.7 },
+  ghostEat: { volume: 0.7 },
 };
 
 export const useSounds = () => {
@@ -35,9 +34,8 @@ export const useSounds = () => {
     ghostEat: null,
   });
 
-  // Preload and setup sounds
   useEffect(() => {
-    // Create audio elements
+    // Preload sounds
     Object.entries(SOUND_PATHS).forEach(([id, path]) => {
       const soundId = id as SoundId;
       const options = SOUND_OPTIONS[soundId];
@@ -45,10 +43,6 @@ export const useSounds = () => {
       const audio = new Audio(path);
       audio.volume = options.volume || 0.7;
       audio.loop = options.loop || false;
-      
-      if (options.preload) {
-        audio.preload = "auto";
-      }
 
       soundsRef.current[soundId] = audio;
     });
@@ -64,7 +58,6 @@ export const useSounds = () => {
     };
   }, []);
 
-  // Play sound with error handling
   const play = (id: SoundId) => {
     const audio = soundsRef.current[id];
     if (audio) {
@@ -77,7 +70,6 @@ export const useSounds = () => {
       audio.currentTime = 0;
       audio.play().catch((error) => {
         console.warn(`Error playing sound '${id}':`, error);
-        // Game can continue without sound effects
       });
     }
   };
@@ -105,16 +97,10 @@ export const useSounds = () => {
     });
   };
 
-  // Check if browser allows audio playback
-  const checkAudioEnabled = (): boolean => {
-    return !!(document.createElement('audio').canPlayType);
-  };
-
   return {
     play,
     stop,
     pause,
     pauseAll,
-    checkAudioEnabled,
   };
 };

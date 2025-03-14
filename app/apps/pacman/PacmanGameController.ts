@@ -133,48 +133,39 @@ export class PacmanGameController {
     return Promise.resolve();
   }
 
-  // 3. Update these calls in the start method
-start(): void {
-  // Use the error-handling wrapper for audio
-  this.handleAudioPlay(this.levelStartSound);
-  
-  // Reset game state
-  this.won = false;
-  this.lost = false;
-  this.numDotsEaten = 0;
+  // Start the game
+  start(): void {
+    // Play start sound
+    this.levelStartSound.play();
 
-  // Start animation loop
-  this.previousFrameTime = performance.now();
-  this.animationLoop();
-}
+    // Reset any game state if needed
+    this.won = false;
+    this.lost = false;
+    this.numDotsEaten = 0;
 
+    // Start animation loop
+    this.previousFrameTime = performance.now();
+    this.animationLoop();
+  }
+
+  // Clean up resources
   dispose(): void {
     if (this.animationFrameId !== null) {
       cancelAnimationFrame(this.animationFrameId);
-      this.animationFrameId = null;
     }
-  
-    // Remove all event listeners
+
+    // Remove event listeners
     this.keyState.cleanup();
     window.removeEventListener("resize", this.handleResize);
-    
-    // Also remove these specific event listeners that are set in setupKeyboardEvents
-    document.body.removeEventListener("keydown", this.handleKeyDown);
-    document.body.removeEventListener("keyup", this.handleKeyUp);
-    document.body.removeEventListener("blur", this.handleBlur);
-  
+
     // Dispose Three.js objects
     this.renderer.dispose();
-  
-    // Stop and release audio resources
+
+    // Stop sounds
     this.chompSound.pause();
-    this.chompSound.src = "";
     this.levelStartSound.pause();
-    this.levelStartSound.src = "";
     this.deathSound.pause();
-    this.deathSound.src = "";
     this.killSound.pause();
-    this.killSound.src = "";
   }
 
   // Toggle help dialog
@@ -211,15 +202,6 @@ start(): void {
     this.camera.up.copy(UP);
   }
 
-  // 5. Preload assets more efficiently
-private preloadMazeAssets(): void {
-  // Create all maze elements but don't render until needed
-  this.createMap(LEVEL);
-  this.hudCamera = this.createHudCamera(this.map);
-  this.pacman = this.createPacman(this.map.pacmanSpawn);
-  this.createLivesDisplay();
-}
-
   private setupKeyboardEvents(): void {
     this.handleKeyDown = this.handleKeyDown.bind(this);
     this.handleKeyUp = this.handleKeyUp.bind(this);
@@ -252,14 +234,6 @@ private preloadMazeAssets(): void {
         this.keyState[key] = false;
       }
     }
-  }
-
-  private handleAudioPlay(audio: HTMLAudioElement): void {
-    // Use promise to handle audio play errors quietly
-    audio.play().catch(err => {
-      console.warn('Audio play prevented by browser policy:', err);
-      // Continue game without audio in case of errors
-    });
   }
 
   private handleResize(): void {
@@ -504,14 +478,18 @@ private preloadMazeAssets(): void {
   // Game update methods
   private updatePacman(delta: number, now: number): void {
     // Play chomp sound if player is moving
-    // 4. And in updatePacman
-if (!this.won && !this.lost && 
-  (this.keyState["W"] || this.keyState["S"] || 
-   this.keyState["KeyW"] || this.keyState["KeyS"])) {
-this.handleAudioPlay(this.chompSound);
-} else {
-this.chompSound.pause();
-}
+    if (
+      !this.won &&
+      !this.lost &&
+      (this.keyState["W"] ||
+        this.keyState["S"] ||
+        this.keyState["KeyW"] ||
+        this.keyState["KeyS"])
+    ) {
+      this.chompSound.play();
+    } else {
+      this.chompSound.pause();
+    }
 
     // Move if we haven't died or won
     if (!this.won && !this.lost) {

@@ -1,69 +1,58 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import * as THREE from "three";
 import { useStyles } from "@/app/hooks/useStyles";
 import { PacmanGameController } from "./PacmanGameController";
 import { useAppStore } from "@/app/store/appStore";
 
 const App: React.FC = () => {
-  // References and state
   const containerRef = useRef<HTMLDivElement>(null);
   const gameRef = useRef<PacmanGameController | null>(null);
   const { getColor } = useStyles();
   const [isLoading, setIsLoading] = useState(true);
+  const [gameStarted, setGameStarted] = useState(false);
   const updateAppState = useAppStore((state) => state.updateAppState);
 
-  // Game initialization and lifecycle management
   useEffect(() => {
     if (!containerRef.current) return;
 
-    // Create game controller instance
+    // Create and initialize the game
     const game = new PacmanGameController(containerRef.current);
     gameRef.current = game;
 
-    // Initialize and auto-start game
+    // Initialize game
     game.init().then(() => {
-      // Update app state
+      setIsLoading(false);
+    });
+
+    // Clean up on component unmount
+    return () => {
+      game.dispose();
+    };
+  }, []);
+
+  const handleStartGame = () => {
+    if (gameRef.current) {
+      gameRef.current.start();
+
+      // Ensure state updates immediately
+      setGameStarted(true);
+
+      // Store game state in the app store
       updateAppState("pacman", {
         isPlaying: true,
         score: 0,
         lives: 3,
-        level: 1,
       });
-      
-      // Hide loading screen
-      setIsLoading(false);
-      
-      // Start the game immediately - no start screen needed
-      game.start();
-      
-      // Ensure container has focus for keyboard input
+
+      // Force focus on game container for key inputs
       if (containerRef.current) {
         containerRef.current.focus();
       }
-    });
+    }
+  };
 
-    // Maintain focus for keyboard controls
-    const handleClick = () => {
-      if (containerRef.current && document.activeElement !== containerRef.current) {
-        containerRef.current.focus();
-      }
-    };
-    
-    window.addEventListener("click", handleClick);
-
-    // Cleanup on unmount
-    return () => {
-      window.removeEventListener("click", handleClick);
-      
-      if (gameRef.current) {
-        gameRef.current.dispose();
-        gameRef.current = null;
-      }
-    };
-  }, [updateAppState]);
-
-  // Help dialog toggle
   const handleShowHelp = () => {
     if (gameRef.current) {
       gameRef.current.toggleHelp();
@@ -73,11 +62,10 @@ const App: React.FC = () => {
   return (
     <div className="h-full w-full flex flex-col">
       <div
-        className="relative flex-grow outline-none"
+        className="relative flex-grow"
         ref={containerRef}
         tabIndex={0} // Make div focusable for keyboard input
       >
-        {/* Loading screen */}
         {isLoading && (
           <div
             className="absolute inset-0 flex items-center justify-center"
@@ -95,10 +83,60 @@ const App: React.FC = () => {
           </div>
         )}
 
-        {/* Lives display */}
+        {!isLoading && !gameStarted && (
+          <div
+            className="absolute inset-0 flex items-center justify-center z-10"
+            style={{ backgroundColor: "rgba(0,0,0,0.7)" }}
+          >
+            <div
+              className="text-center p-8 rounded-lg"
+              style={{
+                backgroundColor: getColor("Glass"),
+                border: `1px solid ${getColor("Brd")}`,
+              }}
+            >
+              <h2
+                className="text-2xl mb-6"
+                style={{ color: getColor("Text Primary (Hd)") }}
+              >
+                Pacman 3D
+              </h2>
+              <div className="mb-6">
+                <p
+                  className="mb-2"
+                  style={{ color: getColor("Text Secondary (Bd)") }}
+                >
+                  Use WASD to move Pacman:
+                </p>
+                <p
+                  className="mb-1"
+                  style={{ color: getColor("Text Secondary (Bd)") }}
+                >
+                  W/S - Move forward/backward
+                </p>
+                <p
+                  className="mb-1"
+                  style={{ color: getColor("Text Secondary (Bd)") }}
+                >
+                  A/D - Turn left/right
+                </p>
+              </div>
+              <button
+                onClick={handleStartGame}
+                className="px-6 py-2 rounded-md mr-4 transition-colors"
+                style={{
+                  backgroundColor: getColor("Lilac Accent"),
+                  color: getColor("Text Primary (Hd)"),
+                }}
+              >
+                Start Game
+              </button>
+            </div>
+          </div>
+        )}
+
         <div id="lives" className="absolute top-4 right-4 z-20"></div>
 
-        {/* Help button */}
         <button
           id="help-button"
           className="absolute top-4 left-4 z-20 px-3 py-1 rounded opacity-50 hover:opacity-100 transition-opacity"
@@ -111,7 +149,6 @@ const App: React.FC = () => {
           HELP
         </button>
 
-        {/* Help dialog */}
         <div
           id="help-dialog"
           className="hidden absolute left-1/4 top-1/4 w-1/2 p-8 z-30 text-center rounded-lg"
@@ -129,7 +166,11 @@ const App: React.FC = () => {
             pacman and the ghosts will get a little bit faster!
           </p>
           <button
-            onClick={handleShowHelp}
+            onClick={() => {
+              if (gameRef.current) {
+                gameRef.current.toggleHelp();
+              }
+            }}
             className="px-3 py-1 rounded"
             style={{
               backgroundColor: getColor("Lilac Accent"),
