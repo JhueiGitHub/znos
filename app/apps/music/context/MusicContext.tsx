@@ -623,6 +623,78 @@ const ALL_PLAYLISTS: Playlist[] = [
         thumbnail: "/media/songs/song4.png",
         videoUrl: "https://www.youtube.com/watch?v=u6BYsu_s_q0",
       },
+      {
+        id: "xpfm-5",
+        title: "xtra",
+        artist: "XTRAFM",
+        path: "/audio/xtra/often.mp4",
+        thumbnail: "/media/songs/song4.png",
+        videoUrl:
+          "https://www.youtube.com/watch?v=cjcS2Xwlpvo&list=PLAmw49p0-BAC8MG4yxLd5zOjglwH5I3P5&index=2&pp=gAQBiAQB8AUB",
+      },
+      {
+        id: "xpfm-6",
+        title: "xtra",
+        artist: "XTRAFM",
+        path: "/audio/xtra/likeamoth.mp4",
+        thumbnail: "/media/songs/song4.png",
+        videoUrl:
+          "https://www.youtube.com/watch?v=0XWSezFXIzo&list=PLAmw49p0-BAC8MG4yxLd5zOjglwH5I3P5&index=7&pp=gAQBiAQB8AUB",
+      },
+      {
+        id: "xpfm-7",
+        title: "xtra",
+        artist: "XTRAFM",
+        path: "/audio/xtra/nothingislost.mp4",
+        thumbnail: "/media/songs/song4.png",
+        videoUrl:
+          "https://www.youtube.com/watch?v=NSZxiH7OtTA&list=PLAmw49p0-BAC8MG4yxLd5zOjglwH5I3P5&index=11&pp=gAQBiAQB8AUB",
+      },
+      {
+        id: "xpfm-8",
+        title: "xtra",
+        artist: "XTRAFM",
+        path: "/audio/xtra/starboy.mp4",
+        thumbnail: "/media/songs/song4.png",
+        videoUrl:
+          "https://www.youtube.com/watch?v=5iNcLIdFVbI&list=PLAmw49p0-BAC8MG4yxLd5zOjglwH5I3P5&index=3&pp=gAQBiAQB8AUB",
+      },
+      {
+        id: "xpfm-9",
+        title: "xtra",
+        artist: "XTRAFM",
+        path: "/audio/xtra/saopaolo.mp4",
+        thumbnail: "/media/songs/song4.png",
+        videoUrl:
+          "https://www.youtube.com/watch?v=HNvwg_IGbbE&list=PLAmw49p0-BAC8MG4yxLd5zOjglwH5I3P5&index=1&pp=gAQBiAQB8AUB",
+      },
+      {
+        id: "xpfm-10",
+        title: "xtra",
+        artist: "XTRAFM",
+        path: "/audio/xtra/abyss.mp4",
+        thumbnail: "/media/songs/song4.png",
+        videoUrl:
+          "https://www.youtube.com/watch?v=1YrGhjy_xY0&pp=ygUKYWJ5c3MgYWZybw%3D%3D",
+      },
+      {
+        id: "xpfm-11",
+        title: "xtra",
+        artist: "XTRAFM",
+        path: "/audio/xtra/takemybreath.mp4",
+        thumbnail: "/media/songs/song4.png",
+        videoUrl:
+          "https://www.youtube.com/watch?v=Y7RZfs_dhk4&list=PLAmw49p0-BAC8MG4yxLd5zOjglwH5I3P5&index=9&pp=gAQBiAQB8AUB",
+      },
+      {
+        id: "xpfm-12",
+        title: "xtra",
+        artist: "XTRAFM",
+        path: "/audio/xtra/baptized.mp4",
+        thumbnail: "/media/songs/song4.png",
+        videoUrl:
+          "https://www.youtube.com/watch?v=1DBgZjW9ZNg&list=PLAmw49p0-BAC8MG4yxLd5zOjglwH5I3P5&index=8&pp=gAQBiAQB8AUB",
+      },
     ],
   },
   {
