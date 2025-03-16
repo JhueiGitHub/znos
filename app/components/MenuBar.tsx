@@ -693,6 +693,10 @@ export const MenuBar = () => {
 
             <div className="flex">
               <div className="flex items-center gap-2">
+                <IconButton
+                  src="/icns/system/_duo.png"
+                  onClick={() => {}} // Empty handler for now
+                />
                 <SystemIcon
                   src="/icns/system/_play.png"
                   onOpenChange={setDropdownOpen}
