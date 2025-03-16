@@ -30,6 +30,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 // Add this new import
 import { useMusicContext } from "../apps/music/context/MusicContext";
+import DuolingoImageDropdown from "./DuolingoImageDropdown";
 
 import localFont from "next/font/local";
 
@@ -693,10 +694,31 @@ export const MenuBar = () => {
 
             <div className="flex">
               <div className="flex items-center gap-2">
-                <IconButton
+                // With:
+                <SystemIcon
                   src="/icns/system/_duo.png"
-                  onClick={() => {}} // Empty handler for now
-                />
+                  onOpenChange={setDropdownOpen}
+                >
+                  <DuolingoImageDropdown
+                    onLessonSelect={(lessonId) => {
+                      console.log(`Selected item: ${lessonId}`);
+                      // Handle the selection based on the area clicked
+
+                      // For example:
+                      if (lessonId.startsWith("lesson")) {
+                        // Handle lesson selection
+                        const lessonNumber = lessonId.replace("lesson", "");
+                        console.log(`Opening lesson ${lessonNumber}`);
+                      } else if (lessonId === "dailyGoals") {
+                        // Open daily goals view
+                        console.log("Opening daily goals");
+                      } else if (lessonId === "schedule") {
+                        // Open practice schedule
+                        console.log("Opening practice schedule");
+                      }
+                    }}
+                  />
+                </SystemIcon>
                 <SystemIcon
                   src="/icns/system/_play.png"
                   onOpenChange={setDropdownOpen}
