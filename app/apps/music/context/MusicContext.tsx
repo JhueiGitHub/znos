@@ -589,7 +589,7 @@ const ALL_PLAYLISTS: Playlist[] = [
     id: "xtra",
     name: "XTRA",
     songCount: 3,
-    thumbnail: "/media/system/_empty_image.png",
+    thumbnail: "/media/playlists/xtra.png",
     songs: [
       {
         id: "xpfm-1",
