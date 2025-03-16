@@ -720,7 +720,7 @@ export const MenuBar = () => {
                   />
                 </SystemIcon>
                 <div
-                  className="text-xs font-medium pl-[3px]"
+                  className="text-xs font-medium pl-[6px]"
                   style={{
                     color: "rgba(76, 79, 105, 0.81)",
                   }}
