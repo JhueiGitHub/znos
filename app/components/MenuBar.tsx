@@ -28,9 +28,10 @@ import { StreamWithFlows, FlowWithComponents } from "@/app/types/flow";
 import { FlowComponent } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-// Add this new import
+// Add imports
 import { useMusicContext } from "../apps/music/context/MusicContext";
 import DuolingoImageDropdown from "./DuolingoImageDropdown";
+import PDFReader from "./PDFReader";
 
 import localFont from "next/font/local";
 
@@ -427,6 +428,8 @@ const SystemIcon: React.FC<SystemIconProps> = ({
 };
 
 export const MenuBar = () => {
+  // Local state for PDF Reader
+  const [isPDFOpen, setIsPDFOpen] = useState(false);
   const { getColor } = useStyles();
   const menuRef = useRef<HTMLDivElement>(null);
   const [isMenuVisible, setIsMenuVisible] = useState(false);
@@ -602,6 +605,19 @@ export const MenuBar = () => {
 
   return (
     <>
+      {/* PDF Reader */}
+      <AnimatePresence>
+        {isPDFOpen && (
+          <PDFReader
+            onClose={() => setIsPDFOpen(false)}
+            initialPage={parseInt(
+              localStorage.getItem("pdfReaderCurrentPage") || "1"
+            )}
+            pdfUrl="/apps/48/48.pdf"
+          />
+        )}
+      </AnimatePresence>
+
       <div
         className="fixed top-0 left-0 right-0 z-[9999]"
         style={{
@@ -694,7 +710,11 @@ export const MenuBar = () => {
 
             <div className="flex">
               <div className="flex items-center gap-2">
-                // With:
+                <IconButton
+                  src="/apps/48/48.png"
+                  onClick={() => setIsPDFOpen(true)}
+                />
+
                 <SystemIcon
                   src="/icns/system/_duo.png"
                   onOpenChange={setDropdownOpen}
