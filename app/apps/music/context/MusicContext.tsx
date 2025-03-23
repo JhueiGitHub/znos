@@ -69,6 +69,14 @@ const ALL_PLAYLISTS: Playlist[] = [
     songs: [
       {
         id: "xpfm-1",
+        title: "song15",
+        artist: "XPFM",
+        path: "/audio/songs/song15.mp4",
+        thumbnail: "/media/songs/song15.png",
+        videoUrl: "https://www.youtube.com/watch?v=ZfVzCgUwPCI",
+      },
+      {
+        id: "xpfm-2",
         title: "song1",
         artist: "XPFM",
         path: "/audio/songs/song1.mp4",
@@ -76,7 +84,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         videoUrl: "https://www.youtube.com/watch?v=WxMBIxB9EPI",
       },
       {
-        id: "xpfm-2",
+        id: "xpfm-3",
         title: "song2",
         artist: "XPFM",
         path: "/audio/songs/song2.mp4",
@@ -84,7 +92,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         videoUrl: "https://www.youtube.com/watch?v=oZREDSBcEK0",
       },
       {
-        id: "xpfm-3",
+        id: "xpfm-4",
         title: "song3",
         artist: "XPFM",
         path: "/audio/songs/song3.mp4",
@@ -92,7 +100,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         videoUrl: "https://www.youtube.com/watch?v=SPBVVzttXIM",
       },
       {
-        id: "xpfm-4",
+        id: "xpfm-5",
         title: "song4",
         artist: "XPFM",
         path: "/audio/songs/song4.mp4",
@@ -100,7 +108,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         videoUrl: "https://www.youtube.com/watch?v=zD0M7rVDG6g",
       },
       {
-        id: "xpfm-5",
+        id: "xpfm-6",
         title: "song5",
         artist: "XPFM",
         path: "/audio/songs/song5.mp4",
@@ -108,7 +116,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         videoUrl: "https://www.youtube.com/watch?v=cKKc14qAXr4",
       },
       {
-        id: "xpfm-6",
+        id: "xpfm-7",
         title: "song6",
         artist: "XPFM",
         path: "/audio/songs/song6.mp4",
@@ -116,7 +124,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         videoUrl: "https://www.youtube.com/watch?v=x8Wh4GeyMB4",
       },
       {
-        id: "xpfm-7",
+        id: "xpfm-8",
         title: "song7",
         artist: "XPFM",
         path: "/audio/songs/song7.mp4",
@@ -124,20 +132,12 @@ const ALL_PLAYLISTS: Playlist[] = [
         videoUrl: "https://www.youtube.com/watch?v=QtnoYpODf7w",
       },
       {
-        id: "xpfm-8",
-        title: "song8",
-        artist: "XPFM",
-        path: "/audio/songs/song8.mp4",
-        thumbnail: "/media/songs/song8.png",
-        videoUrl: "https://www.youtube.com/watch?v=oAuBZ1OJfWE",
-      },
-      {
         id: "xpfm-9",
         title: "song9",
         artist: "XPFM",
         path: "/audio/songs/song9.mp4",
         thumbnail: "/media/songs/song9.png",
-        videoUrl: "https://www.youtube.com/watch?v=rpCY2ngsxUo",
+        videoUrl: "https://www.youtube.com/watch?v=oAuBZ1OJfWE",
       },
       {
         id: "xpfm-10",
@@ -145,7 +145,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "XPFM",
         path: "/audio/songs/song10.mp4",
         thumbnail: "/media/songs/song10.png",
-        videoUrl: "https://www.youtube.com/watch?v=0sgDPaznkjc",
+        videoUrl: "https://www.youtube.com/watch?v=rpCY2ngsxUo",
       },
       {
         id: "xpfm-11",
@@ -153,7 +153,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "XPFM",
         path: "/audio/songs/song11.mp4",
         thumbnail: "/media/songs/song11.png",
-        videoUrl: "https://www.youtube.com/watch?v=acYLIALwzlQ",
+        videoUrl: "https://www.youtube.com/watch?v=0sgDPaznkjc",
       },
       {
         id: "xpfm-12",
@@ -161,7 +161,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "XPFM",
         path: "/audio/songs/song12.mp4",
         thumbnail: "/media/songs/song12.png",
-        videoUrl: "https://www.youtube.com/watch?v=H42_eY53dBM",
+        videoUrl: "https://www.youtube.com/watch?v=acYLIALwzlQ",
       },
       {
         id: "xpfm-13",
@@ -169,7 +169,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "XPFM",
         path: "/audio/songs/song13.mp4",
         thumbnail: "/media/songs/song13.png",
-        videoUrl: "https://www.youtube.com/watch?v=GxJCxBZrvfY",
+        videoUrl: "https://www.youtube.com/watch?v=H42_eY53dBM",
       },
       {
         id: "xpfm-14",
@@ -177,7 +177,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "XPFM",
         path: "/audio/songs/song14.mp4",
         thumbnail: "/media/songs/song14.png",
-        videoUrl: "https://www.youtube.com/watch?v=QiLCgnPCrFc",
+        videoUrl: "https://www.youtube.com/watch?v=GxJCxBZrvfY",
       },
       {
         id: "xpfm-15",
@@ -185,7 +185,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "XPFM",
         path: "/audio/songs/song15.mp4",
         thumbnail: "/media/songs/song15.png",
-        videoUrl: "https://www.youtube.com/watch?v=ZfVzCgUwPCI",
+        videoUrl: "https://www.youtube.com/watch?v=QiLCgnPCrFc",
       },
       {
         id: "xpfm-16",
@@ -439,9 +439,9 @@ const ALL_PLAYLISTS: Playlist[] = [
         id: "aftr-10",
         title: "song10",
         artist: "XX",
-        path: "/audio/nxra/asyouare.mp4",
-        thumbnail: "/media/songs/nxra/asyouare.png",
-        videoUrl: "https://www.youtube.com/watch?v=NovEzbESlL8",
+        path: "/audio/nxra/song10.mp4",
+        thumbnail: "/media/songs/nxra/song10.png",
+        videoUrl: "https://www.youtube.com/watch?v=JpK2qaejBOk",
       },
     ],
   },
@@ -629,11 +629,19 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "XTRAFM",
         path: "/audio/xtra/song4.mp4",
         thumbnail: "/media/songs/song4.png",
+        videoUrl: "https://www.youtube.com/watch?v=h9NSpC2xE-0",
+      },
+      {
+        id: "xpfm-5",
+        title: "xtra",
+        artist: "XTRAFM",
+        path: "/audio/xtra/baptized.mp4",
+        thumbnail: "/media/songs/baptized.png",
         videoUrl:
           "https://www.youtube.com/watch?v=1DBgZjW9ZNg&list=PLAmw49p0-BAC8MG4yxLd5zOjglwH5I3P5&index=8&pp=gAQBiAQB8AUB",
       },
       {
-        id: "xpfm-5",
+        id: "xpfm-6",
         title: "xtra",
         artist: "XTRAFM",
         path: "/audio/xtra/starboy.mp4",
@@ -641,7 +649,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         videoUrl: "https://www.youtube.com/watch?v=PIVqz6e5j7s",
       },
       {
-        id: "xpfm-6",
+        id: "xpfm-7",
         title: "xtra",
         artist: "XTRAFM",
         path: "/audio/xtra/abyss.mp4",
@@ -650,7 +658,7 @@ const ALL_PLAYLISTS: Playlist[] = [
           "https://www.youtube.com/watch?v=1YrGhjy_xY0&pp=ygUKYWJ5c3MgYWZybw%3D%3D",
       },
       {
-        id: "xpfm-7",
+        id: "xpfm-8",
         title: "xtra",
         artist: "XTRAFM",
         path: "/audio/xtra/nothingislost.mp4",
@@ -659,7 +667,7 @@ const ALL_PLAYLISTS: Playlist[] = [
           "https://www.youtube.com/watch?v=NSZxiH7OtTA&list=PLAmw49p0-BAC8MG4yxLd5zOjglwH5I3P5&index=11&pp=gAQBiAQB8AUB",
       },
       {
-        id: "xpfm-8",
+        id: "xpfm-9",
         title: "xtra",
         artist: "XTRAFM",
         path: "/audio/xtra/takemybreath.mp4",
@@ -668,7 +676,7 @@ const ALL_PLAYLISTS: Playlist[] = [
           "https://www.youtube.com/watch?v=Y7RZfs_dhk4&list=PLAmw49p0-BAC8MG4yxLd5zOjglwH5I3P5&index=9&pp=gAQBiAQB8AUB",
       },
       {
-        id: "xpfm-9",
+        id: "xpfm-10",
         title: "xtra",
         artist: "XTRAFM",
         path: "/audio/xtra/next.mp4",
@@ -676,7 +684,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         videoUrl: "https://www.youtube.com/watch?v=vzt88jQznJI",
       },
       {
-        id: "xpfm-6",
+        id: "xpfm-11",
         title: "xtra",
         artist: "XTRAFM",
         path: "/audio/xtra/likeamoth.mp4",
@@ -685,7 +693,7 @@ const ALL_PLAYLISTS: Playlist[] = [
           "https://www.youtube.com/watch?v=0XWSezFXIzo&list=PLAmw49p0-BAC8MG4yxLd5zOjglwH5I3P5&index=7&pp=gAQBiAQB8AUB",
       },
       {
-        id: "xpfm-5",
+        id: "xpfm-12",
         title: "xtra",
         artist: "XTRAFM",
         path: "/audio/xtra/often.mp4",
@@ -694,7 +702,7 @@ const ALL_PLAYLISTS: Playlist[] = [
           "https://www.youtube.com/watch?v=cjcS2Xwlpvo&list=PLAmw49p0-BAC8MG4yxLd5zOjglwH5I3P5&index=2&pp=gAQBiAQB8AUB",
       },
       {
-        id: "xpfm-9",
+        id: "xpfm-13",
         title: "xtra",
         artist: "XTRAFM",
         path: "/audio/xtra/saopaolo.mp4",
@@ -812,7 +820,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "XO",
         path: "/audio/xo/song13.mp4",
         thumbnail: "/media/songs/nxra/song13.png",
-        videoUrl: "https://www.youtube.com/watch?v=JpK2qaejBOk",
+        videoUrl: "https://www.youtube.com/watch?v=NovEzbESlL8",
       },
     ],
   },
