@@ -41,14 +41,10 @@ import DuolingoImageDropdown from "./DuolingoImageDropdown";
 import PDFReader from "./PDFReader";
 import * as pdfjs from "pdfjs-dist";
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
+import ZenithPDFReader from "./ZenithPDFReader";
 
 interface PDFReaderDropdownProps {
   onOpenFullscreen: () => void;
-}
-
-interface ZenithPDFReaderProps {
-  onClose: () => void;
-  initialPage?: number;
 }
 
 interface Annotation {
@@ -58,6 +54,14 @@ interface Annotation {
   x: number;
   y: number;
   color: string;
+}
+
+interface PDFPageProxy {
+  getViewport: (options: { scale: number }) => {
+    width: number;
+    height: number;
+  };
+  render: (options: any) => { promise: Promise<void> };
 }
 
 import localFont from "next/font/local";
@@ -432,23 +436,19 @@ const MusicDropdown: React.FC<MusicDropdownProps> = ({
 // Just replace the PDFReaderDropdown and ZenithPDFReader components with these fixed versions:
 
 // Then update the component to receive the prop
-const PDFReaderDropdown: React.FC<PDFReaderDropdownProps> = ({
+// In MenuBar.tsx, add this PDFReaderDropdown component
+const PDFReaderDropdown: React.FC<{ onOpenFullscreen: () => void }> = ({
   onOpenFullscreen,
 }) => {
   const { getColor } = useStyles();
   const [currentPage, setCurrentPage] = useState<number>(() => {
     return parseInt(localStorage.getItem("pdfReaderCurrentPage") || "1");
   });
-  const [totalPages] = useState(48);
+  const [totalPages] = useState(476);
   const [isAnnotating, setIsAnnotating] = useState(false);
   const [bookmarks, setBookmarks] = useState<number[]>([]);
 
-  // Now we use the prop instead of local state
-  const handleFullscreen = () => {
-    onOpenFullscreen(); // This will trigger the fullscreen view
-  };
-
-  // Simple navigation functions
+  // Navigation functions
   const nextPage = () => {
     if (currentPage < totalPages) {
       const newPage = currentPage + 1;
@@ -485,15 +485,18 @@ const PDFReaderDropdown: React.FC<PDFReaderDropdownProps> = ({
         backgroundColor: getColor("black-thick"),
         borderColor: getColor("Brd"),
         borderRadius: "9px",
-        fontFamily: exemplarPro.style.fontFamily,
+        fontFamily: "var(--font-exemplar)",
       }}
     >
-      {/* PDF Preview - like your current song info box */}
+      {/* PDF Preview */}
       <div className="flex items-center gap-3">
         <img
-          src="/apps/48/thumb.png"
+          src="/apps/48/media/law-preview.jpg"
           alt={`Law ${currentPage}`}
-          className="w-14 h-14 rounded object-contain"
+          className="w-14 h-14 rounded"
+          onError={(e) => {
+            e.currentTarget.src = "/media/system/_empty_image.png";
+          }}
         />
         <div className="flex-1 min-w-0">
           <div
@@ -514,7 +517,7 @@ const PDFReaderDropdown: React.FC<PDFReaderDropdownProps> = ({
         </div>
       </div>
 
-      {/* Page Navigation - Similar to music progress bar */}
+      {/* Page Navigation Bar */}
       <div className="space-y-1">
         <div className="flex items-center gap-2 px-1 relative h-4">
           <div className="w-full bg-white/10 rounded-full h-[3px]">
@@ -543,7 +546,7 @@ const PDFReaderDropdown: React.FC<PDFReaderDropdownProps> = ({
         </div>
       </div>
 
-      {/* Law Navigation Controls - Like your play/pause/skip controls */}
+      {/* Law Navigation Controls */}
       <div className="flex justify-center items-center gap-6">
         <button
           onClick={prevPage}
@@ -554,7 +557,7 @@ const PDFReaderDropdown: React.FC<PDFReaderDropdownProps> = ({
         </button>
 
         <button
-          onClick={handleFullscreen}
+          onClick={onOpenFullscreen}
           className="w-10 h-10 rounded-full flex items-center justify-center transition-colors"
           style={{
             backgroundColor: "rgba(76, 79, 105, 0.2)",
@@ -573,7 +576,7 @@ const PDFReaderDropdown: React.FC<PDFReaderDropdownProps> = ({
         </button>
       </div>
 
-      {/* Bookmarks Section - Like your playlists section */}
+      {/* Bookmarks Section */}
       <div>
         <button
           className="flex items-center gap-2 w-full px-2 py-1.5 rounded hover:bg-white/5 transition-colors"
@@ -657,348 +660,6 @@ const PDFReaderDropdown: React.FC<PDFReaderDropdownProps> = ({
         </button>
       </div>
     </DropdownMenuContent>
-  );
-};
-
-{
-  /* Add this right after your MusicDropdown component */
-}
-// Fixed ZenithPDFReader
-// Import PDF.js at the top of your file
-
-// Add this right before the ZenithPDFReader component definition
-
-const ZenithPDFReader: React.FC<ZenithPDFReaderProps> = ({
-  onClose,
-  initialPage = 1,
-}) => {
-  const { getColor } = useStyles();
-  const [currentPage, setCurrentPage] = useState(initialPage);
-  const [isAddingNote, setIsAddingNote] = useState(false);
-  const [annotations, setAnnotations] = useState<Annotation[]>([]);
-  const [bookmarks, setBookmarks] = useState<number[]>([]);
-  const [showSidebar, setShowSidebar] = useState(false);
-  const [totalPages, setTotalPages] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
-
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const pdfRef = useRef<any>(null);
-
-  // Load PDF document once on mount
-  useEffect(() => {
-    const loadPDF = async () => {
-      try {
-        console.log("Loading PDF document...");
-        setIsLoading(true);
-
-        const loadingTask = pdfjs.getDocument("/apps/48/48.pdf");
-        const pdf = await loadingTask.promise;
-        pdfRef.current = pdf;
-        setTotalPages(pdf.numPages);
-
-        console.log(`PDF loaded successfully with ${pdf.numPages} pages`);
-
-        // Immediately render the initial page
-        renderPage(currentPage);
-      } catch (error) {
-        console.error("Error loading PDF:", error);
-        setIsLoading(false);
-      }
-    };
-
-    loadPDF();
-  }, []); // Empty dependency array - only run once
-
-  // Simple renderPage function that's easy to debug
-  const renderPage = async (pageNum: number) => {
-    if (!pdfRef.current || !canvasRef.current) {
-      console.log("Cannot render: PDF or canvas not ready");
-      return;
-    }
-
-    try {
-      console.log(`Rendering page ${pageNum}...`);
-      setIsLoading(true);
-
-      // Get the page
-      const page = await pdfRef.current.getPage(pageNum);
-
-      // Get the canvas and prepare it
-      const canvas = canvasRef.current;
-      const context = canvas.getContext("2d");
-
-      // Set up viewport with scale 1.5
-      const viewport = page.getViewport({ scale: 1.5 });
-      canvas.height = viewport.height;
-      canvas.width = viewport.width;
-
-      // Render the page
-      const renderContext = {
-        canvasContext: context,
-        viewport: viewport,
-      };
-
-      await page.render(renderContext).promise;
-      console.log(`Page ${pageNum} rendered successfully`);
-      setIsLoading(false);
-    } catch (error) {
-      console.error(`Error rendering page ${pageNum}:`, error);
-      setIsLoading(false);
-    }
-  };
-
-  // Re-render when page changes
-  useEffect(() => {
-    console.log(`Current page changed to ${currentPage}`);
-    renderPage(currentPage);
-    // Save to localStorage
-    localStorage.setItem("pdfReaderCurrentPage", currentPage.toString());
-  }, [currentPage]);
-
-  // Navigation functions
-  const nextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage((prev) => prev + 1);
-    }
-  };
-
-  const prevPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage((prev) => prev - 1);
-    }
-  };
-
-  // Keyboard navigation
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "ArrowRight" || e.key === " ") nextPage();
-      else if (e.key === "ArrowLeft") prevPage();
-      else if (e.key === "Escape") onClose();
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [currentPage, totalPages]);
-
-  const toggleBookmark = () => {
-    setBookmarks((prev: number[]) =>
-      prev.includes(currentPage)
-        ? prev.filter((p) => p !== currentPage)
-        : [...prev, currentPage]
-    );
-  };
-
-  return (
-    <motion.div
-      className="fixed inset-0 z-[9999] flex flex-col bg-black/80 backdrop-blur-lg"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-    >
-      {/* Header */}
-      <div
-        className="h-14 border-b flex items-center justify-between px-6"
-        style={{
-          borderColor: getColor("Brd"),
-          backgroundColor: getColor("Glass"),
-          fontFamily: exemplarPro.style.fontFamily,
-        }}
-      >
-        <div className="flex items-center gap-4">
-          <BookOpen size={20} color={getColor("Text Primary (Hd)")} />
-          <h1
-            className="text-xl font-medium"
-            style={{ color: getColor("Text Primary (Hd)") }}
-          >
-            48 Laws of Power
-          </h1>
-          {bookmarks.includes(currentPage) && (
-            <Bookmark size={16} className="text-yellow-300/90" />
-          )}
-        </div>
-
-        <div className="flex items-center gap-3">
-          <button
-            className="p-2 rounded-full hover:bg-white/10 transition-colors"
-            onClick={() => setShowSidebar(!showSidebar)}
-            style={{ color: getColor("Text Primary (Hd)") }}
-          >
-            <Menu size={18} />
-          </button>
-          <button
-            className="p-2 rounded-full hover:bg-white/10 transition-colors"
-            onClick={onClose}
-            style={{ color: getColor("Text Primary (Hd)") }}
-          >
-            <X size={18} />
-          </button>
-        </div>
-      </div>
-
-      {/* Main content */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Sidebar */}
-        <AnimatePresence>
-          {showSidebar && (
-            <motion.div
-              initial={{ width: 0, opacity: 0 }}
-              animate={{ width: 280, opacity: 1 }}
-              exit={{ width: 0, opacity: 0 }}
-              className="h-full border-r overflow-y-auto"
-              style={{
-                backgroundColor: getColor("Black"),
-                borderColor: getColor("Brd"),
-              }}
-            >
-              <div className="p-4">
-                <h3
-                  className="font-medium mb-4"
-                  style={{ color: getColor("Text Primary (Hd)") }}
-                >
-                  Contents
-                </h3>
-
-                <div className="space-y-3">
-                  {/* Laws list */}
-                  {Array.from({ length: 48 }, (_, i) => i + 1).map(
-                    (lawNumber) => (
-                      <div
-                        key={lawNumber}
-                        className="py-1 cursor-pointer hover:opacity-80"
-                        onClick={() => setCurrentPage(lawNumber)}
-                        style={{
-                          color:
-                            currentPage === lawNumber
-                              ? "#4C4F69"
-                              : getColor("Text Primary (Hd)"),
-                          fontWeight:
-                            currentPage === lawNumber ? "bold" : "normal",
-                        }}
-                      >
-                        <div className="flex justify-between">
-                          <span>Law {lawNumber}</span>
-                          <span>{lawNumber}</span>
-                        </div>
-                      </div>
-                    )
-                  )}
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* PDF View */}
-        <div className="flex-1 flex items-center justify-center relative bg-black/50">
-          <div className="relative">
-            <canvas ref={canvasRef} className="rounded-md shadow-xl" />
-
-            {isLoading && (
-              <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                <div className="w-10 h-10 border-4 border-t-white border-opacity-50 rounded-full animate-spin"></div>
-              </div>
-            )}
-
-            {/* Annotation markers */}
-            {annotations
-              .filter((a) => a.page === currentPage)
-              .map((annotation) => (
-                <div
-                  key={annotation.id}
-                  className="absolute w-6 h-6 rounded-full bg-opacity-80 flex items-center justify-center cursor-pointer"
-                  style={{
-                    left: `${annotation.x}%`,
-                    top: `${annotation.y}%`,
-                    backgroundColor: "#4C4F69",
-                    transform: "translate(-50%, -50%)",
-                  }}
-                >
-                  <Text size={14} color="#fff" />
-                </div>
-              ))}
-          </div>
-
-          {/* Navigation buttons */}
-          <button
-            className="absolute left-6 top-1/2 transform -translate-y-1/2 p-3 rounded-full"
-            style={{
-              backgroundColor: getColor("Glass"),
-              color: getColor("Text Primary (Hd)"),
-              opacity: currentPage > 1 ? 1 : 0.5,
-            }}
-            onClick={prevPage}
-            disabled={currentPage <= 1}
-          >
-            <ChevronLeft size={24} />
-          </button>
-
-          <button
-            className="absolute right-6 top-1/2 transform -translate-y-1/2 p-3 rounded-full"
-            style={{
-              backgroundColor: getColor("Glass"),
-              color: getColor("Text Primary (Hd)"),
-              opacity: currentPage < totalPages ? 1 : 0.5,
-            }}
-            onClick={nextPage}
-            disabled={currentPage >= totalPages}
-          >
-            <ChevronRight size={24} />
-          </button>
-        </div>
-      </div>
-
-      {/* Footer */}
-      <div
-        className="h-14 border-t flex items-center justify-between px-6"
-        style={{
-          borderColor: getColor("Brd"),
-          backgroundColor: getColor("Glass"),
-        }}
-      >
-        <div
-          className="flex items-center gap-3"
-          style={{ color: getColor("Text Primary (Hd)") }}
-        >
-          <span>
-            Page {currentPage} of {totalPages || 48}
-          </span>
-
-          <span
-            className="ml-4 font-medium"
-            style={{
-              color: "#4C4F69",
-              fontFamily: exemplarPro.style.fontFamily,
-            }}
-          >
-            Law {currentPage}
-          </span>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <button
-            className="p-2 rounded-full hover:bg-white/10 transition-colors"
-            onClick={toggleBookmark}
-            style={{
-              color: bookmarks.includes(currentPage)
-                ? "#FFD700"
-                : getColor("Text Primary (Hd)"),
-            }}
-          >
-            <Bookmark size={18} />
-          </button>
-
-          <button
-            className="p-2 rounded-full hover:bg-white/10 transition-colors"
-            onClick={() => setIsAddingNote(!isAddingNote)}
-            style={{
-              color: isAddingNote ? "#4C4F69" : getColor("Text Primary (Hd)"),
-            }}
-          >
-            <Text size={18} />
-          </button>
-        </div>
-      </div>
-    </motion.div>
   );
 };
 
@@ -1210,8 +871,6 @@ export const MenuBar = () => {
 
   return (
     <>
-      {/* PDF Reader */}
-      // Replace your existing PDF Reader section:
       <AnimatePresence>
         {isPDFOpen && (
           <ZenithPDFReader
