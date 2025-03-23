@@ -42,6 +42,24 @@ import PDFReader from "./PDFReader";
 import * as pdfjs from "pdfjs-dist";
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
 
+interface PDFReaderDropdownProps {
+  onOpenFullscreen: () => void;
+}
+
+interface ZenithPDFReaderProps {
+  onClose: () => void;
+  initialPage?: number;
+}
+
+interface Annotation {
+  id: string;
+  page: number;
+  content: string;
+  x: number;
+  y: number;
+  color: string;
+}
+
 import localFont from "next/font/local";
 
 const exemplarPro = localFont({
@@ -413,19 +431,6 @@ const MusicDropdown: React.FC<MusicDropdownProps> = ({
 
 // Just replace the PDFReaderDropdown and ZenithPDFReader components with these fixed versions:
 
-interface Annotation {
-  id: string;
-  page: number;
-  content: string;
-  x: number;
-  y: number;
-  color: string;
-}
-
-interface PDFReaderDropdownProps {
-  onOpenFullscreen: () => void;
-}
-
 // Then update the component to receive the prop
 const PDFReaderDropdown: React.FC<PDFReaderDropdownProps> = ({
   onOpenFullscreen,
@@ -662,10 +667,6 @@ const PDFReaderDropdown: React.FC<PDFReaderDropdownProps> = ({
 // Import PDF.js at the top of your file
 
 // Add this right before the ZenithPDFReader component definition
-interface ZenithPDFReaderProps {
-  onClose: () => void;
-  initialPage?: number;
-}
 
 const ZenithPDFReader: React.FC<ZenithPDFReaderProps> = ({
   onClose,
@@ -677,23 +678,28 @@ const ZenithPDFReader: React.FC<ZenithPDFReaderProps> = ({
   const [annotations, setAnnotations] = useState<Annotation[]>([]);
   const [bookmarks, setBookmarks] = useState<number[]>([]);
   const [showSidebar, setShowSidebar] = useState(false);
-  const [pdfDocument, setPdfDocument] = useState<any>(null);
-  const [totalPages, setTotalPages] = useState(48);
+  const [totalPages, setTotalPages] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const pdfRef = useRef<any>(null);
 
-  // Load PDF on mount
+  // Load PDF document once on mount
   useEffect(() => {
     const loadPDF = async () => {
       try {
+        console.log("Loading PDF document...");
         setIsLoading(true);
+
         const loadingTask = pdfjs.getDocument("/apps/48/48.pdf");
         const pdf = await loadingTask.promise;
-        setPdfDocument(pdf);
+        pdfRef.current = pdf;
         setTotalPages(pdf.numPages);
-        setIsLoading(false);
-        renderPage(currentPage, pdf);
+
+        console.log(`PDF loaded successfully with ${pdf.numPages} pages`);
+
+        // Immediately render the initial page
+        renderPage(currentPage);
       } catch (error) {
         console.error("Error loading PDF:", error);
         setIsLoading(false);
@@ -701,40 +707,68 @@ const ZenithPDFReader: React.FC<ZenithPDFReaderProps> = ({
     };
 
     loadPDF();
-  }, []);
+  }, []); // Empty dependency array - only run once
 
-  // Render PDF page
-  const renderPage = async (pageNum: number, doc = pdfDocument) => {
-    if (!doc || !canvasRef.current) return;
+  // Simple renderPage function that's easy to debug
+  const renderPage = async (pageNum: number) => {
+    if (!pdfRef.current || !canvasRef.current) {
+      console.log("Cannot render: PDF or canvas not ready");
+      return;
+    }
 
     try {
-      const page = await doc.getPage(pageNum);
-      const viewport = page.getViewport({ scale: 1.5 });
+      console.log(`Rendering page ${pageNum}...`);
+      setIsLoading(true);
 
+      // Get the page
+      const page = await pdfRef.current.getPage(pageNum);
+
+      // Get the canvas and prepare it
       const canvas = canvasRef.current;
       const context = canvas.getContext("2d");
 
+      // Set up viewport with scale 1.5
+      const viewport = page.getViewport({ scale: 1.5 });
       canvas.height = viewport.height;
       canvas.width = viewport.width;
 
-      await page.render({
+      // Render the page
+      const renderContext = {
         canvasContext: context,
-        viewport,
-      }).promise;
+        viewport: viewport,
+      };
+
+      await page.render(renderContext).promise;
+      console.log(`Page ${pageNum} rendered successfully`);
+      setIsLoading(false);
     } catch (error) {
-      console.error("Error rendering page:", error);
+      console.error(`Error rendering page ${pageNum}:`, error);
+      setIsLoading(false);
     }
   };
 
-  // Save page to localStorage
+  // Re-render when page changes
   useEffect(() => {
+    console.log(`Current page changed to ${currentPage}`);
+    renderPage(currentPage);
+    // Save to localStorage
     localStorage.setItem("pdfReaderCurrentPage", currentPage.toString());
-    if (pdfDocument) {
-      renderPage(currentPage);
-    }
-  }, [currentPage, pdfDocument]);
+  }, [currentPage]);
 
-  // Key navigation
+  // Navigation functions
+  const nextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage((prev) => prev + 1);
+    }
+  };
+
+  const prevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage((prev) => prev - 1);
+    }
+  };
+
+  // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "ArrowRight" || e.key === " ") nextPage();
@@ -744,15 +778,7 @@ const ZenithPDFReader: React.FC<ZenithPDFReaderProps> = ({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [currentPage]);
-
-  const nextPage = () => {
-    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
-  };
-
-  const prevPage = () => {
-    if (currentPage > 1) setCurrentPage(currentPage - 1);
-  };
+  }, [currentPage, totalPages]);
 
   const toggleBookmark = () => {
     setBookmarks((prev: number[]) =>
@@ -775,6 +801,7 @@ const ZenithPDFReader: React.FC<ZenithPDFReaderProps> = ({
         style={{
           borderColor: getColor("Brd"),
           backgroundColor: getColor("Glass"),
+          fontFamily: exemplarPro.style.fontFamily,
         }}
       >
         <div className="flex items-center gap-4">
@@ -842,7 +869,7 @@ const ZenithPDFReader: React.FC<ZenithPDFReaderProps> = ({
                         style={{
                           color:
                             currentPage === lawNumber
-                              ? getColor("Lilac Accent")
+                              ? "#4C4F69"
                               : getColor("Text Primary (Hd)"),
                           fontWeight:
                             currentPage === lawNumber ? "bold" : "normal",
@@ -863,42 +890,33 @@ const ZenithPDFReader: React.FC<ZenithPDFReaderProps> = ({
 
         {/* PDF View */}
         <div className="flex-1 flex items-center justify-center relative bg-black/50">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={`page-${currentPage}`}
-              className="relative"
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -50 }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            >
-              {isLoading ? (
-                <div className="w-[600px] h-[800px] flex items-center justify-center">
-                  <div className="w-10 h-10 border-4 border-t-white border-opacity-50 rounded-full animate-spin"></div>
-                </div>
-              ) : (
-                <canvas ref={canvasRef} className="rounded-md shadow-xl" />
-              )}
+          <div className="relative">
+            <canvas ref={canvasRef} className="rounded-md shadow-xl" />
 
-              {/* Annotation markers would go here */}
-              {annotations
-                .filter((a) => a.page === currentPage)
-                .map((annotation) => (
-                  <div
-                    key={annotation.id}
-                    className="absolute w-6 h-6 rounded-full bg-opacity-80 flex items-center justify-center cursor-pointer"
-                    style={{
-                      left: `${annotation.x}%`,
-                      top: `${annotation.y}%`,
-                      backgroundColor: getColor("Lilac Accent"),
-                      transform: "translate(-50%, -50%)",
-                    }}
-                  >
-                    <Text size={14} color="#fff" />
-                  </div>
-                ))}
-            </motion.div>
-          </AnimatePresence>
+            {isLoading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                <div className="w-10 h-10 border-4 border-t-white border-opacity-50 rounded-full animate-spin"></div>
+              </div>
+            )}
+
+            {/* Annotation markers */}
+            {annotations
+              .filter((a) => a.page === currentPage)
+              .map((annotation) => (
+                <div
+                  key={annotation.id}
+                  className="absolute w-6 h-6 rounded-full bg-opacity-80 flex items-center justify-center cursor-pointer"
+                  style={{
+                    left: `${annotation.x}%`,
+                    top: `${annotation.y}%`,
+                    backgroundColor: "#4C4F69",
+                    transform: "translate(-50%, -50%)",
+                  }}
+                >
+                  <Text size={14} color="#fff" />
+                </div>
+              ))}
+          </div>
 
           {/* Navigation buttons */}
           <button
@@ -942,12 +960,15 @@ const ZenithPDFReader: React.FC<ZenithPDFReaderProps> = ({
           style={{ color: getColor("Text Primary (Hd)") }}
         >
           <span>
-            Page {currentPage} of {totalPages}
+            Page {currentPage} of {totalPages || 48}
           </span>
 
           <span
             className="ml-4 font-medium"
-            style={{ color: getColor("Lilac Accent") }}
+            style={{
+              color: "#4C4F69",
+              fontFamily: exemplarPro.style.fontFamily,
+            }}
           >
             Law {currentPage}
           </span>
@@ -970,9 +991,7 @@ const ZenithPDFReader: React.FC<ZenithPDFReaderProps> = ({
             className="p-2 rounded-full hover:bg-white/10 transition-colors"
             onClick={() => setIsAddingNote(!isAddingNote)}
             style={{
-              color: isAddingNote
-                ? getColor("Lilac Accent")
-                : getColor("Text Primary (Hd)"),
+              color: isAddingNote ? "#4C4F69" : getColor("Text Primary (Hd)"),
             }}
           >
             <Text size={18} />
