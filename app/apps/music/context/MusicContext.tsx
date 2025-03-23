@@ -69,15 +69,15 @@ const ALL_PLAYLISTS: Playlist[] = [
     songs: [
       {
         id: "xpfm-1",
-        title: "song15",
+        title: "song1",
         artist: "XPFM",
         path: "/audio/songs/song15.mp4",
-        thumbnail: "/media/songs/song15.png",
+        thumbnail: "/media/songs/song1.png",
         videoUrl: "https://www.youtube.com/watch?v=ZfVzCgUwPCI",
       },
       {
         id: "xpfm-2",
-        title: "song1",
+        title: "song2",
         artist: "XPFM",
         path: "/audio/songs/song1.mp4",
         thumbnail: "/media/songs/song1.png",
@@ -85,7 +85,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       },
       {
         id: "xpfm-3",
-        title: "song2",
+        title: "song3",
         artist: "XPFM",
         path: "/audio/songs/song2.mp4",
         thumbnail: "/media/songs/song2.png",
@@ -93,7 +93,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       },
       {
         id: "xpfm-4",
-        title: "song3",
+        title: "song4",
         artist: "XPFM",
         path: "/audio/songs/song3.mp4",
         thumbnail: "/media/songs/song3.png",
@@ -101,7 +101,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       },
       {
         id: "xpfm-5",
-        title: "song4",
+        title: "song5",
         artist: "XPFM",
         path: "/audio/songs/song4.mp4",
         thumbnail: "/media/songs/song4.png",
@@ -109,7 +109,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       },
       {
         id: "xpfm-6",
-        title: "song5",
+        title: "song6",
         artist: "XPFM",
         path: "/audio/songs/song5.mp4",
         thumbnail: "/media/songs/song5.png",
@@ -117,7 +117,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       },
       {
         id: "xpfm-7",
-        title: "song6",
+        title: "song7",
         artist: "XPFM",
         path: "/audio/songs/song6.mp4",
         thumbnail: "/media/songs/song6.png",
@@ -125,7 +125,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       },
       {
         id: "xpfm-8",
-        title: "song7",
+        title: "song8",
         artist: "XPFM",
         path: "/audio/songs/song7.mp4",
         thumbnail: "/media/songs/song7.png",
