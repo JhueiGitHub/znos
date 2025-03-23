@@ -37,6 +37,7 @@ interface PDFPageProxy {
 }
 
 // Create a component for the page turn effect
+// Replace the existing PageTurn component with this enhanced version
 const PageTurn: React.FC<{
   currentPage: number;
   direction: "left" | "right" | null;
@@ -47,43 +48,60 @@ const PageTurn: React.FC<{
 
   useEffect(() => {
     if (direction) {
-      // Play page turn animation based on direction
+      // Create a realistic 3D page flip animation
       controls
         .start({
-          x: direction === "right" ? "-100%" : "100%",
+          // Rotate around Y axis for a 3D flip effect
+          rotateY: direction === "right" ? -80 : 80,
+          // Scale down slightly during flip
+          scale: 0.9,
+          // Move slightly to side for more realistic effect
+          x: direction === "right" ? "-10%" : "10%",
+          // Fade out during rotation
           opacity: 0,
-          rotateY: direction === "right" ? -15 : 15,
-          transition: { duration: 0.3, ease: "easeInOut" },
+          // Custom 3D perspective configuration
+          transition: {
+            duration: 0.4,
+            ease: [0.645, 0.045, 0.355, 1.0], // Cubic bezier for realistic paper physics
+            opacity: { duration: 0.3 },
+          },
         })
         .then(onAnimationComplete);
     } else {
-      // Reset position
+      // Reset position with a subtle entrance animation
       controls.start({
+        rotateY: 0,
+        scale: 1,
         x: 0,
         opacity: 1,
-        rotateY: 0,
-        transition: { duration: 0 },
+        transition: { duration: 0.3, ease: "easeOut" },
       });
     }
   }, [direction, controls, onAnimationComplete]);
 
   return (
-    <motion.div
-      key={`page-${currentPage}`}
-      initial={{
-        x: direction === "right" ? "100%" : "-100%",
-        opacity: 0,
-        rotateY: direction === "right" ? 15 : -15,
-      }}
-      animate={controls}
+    <div
       className="relative w-full h-full flex items-center justify-center"
-      style={{
-        perspective: "1200px",
-        transformStyle: "preserve-3d",
-      }}
+      style={{ perspective: "1200px" }} // Add perspective to parent for 3D effect
     >
-      {children}
-    </motion.div>
+      <motion.div
+        key={`page-${currentPage}`}
+        initial={{
+          rotateY: direction === "right" ? 80 : -80,
+          opacity: 0,
+          scale: 0.9,
+        }}
+        animate={controls}
+        style={{
+          transformStyle: "preserve-3d",
+          transformOrigin:
+            direction === "right" ? "left center" : "right center",
+          boxShadow: "0 10px 30px rgba(0,0,0,0.25)",
+        }}
+      >
+        {children}
+      </motion.div>
+    </div>
   );
 };
 
@@ -302,6 +320,7 @@ const ZenithPDFReader: React.FC<ZenithPDFReaderProps> = ({
     };
   };
 
+  // Update the gesture handler for more subtle interactions
   const handleGestureMove = (clientX: number, clientY: number) => {
     if (!gestureRef.current.isTracking) return;
 
@@ -316,22 +335,19 @@ const ZenithPDFReader: React.FC<ZenithPDFReaderProps> = ({
       gestureRef.current.lastTime = now;
     }
 
-    // Calculate horizontal and vertical deltas
+    // Calculate horizontal delta
     const deltaX = clientX - gestureRef.current.startX;
     const deltaY = clientY - gestureRef.current.startY;
 
-    // Only handle horizontal gestures (with 2:1 ratio to avoid accidental triggers)
-    if (
-      Math.abs(deltaX) > gestureRef.current.threshold &&
-      Math.abs(deltaX) > Math.abs(deltaY) * 2
-    ) {
-      // Check if velocity also exceeds threshold for faster response
-      if (gestureRef.current.velocity > gestureRef.current.velocityThreshold) {
+    // MUCH lower threshold for activation (10px instead of 20px)
+    if (Math.abs(deltaX) > 10 && Math.abs(deltaX) > Math.abs(deltaY) * 1.5) {
+      // Check if velocity exceeds lower threshold for faster response (0.05 instead of 0.1)
+      if (gestureRef.current.velocity > 0.05) {
         // Determine direction
         const direction = deltaX < 0 ? "next" : "prev";
 
         // Turn page with velocity factor
-        turnPage(direction, gestureRef.current.velocity * 2);
+        turnPage(direction, Math.min(0.8, gestureRef.current.velocity * 2));
 
         // Reset tracking
         gestureRef.current.isTracking = false;
@@ -396,18 +412,21 @@ const ZenithPDFReader: React.FC<ZenithPDFReaderProps> = ({
   };
 
   // Specialized handler for trackpad gestures
+  // Updated wheel handler for more subtle trackpad gestures
   const handleWheel = (e: React.WheelEvent) => {
-    // Check if this is likely a trackpad gesture (smaller deltas)
-    if (Math.abs(e.deltaX) > 5 && Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
+    // Lower threshold for trackpad detection (3px instead of 5px)
+    if (Math.abs(e.deltaX) > 3 && Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
       e.preventDefault();
 
-      // Use immediate turnPage for very fast swipes
-      const isQuickSwipe = Math.abs(e.deltaX) > 20;
+      // More sensitive detection for quicker swipes (15px instead of 20px)
+      const isQuickSwipe = Math.abs(e.deltaX) > 15;
 
       if (isQuickSwipe) {
         const direction = e.deltaX > 0 ? "next" : "prev";
-        // Calculate velocity based on deltaX (0.3-1.0 range)
-        const velocity = Math.min(1.0, Math.abs(e.deltaX) / 50);
+
+        // Scale velocity more gently (0.2-0.8 range instead of 0.3-1.0)
+        const velocity = 0.2 + Math.min(0.6, Math.abs(e.deltaX) / 100);
+
         turnPage(direction, velocity);
       }
     }
@@ -567,9 +586,15 @@ const ZenithPDFReader: React.FC<ZenithPDFReaderProps> = ({
           >
             <canvas
               ref={canvasRef}
-              className="rounded-md shadow-xl"
+              className="rounded-md"
               style={{
-                filter: "drop-shadow(0 10px 8px rgb(0 0 0 / 0.2))",
+                // Add a subtle page edge effect
+                boxShadow:
+                  "2px 0 15px rgba(0,0,0,0.2), 0 0 1px rgba(0,0,0,0.3)",
+                // Add subtle page texture
+                background:
+                  "linear-gradient(to right, rgba(255,255,255,0.05), rgba(255,255,255,0) 8%, rgba(255,255,255,0))",
+                borderRadius: "2px",
               }}
             />
 
