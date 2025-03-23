@@ -169,7 +169,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "XPFM",
         path: "/audio/songs/song13.mp4",
         thumbnail: "/media/songs/song13.png",
-        videoUrl: "https://www.youtube.com/watch?v=6kEfiw5gx_8",
+        videoUrl: "https://www.youtube.com/watch?v=GxJCxBZrvfY",
       },
       {
         id: "xpfm-14",
@@ -185,7 +185,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "XPFM",
         path: "/audio/songs/song15.mp4",
         thumbnail: "/media/songs/song15.png",
-        videoUrl: "https://www.youtube.com/watch?v=GxJCxBZrvfY",
+        videoUrl: "https://www.youtube.com/watch?v=ZfVzCgUwPCI",
       },
       {
         id: "xpfm-16",
@@ -346,6 +346,14 @@ const ALL_PLAYLISTS: Playlist[] = [
         path: "/audio/pnth/afterhours.mp4",
         thumbnail: "/media/songs/pnth/afterhours.png",
         videoUrl: "https://www.youtube.com/watch?v=pV0ngdzx7RE",
+      },
+      {
+        id: "pnth-19",
+        title: "song19",
+        artist: "PNTH",
+        path: "/audio/pnth/song19.mp4",
+        thumbnail: "/media/songs/pnth/song19.png",
+        videoUrl: "https://www.youtube.com/watch?v=KeCOugWi-uQ",
       },
     ],
   },
@@ -656,8 +664,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "XTRAFM",
         path: "/audio/xtra/starboy.mp4",
         thumbnail: "/media/songs/song4.png",
-        videoUrl:
-          "https://www.youtube.com/watch?v=5iNcLIdFVbI&list=PLAmw49p0-BAC8MG4yxLd5zOjglwH5I3P5&index=3&pp=gAQBiAQB8AUB",
+        videoUrl: "https://www.youtube.com/watch?v=PIVqz6e5j7s",
       },
       {
         id: "xpfm-9",
