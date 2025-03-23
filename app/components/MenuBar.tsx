@@ -12,6 +12,13 @@ import {
   Shuffle,
   RotateCcw,
   Repeat,
+  ChevronLeft,
+  BookOpen,
+  Bookmark,
+  Text,
+  Download,
+  Menu,
+  X,
 } from "lucide-react";
 import { useStyles } from "@/app/hooks/useStyles";
 import { Check } from "lucide-react";
@@ -32,6 +39,8 @@ import { toast } from "sonner";
 import { useMusicContext } from "../apps/music/context/MusicContext";
 import DuolingoImageDropdown from "./DuolingoImageDropdown";
 import PDFReader from "./PDFReader";
+import * as pdfjs from "pdfjs-dist";
+pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
 
 import localFont from "next/font/local";
 
@@ -397,6 +406,583 @@ const MusicDropdown: React.FC<MusicDropdownProps> = ({
   );
 };
 
+// Inside MenuBar.tsx - add this right next to your MusicDropdown component
+// No separate files needed - just like your music dropdown implementation
+
+// Just replace the PDFReaderDropdown and ZenithPDFReader components with these fixed versions:
+
+// Just replace the PDFReaderDropdown and ZenithPDFReader components with these fixed versions:
+
+interface Annotation {
+  id: string;
+  page: number;
+  content: string;
+  x: number;
+  y: number;
+  color: string;
+}
+
+interface PDFReaderDropdownProps {
+  onOpenFullscreen: () => void;
+}
+
+// Then update the component to receive the prop
+const PDFReaderDropdown: React.FC<PDFReaderDropdownProps> = ({
+  onOpenFullscreen,
+}) => {
+  const { getColor } = useStyles();
+  const [currentPage, setCurrentPage] = useState<number>(() => {
+    return parseInt(localStorage.getItem("pdfReaderCurrentPage") || "1");
+  });
+  const [totalPages] = useState(48);
+  const [isAnnotating, setIsAnnotating] = useState(false);
+  const [bookmarks, setBookmarks] = useState<number[]>([]);
+
+  // Now we use the prop instead of local state
+  const handleFullscreen = () => {
+    onOpenFullscreen(); // This will trigger the fullscreen view
+  };
+
+  // Simple navigation functions
+  const nextPage = () => {
+    if (currentPage < totalPages) {
+      const newPage = currentPage + 1;
+      setCurrentPage(newPage);
+      localStorage.setItem("pdfReaderCurrentPage", newPage.toString());
+    }
+  };
+
+  const prevPage = () => {
+    if (currentPage > 1) {
+      const newPage = currentPage - 1;
+      setCurrentPage(newPage);
+      localStorage.setItem("pdfReaderCurrentPage", newPage.toString());
+    }
+  };
+
+  const toggleBookmark = () => {
+    setBookmarks((prev: number[]) => {
+      if (prev.includes(currentPage)) {
+        return prev.filter((p) => p !== currentPage);
+      } else {
+        return [...prev, currentPage];
+      }
+    });
+  };
+
+  return (
+    <DropdownMenuContent
+      className="w-[350px] p-3 space-y-3"
+      align="end"
+      alignOffset={-3}
+      sideOffset={4}
+      style={{
+        backgroundColor: getColor("black-thick"),
+        borderColor: getColor("Brd"),
+        borderRadius: "9px",
+        fontFamily: exemplarPro.style.fontFamily,
+      }}
+    >
+      {/* PDF Preview - like your current song info box */}
+      <div className="flex items-center gap-3">
+        <img
+          src="/apps/48/thumb.png"
+          alt={`Law ${currentPage}`}
+          className="w-14 h-14 rounded object-contain"
+        />
+        <div className="flex-1 min-w-0">
+          <div
+            className="text-sm font-medium truncate"
+            style={{ color: getColor("latte") }}
+          >
+            Law {currentPage <= 48 ? currentPage : "—"}:{" "}
+            {currentPage === 1
+              ? "Never Outshine the Master"
+              : `Law ${currentPage}`}
+          </div>
+          <div
+            className="text-xs truncate"
+            style={{ color: "rgba(76, 79, 105, 0.72)" }}
+          >
+            The 48 Laws of Power
+          </div>
+        </div>
+      </div>
+
+      {/* Page Navigation - Similar to music progress bar */}
+      <div className="space-y-1">
+        <div className="flex items-center gap-2 px-1 relative h-4">
+          <div className="w-full bg-white/10 rounded-full h-[3px]">
+            <div
+              className="absolute left-0 top-0 h-full rounded-full"
+              style={{
+                width: `${(currentPage / totalPages) * 100}%`,
+                backgroundColor: "rgba(76, 79, 105, 0.81)",
+              }}
+            />
+          </div>
+        </div>
+        <div className="flex justify-between px-1">
+          <span
+            className="text-xs"
+            style={{ color: "rgba(76, 79, 105, 0.81)" }}
+          >
+            Page {currentPage}
+          </span>
+          <span
+            className="text-xs"
+            style={{ color: "rgba(76, 79, 105, 0.81)" }}
+          >
+            of {totalPages}
+          </span>
+        </div>
+      </div>
+
+      {/* Law Navigation Controls - Like your play/pause/skip controls */}
+      <div className="flex justify-center items-center gap-6">
+        <button
+          onClick={prevPage}
+          className="transition-colors"
+          style={{ color: "rgba(76, 79, 105, 0.81)" }}
+        >
+          <ChevronLeft size={20} />
+        </button>
+
+        <button
+          onClick={handleFullscreen}
+          className="w-10 h-10 rounded-full flex items-center justify-center transition-colors"
+          style={{
+            backgroundColor: "rgba(76, 79, 105, 0.2)",
+            color: "rgba(76, 79, 105, 0.81)",
+          }}
+        >
+          <BookOpen size={20} />
+        </button>
+
+        <button
+          onClick={nextPage}
+          className="transition-colors"
+          style={{ color: "rgba(76, 79, 105, 0.81)" }}
+        >
+          <ChevronRight size={20} />
+        </button>
+      </div>
+
+      {/* Bookmarks Section - Like your playlists section */}
+      <div>
+        <button
+          className="flex items-center gap-2 w-full px-2 py-1.5 rounded hover:bg-white/5 transition-colors"
+          style={{ color: "rgba(76, 79, 105, 0.81)" }}
+        >
+          <Bookmark size={14} />
+          <span className="text-sm flex-1 text-left">Bookmarks</span>
+        </button>
+
+        <div className="space-y-2 pt-2">
+          {bookmarks.length > 0 ? (
+            bookmarks.map((page) => (
+              <div
+                key={`bookmark-${page}`}
+                className="flex items-center gap-3 p-2 rounded hover:bg-white/5 transition-colors relative"
+                onClick={() => setCurrentPage(page)}
+              >
+                <div className="w-8 h-8 rounded bg-black/30 flex items-center justify-center">
+                  <Text
+                    size={14}
+                    style={{ color: "rgba(76, 79, 105, 0.81)" }}
+                  />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div
+                    className="text-sm truncate"
+                    style={{ color: "rgba(76, 79, 105, 0.81)" }}
+                  >
+                    Law {page}
+                  </div>
+                  <div
+                    className="text-xs truncate"
+                    style={{ color: "rgba(76, 79, 105, 0.5)" }}
+                  >
+                    Page {page}
+                  </div>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div
+              className="text-sm italic px-2"
+              style={{ color: "rgba(76, 79, 105, 0.5)" }}
+            >
+              No bookmarks yet
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Quick Actions */}
+      <div
+        className="flex justify-around pt-2 border-t"
+        style={{ borderColor: getColor("Brd") }}
+      >
+        <button
+          className="p-2 rounded-full hover:bg-white/5"
+          onClick={toggleBookmark}
+          style={{
+            color: bookmarks.includes(currentPage)
+              ? "#FFD700"
+              : "rgba(76, 79, 105, 0.81)",
+          }}
+        >
+          <Bookmark size={18} />
+        </button>
+        <button
+          className="p-2 rounded-full hover:bg-white/5"
+          onClick={() => setIsAnnotating(!isAnnotating)}
+          style={{
+            color: isAnnotating ? "#7B6CBD" : "rgba(76, 79, 105, 0.81)",
+          }}
+        >
+          <Text size={18} />
+        </button>
+        <button
+          className="p-2 rounded-full hover:bg-white/5"
+          style={{ color: "rgba(76, 79, 105, 0.81)" }}
+        >
+          <Download size={18} />
+        </button>
+      </div>
+    </DropdownMenuContent>
+  );
+};
+
+{
+  /* Add this right after your MusicDropdown component */
+}
+// Fixed ZenithPDFReader
+// Import PDF.js at the top of your file
+
+// Add this right before the ZenithPDFReader component definition
+interface ZenithPDFReaderProps {
+  onClose: () => void;
+  initialPage?: number;
+}
+
+const ZenithPDFReader: React.FC<ZenithPDFReaderProps> = ({
+  onClose,
+  initialPage = 1,
+}) => {
+  const { getColor } = useStyles();
+  const [currentPage, setCurrentPage] = useState(initialPage);
+  const [isAddingNote, setIsAddingNote] = useState(false);
+  const [annotations, setAnnotations] = useState<Annotation[]>([]);
+  const [bookmarks, setBookmarks] = useState<number[]>([]);
+  const [showSidebar, setShowSidebar] = useState(false);
+  const [pdfDocument, setPdfDocument] = useState<any>(null);
+  const [totalPages, setTotalPages] = useState(48);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  // Load PDF on mount
+  useEffect(() => {
+    const loadPDF = async () => {
+      try {
+        setIsLoading(true);
+        const loadingTask = pdfjs.getDocument("/apps/48/48.pdf");
+        const pdf = await loadingTask.promise;
+        setPdfDocument(pdf);
+        setTotalPages(pdf.numPages);
+        setIsLoading(false);
+        renderPage(currentPage, pdf);
+      } catch (error) {
+        console.error("Error loading PDF:", error);
+        setIsLoading(false);
+      }
+    };
+
+    loadPDF();
+  }, []);
+
+  // Render PDF page
+  const renderPage = async (pageNum: number, doc = pdfDocument) => {
+    if (!doc || !canvasRef.current) return;
+
+    try {
+      const page = await doc.getPage(pageNum);
+      const viewport = page.getViewport({ scale: 1.5 });
+
+      const canvas = canvasRef.current;
+      const context = canvas.getContext("2d");
+
+      canvas.height = viewport.height;
+      canvas.width = viewport.width;
+
+      await page.render({
+        canvasContext: context,
+        viewport,
+      }).promise;
+    } catch (error) {
+      console.error("Error rendering page:", error);
+    }
+  };
+
+  // Save page to localStorage
+  useEffect(() => {
+    localStorage.setItem("pdfReaderCurrentPage", currentPage.toString());
+    if (pdfDocument) {
+      renderPage(currentPage);
+    }
+  }, [currentPage, pdfDocument]);
+
+  // Key navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "ArrowRight" || e.key === " ") nextPage();
+      else if (e.key === "ArrowLeft") prevPage();
+      else if (e.key === "Escape") onClose();
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [currentPage]);
+
+  const nextPage = () => {
+    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+  };
+
+  const prevPage = () => {
+    if (currentPage > 1) setCurrentPage(currentPage - 1);
+  };
+
+  const toggleBookmark = () => {
+    setBookmarks((prev: number[]) =>
+      prev.includes(currentPage)
+        ? prev.filter((p) => p !== currentPage)
+        : [...prev, currentPage]
+    );
+  };
+
+  return (
+    <motion.div
+      className="fixed inset-0 z-[9999] flex flex-col bg-black/80 backdrop-blur-lg"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+    >
+      {/* Header */}
+      <div
+        className="h-14 border-b flex items-center justify-between px-6"
+        style={{
+          borderColor: getColor("Brd"),
+          backgroundColor: getColor("Glass"),
+        }}
+      >
+        <div className="flex items-center gap-4">
+          <BookOpen size={20} color={getColor("Text Primary (Hd)")} />
+          <h1
+            className="text-xl font-medium"
+            style={{ color: getColor("Text Primary (Hd)") }}
+          >
+            48 Laws of Power
+          </h1>
+          {bookmarks.includes(currentPage) && (
+            <Bookmark size={16} className="text-yellow-300/90" />
+          )}
+        </div>
+
+        <div className="flex items-center gap-3">
+          <button
+            className="p-2 rounded-full hover:bg-white/10 transition-colors"
+            onClick={() => setShowSidebar(!showSidebar)}
+            style={{ color: getColor("Text Primary (Hd)") }}
+          >
+            <Menu size={18} />
+          </button>
+          <button
+            className="p-2 rounded-full hover:bg-white/10 transition-colors"
+            onClick={onClose}
+            style={{ color: getColor("Text Primary (Hd)") }}
+          >
+            <X size={18} />
+          </button>
+        </div>
+      </div>
+
+      {/* Main content */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Sidebar */}
+        <AnimatePresence>
+          {showSidebar && (
+            <motion.div
+              initial={{ width: 0, opacity: 0 }}
+              animate={{ width: 280, opacity: 1 }}
+              exit={{ width: 0, opacity: 0 }}
+              className="h-full border-r overflow-y-auto"
+              style={{
+                backgroundColor: getColor("Black"),
+                borderColor: getColor("Brd"),
+              }}
+            >
+              <div className="p-4">
+                <h3
+                  className="font-medium mb-4"
+                  style={{ color: getColor("Text Primary (Hd)") }}
+                >
+                  Contents
+                </h3>
+
+                <div className="space-y-3">
+                  {/* Laws list */}
+                  {Array.from({ length: 48 }, (_, i) => i + 1).map(
+                    (lawNumber) => (
+                      <div
+                        key={lawNumber}
+                        className="py-1 cursor-pointer hover:opacity-80"
+                        onClick={() => setCurrentPage(lawNumber)}
+                        style={{
+                          color:
+                            currentPage === lawNumber
+                              ? getColor("Lilac Accent")
+                              : getColor("Text Primary (Hd)"),
+                          fontWeight:
+                            currentPage === lawNumber ? "bold" : "normal",
+                        }}
+                      >
+                        <div className="flex justify-between">
+                          <span>Law {lawNumber}</span>
+                          <span>{lawNumber}</span>
+                        </div>
+                      </div>
+                    )
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* PDF View */}
+        <div className="flex-1 flex items-center justify-center relative bg-black/50">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={`page-${currentPage}`}
+              className="relative"
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -50 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            >
+              {isLoading ? (
+                <div className="w-[600px] h-[800px] flex items-center justify-center">
+                  <div className="w-10 h-10 border-4 border-t-white border-opacity-50 rounded-full animate-spin"></div>
+                </div>
+              ) : (
+                <canvas ref={canvasRef} className="rounded-md shadow-xl" />
+              )}
+
+              {/* Annotation markers would go here */}
+              {annotations
+                .filter((a) => a.page === currentPage)
+                .map((annotation) => (
+                  <div
+                    key={annotation.id}
+                    className="absolute w-6 h-6 rounded-full bg-opacity-80 flex items-center justify-center cursor-pointer"
+                    style={{
+                      left: `${annotation.x}%`,
+                      top: `${annotation.y}%`,
+                      backgroundColor: getColor("Lilac Accent"),
+                      transform: "translate(-50%, -50%)",
+                    }}
+                  >
+                    <Text size={14} color="#fff" />
+                  </div>
+                ))}
+            </motion.div>
+          </AnimatePresence>
+
+          {/* Navigation buttons */}
+          <button
+            className="absolute left-6 top-1/2 transform -translate-y-1/2 p-3 rounded-full"
+            style={{
+              backgroundColor: getColor("Glass"),
+              color: getColor("Text Primary (Hd)"),
+              opacity: currentPage > 1 ? 1 : 0.5,
+            }}
+            onClick={prevPage}
+            disabled={currentPage <= 1}
+          >
+            <ChevronLeft size={24} />
+          </button>
+
+          <button
+            className="absolute right-6 top-1/2 transform -translate-y-1/2 p-3 rounded-full"
+            style={{
+              backgroundColor: getColor("Glass"),
+              color: getColor("Text Primary (Hd)"),
+              opacity: currentPage < totalPages ? 1 : 0.5,
+            }}
+            onClick={nextPage}
+            disabled={currentPage >= totalPages}
+          >
+            <ChevronRight size={24} />
+          </button>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div
+        className="h-14 border-t flex items-center justify-between px-6"
+        style={{
+          borderColor: getColor("Brd"),
+          backgroundColor: getColor("Glass"),
+        }}
+      >
+        <div
+          className="flex items-center gap-3"
+          style={{ color: getColor("Text Primary (Hd)") }}
+        >
+          <span>
+            Page {currentPage} of {totalPages}
+          </span>
+
+          <span
+            className="ml-4 font-medium"
+            style={{ color: getColor("Lilac Accent") }}
+          >
+            Law {currentPage}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <button
+            className="p-2 rounded-full hover:bg-white/10 transition-colors"
+            onClick={toggleBookmark}
+            style={{
+              color: bookmarks.includes(currentPage)
+                ? "#FFD700"
+                : getColor("Text Primary (Hd)"),
+            }}
+          >
+            <Bookmark size={18} />
+          </button>
+
+          <button
+            className="p-2 rounded-full hover:bg-white/10 transition-colors"
+            onClick={() => setIsAddingNote(!isAddingNote)}
+            style={{
+              color: isAddingNote
+                ? getColor("Lilac Accent")
+                : getColor("Text Primary (Hd)"),
+            }}
+          >
+            <Text size={18} />
+          </button>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
 const SystemIcon: React.FC<SystemIconProps> = ({
   src,
   children,
@@ -606,18 +1192,17 @@ export const MenuBar = () => {
   return (
     <>
       {/* PDF Reader */}
+      // Replace your existing PDF Reader section:
       <AnimatePresence>
         {isPDFOpen && (
-          <PDFReader
+          <ZenithPDFReader
             onClose={() => setIsPDFOpen(false)}
             initialPage={parseInt(
               localStorage.getItem("pdfReaderCurrentPage") || "1"
             )}
-            pdfUrl="/apps/48/48.pdf"
           />
         )}
       </AnimatePresence>
-
       <div
         className="fixed top-0 left-0 right-0 z-[9999]"
         style={{
@@ -625,7 +1210,6 @@ export const MenuBar = () => {
           pointerEvents: "none",
         }}
       />
-
       <AnimatePresence>
         {isMenuVisible && (
           <motion.div
@@ -710,10 +1294,14 @@ export const MenuBar = () => {
 
             <div className="flex">
               <div className="flex items-center gap-2">
-                <IconButton
+                <SystemIcon
                   src="/apps/48/48.png"
-                  onClick={() => setIsPDFOpen(true)}
-                />
+                  onOpenChange={setDropdownOpen}
+                >
+                  <PDFReaderDropdown
+                    onOpenFullscreen={() => setIsPDFOpen(true)}
+                  />
+                </SystemIcon>
 
                 <SystemIcon
                   src="/icns/system/_duo.png"
