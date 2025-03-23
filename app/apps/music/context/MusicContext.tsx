@@ -617,11 +617,11 @@ const ALL_PLAYLISTS: Playlist[] = [
       },
       {
         id: "xpfm-3",
-        title: "take my breath",
+        title: "how deep is your love",
         artist: "XTRAFM",
-        path: "/audio/xtra/takemybreath.mp4",
-        thumbnail: "/media/songs/takemybreath.png",
-        videoUrl: "https://www.youtube.com/watch?v=0poVdEVB6LI",
+        path: "/audio/xtra/howdeepisyourlove.mp4",
+        thumbnail: "/media/songs/howdeepisyourlove.png",
+        videoUrl: "https://www.youtube.com/watch?v=u6BYsu_s_q0",
       },
       {
         id: "xpfm-4",
@@ -629,25 +629,25 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "XTRAFM",
         path: "/audio/xtra/song4.mp4",
         thumbnail: "/media/songs/song4.png",
-        videoUrl: "https://www.youtube.com/watch?v=u6BYsu_s_q0",
+        videoUrl:
+          "https://www.youtube.com/watch?v=1DBgZjW9ZNg&list=PLAmw49p0-BAC8MG4yxLd5zOjglwH5I3P5&index=8&pp=gAQBiAQB8AUB",
       },
       {
         id: "xpfm-5",
         title: "xtra",
         artist: "XTRAFM",
-        path: "/audio/xtra/often.mp4",
+        path: "/audio/xtra/starboy.mp4",
         thumbnail: "/media/songs/song4.png",
-        videoUrl:
-          "https://www.youtube.com/watch?v=cjcS2Xwlpvo&list=PLAmw49p0-BAC8MG4yxLd5zOjglwH5I3P5&index=2&pp=gAQBiAQB8AUB",
+        videoUrl: "https://www.youtube.com/watch?v=PIVqz6e5j7s",
       },
       {
         id: "xpfm-6",
         title: "xtra",
         artist: "XTRAFM",
-        path: "/audio/xtra/likeamoth.mp4",
+        path: "/audio/xtra/abyss.mp4",
         thumbnail: "/media/songs/song4.png",
         videoUrl:
-          "https://www.youtube.com/watch?v=0XWSezFXIzo&list=PLAmw49p0-BAC8MG4yxLd5zOjglwH5I3P5&index=7&pp=gAQBiAQB8AUB",
+          "https://www.youtube.com/watch?v=1YrGhjy_xY0&pp=ygUKYWJ5c3MgYWZybw%3D%3D",
       },
       {
         id: "xpfm-7",
@@ -662,9 +662,36 @@ const ALL_PLAYLISTS: Playlist[] = [
         id: "xpfm-8",
         title: "xtra",
         artist: "XTRAFM",
-        path: "/audio/xtra/starboy.mp4",
+        path: "/audio/xtra/takemybreath.mp4",
         thumbnail: "/media/songs/song4.png",
-        videoUrl: "https://www.youtube.com/watch?v=PIVqz6e5j7s",
+        videoUrl:
+          "https://www.youtube.com/watch?v=Y7RZfs_dhk4&list=PLAmw49p0-BAC8MG4yxLd5zOjglwH5I3P5&index=9&pp=gAQBiAQB8AUB",
+      },
+      {
+        id: "xpfm-9",
+        title: "xtra",
+        artist: "XTRAFM",
+        path: "/audio/xtra/next.mp4",
+        thumbnail: "/media/songs/next.png",
+        videoUrl: "https://www.youtube.com/watch?v=vzt88jQznJI",
+      },
+      {
+        id: "xpfm-6",
+        title: "xtra",
+        artist: "XTRAFM",
+        path: "/audio/xtra/likeamoth.mp4",
+        thumbnail: "/media/songs/song4.png",
+        videoUrl:
+          "https://www.youtube.com/watch?v=0XWSezFXIzo&list=PLAmw49p0-BAC8MG4yxLd5zOjglwH5I3P5&index=7&pp=gAQBiAQB8AUB",
+      },
+      {
+        id: "xpfm-5",
+        title: "xtra",
+        artist: "XTRAFM",
+        path: "/audio/xtra/often.mp4",
+        thumbnail: "/media/songs/song4.png",
+        videoUrl:
+          "https://www.youtube.com/watch?v=cjcS2Xwlpvo&list=PLAmw49p0-BAC8MG4yxLd5zOjglwH5I3P5&index=2&pp=gAQBiAQB8AUB",
       },
       {
         id: "xpfm-9",
@@ -674,33 +701,6 @@ const ALL_PLAYLISTS: Playlist[] = [
         thumbnail: "/media/songs/song4.png",
         videoUrl:
           "https://www.youtube.com/watch?v=HNvwg_IGbbE&list=PLAmw49p0-BAC8MG4yxLd5zOjglwH5I3P5&index=1&pp=gAQBiAQB8AUB",
-      },
-      {
-        id: "xpfm-10",
-        title: "xtra",
-        artist: "XTRAFM",
-        path: "/audio/xtra/abyss.mp4",
-        thumbnail: "/media/songs/song4.png",
-        videoUrl:
-          "https://www.youtube.com/watch?v=1YrGhjy_xY0&pp=ygUKYWJ5c3MgYWZybw%3D%3D",
-      },
-      {
-        id: "xpfm-11",
-        title: "xtra",
-        artist: "XTRAFM",
-        path: "/audio/xtra/takemybreath.mp4",
-        thumbnail: "/media/songs/song4.png",
-        videoUrl:
-          "https://www.youtube.com/watch?v=Y7RZfs_dhk4&list=PLAmw49p0-BAC8MG4yxLd5zOjglwH5I3P5&index=9&pp=gAQBiAQB8AUB",
-      },
-      {
-        id: "xpfm-12",
-        title: "xtra",
-        artist: "XTRAFM",
-        path: "/audio/xtra/baptized.mp4",
-        thumbnail: "/media/songs/song4.png",
-        videoUrl:
-          "https://www.youtube.com/watch?v=1DBgZjW9ZNg&list=PLAmw49p0-BAC8MG4yxLd5zOjglwH5I3P5&index=8&pp=gAQBiAQB8AUB",
       },
     ],
   },
