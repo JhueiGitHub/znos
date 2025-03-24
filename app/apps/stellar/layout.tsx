@@ -7,5 +7,5 @@ export default function StellarLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <div className="w-full overflow-hidden dark">{children}</div>;
+  return <div className="w-full overflow-hidden">{children}</div>;
 }

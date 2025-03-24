@@ -193,250 +193,260 @@ const MusicDropdown: React.FC<MusicDropdownProps> = ({
 
   return (
     <DropdownMenuContent
-      className="w-[300px] p-3 space-y-3"
+      className="w-[300px] p-3 space-y-3 backdrop-blur-[18px] relative bg-[#00000090]"
       align="end"
       alignOffset={-3}
       sideOffset={4}
       style={{
-        backgroundColor: getColor("black-thick"),
-        borderColor: getColor("Brd"),
+        borderColor: "rgba(255, 255, 255, 0.06)",
+        border: "0.6px solid rgba(255, 255, 255, 0.06)",
         borderRadius: "9px",
+        position: "relative", // Required for absolute positioning of children
       }}
     >
-      {/* Current Song Info */}
-      <div className="flex items-center gap-3">
-        <img
-          src={currentSong?.thumbnail || "/media/system/_empty_image.png"}
-          alt={currentSong.title}
-          className="w-12 h-12 rounded"
-          style={exemplarPro.style}
-        />
-        <div className="flex-1 min-w-0">
-          <div
-            className="text-sm font-medium truncate text-white"
+      {/* Light gradient overlay */}
+      <div
+        className="absolute inset-0 w-full h-full rounded-[9px]"
+        style={{
+          background:
+            "linear-gradient(180deg, rgba(0, 0, 0, 0.3) 30%, rgba(0, 0, 0, 0.15) 100%)",
+          opacity: 0.7,
+          pointerEvents: "none",
+        }}
+      />
+
+      {/* Content wrapper remains the same */}
+      <div className="relative z-10 space-y-3">
+        {/* Current Song Info */}
+        <div className="flex items-center gap-3">
+          <img
+            src={currentSong?.thumbnail || "/media/system/_empty_image.png"}
+            alt={currentSong.title}
+            className="w-12 h-12 rounded"
             style={exemplarPro.style}
-          >
-            {currentSong.title}
-          </div>
-          <div
-            className="text-xs text-white/60 truncate"
-            style={exemplarPro.style}
-          >
-            {currentSong.artist}
+          />
+          <div className="flex-1 min-w-0">
+            <div
+              className="text-sm font-medium truncate text-white"
+              style={exemplarPro.style}
+            >
+              {currentSong.title}
+            </div>
+            <div
+              className="text-xs text-white/60 truncate"
+              style={exemplarPro.style}
+            >
+              {currentSong.artist}
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Progress Bar and Time */}
-      <div className="space-y-1">
-        <div
-          ref={progressBarRef}
-          className="flex items-center gap-2 px-1 relative h-4 group cursor-pointer"
-          onMouseEnter={() => setIsHovering(true)}
-          onMouseLeave={() => setIsHovering(false)}
-          onMouseMove={handleMouseMove}
-          onClick={handleProgressBarClick}
-        >
-          {/* Base progress bar background */}
-          <div className="w-full bg-white/10 rounded-full h-[3px] transition-all relative">
-            {/* Active progress */}
-            <div
-              className="absolute left-0 top-0 h-full rounded-full transition-all duration-200"
-              style={{
-                width: `${progress}%`,
-                backgroundColor: "rgba(76, 79, 105, 0.81)",
-              }}
-            />
-
-            {/* Current position marker - positioned above the progress bar */}
-            <div
-              className="absolute w-[2px] h-4 -top-[6.5px] rounded-full bg-[#626581] -translate-x-1/2 transition-opacity duration-200"
-              style={{
-                left: `${progress}%`,
-                opacity: isHovering ? 1 : 0,
-              }}
-            />
-
-            {/* Hover position marker - positioned above the progress bar */}
-            {isHovering && (
+        {/* Progress Bar and Time */}
+        <div className="space-y-1">
+          <div
+            ref={progressBarRef}
+            className="flex items-center gap-2 px-1 relative h-4 group cursor-pointer"
+            onMouseEnter={() => setIsHovering(true)}
+            onMouseLeave={() => setIsHovering(false)}
+            onMouseMove={handleMouseMove}
+            onClick={handleProgressBarClick}
+          >
+            {/* Base progress bar background */}
+            <div className="w-full bg-white/10 rounded-full h-[3px] transition-all relative">
+              {/* Active progress */}
               <div
-                className="absolute w-[2px] h-4 -top-[6.5px] rounded-full bg-[#626581] -translate-x-1/2 opacity-40"
+                className="absolute left-0 top-0 h-full rounded-full transition-all duration-200"
                 style={{
-                  left: `${hoverPosition}%`,
+                  width: `${progress}%`,
+                  backgroundColor: "rgba(76, 79, 105, 0.81)",
                 }}
               />
-            )}
-          </div>
-        </div>
-        <div className="flex justify-between px-1">
-          <span className="text-xs text-[rgba(76,79,105,0.81)]">
-            {formatTime(currentTime)}
-          </span>
 
-          <div className="flex flex-col items-start">
+              {/* Current position marker - positioned above the progress bar */}
+              <div
+                className="absolute w-[2px] h-4 -top-[6.5px] rounded-full bg-[#626581] -translate-x-1/2 transition-opacity duration-200"
+                style={{
+                  left: `${progress}%`,
+                  opacity: isHovering ? 1 : 0,
+                }}
+              />
+
+              {/* Hover position marker - positioned above the progress bar */}
+              {isHovering && (
+                <div
+                  className="absolute w-[2px] h-4 -top-[6.5px] rounded-full bg-[#626581] -translate-x-1/2 opacity-40"
+                  style={{
+                    left: `${hoverPosition}%`,
+                  }}
+                />
+              )}
+            </div>
+          </div>
+          <div className="flex justify-between px-1">
             <span className="text-xs text-[rgba(76,79,105,0.81)]">
-              {formatTime(duration)}
+              {formatTime(currentTime)}
             </span>
-            {/* Shuffle Button - Position under the left timestamp */}
-            {currentPlaylist && (
-              <button
-                onClick={() => handleShuffleToggle(currentPlaylist.id)}
-                className="mt-[5.7px] ml-[2.1px] opacity-60 hover:opacity-100 transition-opacity"
-                style={{ color: "rgba(76, 79, 105, 0.81)" }}
-                title={
-                  shuffleModeEnabled[currentPlaylist.id]
-                    ? "Reset shuffle"
-                    : "Shuffle playlist"
-                }
-              >
-                {shuffleModeEnabled[currentPlaylist.id] ? (
-                  <Repeat size={18} />
-                ) : (
-                  <Shuffle size={18} />
-                )}
-              </button>
-            )}
+
+            <div className="flex flex-col items-start">
+              <span className="text-xs text-[rgba(76,79,105,0.81)]">
+                {formatTime(duration)}
+              </span>
+              {/* Shuffle Button - Position under the left timestamp */}
+              {currentPlaylist && (
+                <button
+                  onClick={() => handleShuffleToggle(currentPlaylist.id)}
+                  className="mt-[5.7px] ml-[2.1px] opacity-60 hover:opacity-100 transition-opacity"
+                  style={{ color: "rgba(76, 79, 105, 0.81)" }}
+                  title={
+                    shuffleModeEnabled[currentPlaylist.id]
+                      ? "Reset shuffle"
+                      : "Shuffle playlist"
+                  }
+                >
+                  {shuffleModeEnabled[currentPlaylist.id] ? (
+                    <Repeat size={18} />
+                  ) : (
+                    <Shuffle size={18} />
+                  )}
+                </button>
+              )}
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Media Controls */}
-      <div className="flex justify-center items-center gap-6">
-        <button
-          onClick={onPrevious}
-          className="text-[rgba(76,79,105,0.81)] hover:text-[rgba(76,79,105,0.95)] transition-colors"
-        >
-          <SkipBack size={20} />
-        </button>
-        <button
-          onClick={onPlayPause}
-          className="text-[rgba(76,79,105,0.81)] hover:text-[rgba(76,79,105,0.95)] transition-colors"
-        >
-          {isPlaying ? <Pause size={24} /> : <Play size={24} />}
-        </button>
-        <button
-          onClick={onNext}
-          className="text-[rgba(76,79,105,0.81)] hover:text-[rgba(76,79,105,0.95)] transition-colors"
-        >
-          <SkipForward size={20} />
-        </button>
-      </div>
+        {/* Media Controls */}
+        <div className="flex justify-center items-center gap-6">
+          <button
+            onClick={onPrevious}
+            className="text-[rgba(76,79,105,0.81)] hover:text-[rgba(76,79,105,0.95)] transition-colors"
+          >
+            <SkipBack size={20} />
+          </button>
+          <button
+            onClick={onPlayPause}
+            className="text-[rgba(76,79,105,0.81)] hover:text-[rgba(76,79,105,0.95)] transition-colors"
+          >
+            {isPlaying ? <Pause size={24} /> : <Play size={24} />}
+          </button>
+          <button
+            onClick={onNext}
+            className="text-[rgba(76,79,105,0.81)] hover:text-[rgba(76,79,105,0.95)] transition-colors"
+          >
+            <SkipForward size={20} />
+          </button>
+        </div>
 
-      {/* Playlists Section */}
-      <div>
-        <button
-          onClick={() => setShowPlaylists(!showPlaylists)}
-          className="flex items-center gap-2 w-full px-2 py-1.5 rounded hover:bg-white/5 transition-colors"
-          style={{ color: "rgba(76, 79, 105, 0.81)" }}
-        >
-          <img src="/media/playlists.png" alt="Playlists" className="w-4 h-4" />
-          <span className="text-sm flex-1 text-left">Playlists</span>
-        </button>
+        {/* Playlists Section */}
+        <div>
+          <button
+            onClick={() => setShowPlaylists(!showPlaylists)}
+            className="flex items-center gap-2 w-full px-2 py-1.5 rounded hover:bg-white/5 transition-colors"
+            style={{ color: "rgba(76, 79, 105, 0.81)" }}
+          >
+            <img
+              src="/media/playlists.png"
+              alt="Playlists"
+              className="w-4 h-4"
+            />
+            <span className="text-sm flex-1 text-left">Playlists</span>
+          </button>
 
-        <AnimatePresence>
-          {showPlaylists && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="overflow-hidden"
-            >
-              <div className="space-y-2 pt-2">
-                {playlists.map((playlist) => (
-                  <div
-                    key={playlist.id}
-                    className="flex items-center gap-3 p-2 rounded hover:bg-white/5 transition-colors relative group"
-                  >
-                    {/* Left side with thumbnail and play button */}
-                    <div className="relative">
-                      <img
-                        src={playlist.thumbnail}
-                        alt={playlist.name}
-                        className="w-10 h-10 rounded"
-                      />
-                      <div
-                        className="absolute inset-0 hidden group-hover:flex items-center justify-center bg-black/50 rounded cursor-pointer"
-                        onClick={() => playPlaylist(playlist.id)}
-                      >
-                        <Play
-                          size={20}
-                          className="text-white"
-                          style={{
-                            color: "rgba(76, 79, 105, 0.81)",
-                          }}
+          <AnimatePresence>
+            {showPlaylists && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="overflow-hidden"
+              >
+                <div className="space-y-2 pt-2">
+                  {playlists.map((playlist) => (
+                    <div
+                      key={playlist.id}
+                      className="flex items-center gap-3 p-2 rounded hover:bg-white/5 transition-colors relative group"
+                    >
+                      {/* Left side with thumbnail and play button */}
+                      <div className="relative">
+                        <img
+                          src={playlist.thumbnail}
+                          alt={playlist.name}
+                          className="w-10 h-10 rounded"
                         />
+                        <div
+                          className="absolute inset-0 hidden group-hover:flex items-center justify-center bg-black/50 rounded cursor-pointer"
+                          onClick={() => playPlaylist(playlist.id)}
+                        >
+                          <Play
+                            size={20}
+                            className="text-white"
+                            style={{
+                              color: "rgba(76, 79, 105, 0.81)",
+                            }}
+                          />
+                        </div>
                       </div>
-                    </div>
 
-                    {/* Middle section with playlist info */}
-                    <div className="flex-1 min-w-0">
-                      <div
-                        className="text-sm font-medium truncate"
-                        style={{
-                          ...exemplarPro.style,
-                          color:
-                            currentPlaylist?.id === playlist.id
-                              ? "rgba(76, 79, 105, 0.95)"
-                              : "rgba(76, 79, 105, 0.81)",
-                        }}
-                      >
-                        {playlist.name}
-                        <span
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleFmMode(playlist.id);
-                          }}
+                      {/* Middle section with playlist info */}
+                      <div className="flex-1 min-w-0">
+                        <div
+                          className="text-sm font-medium truncate"
                           style={{
-                            color: fmModeEnabled[playlist.id]
-                              ? "inherit"
-                              : "rgba(76, 79, 105, 0.4)",
+                            ...exemplarPro.style,
+                            color:
+                              currentPlaylist?.id === playlist.id
+                                ? "rgba(76, 79, 105, 0.95)"
+                                : "rgba(76, 79, 105, 0.81)",
                           }}
                         >
-                          FM
-                        </span>
+                          {playlist.name}
+                          <span
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleFmMode(playlist.id);
+                            }}
+                            style={{
+                              color: fmModeEnabled[playlist.id]
+                                ? "inherit"
+                                : "rgba(76, 79, 105, 0.4)",
+                            }}
+                          >
+                            FM
+                          </span>
+                        </div>
+                        <div className="text-xs text-white/40 truncate flex items-center justify-between">
+                          <span>{playlist.songCount} songs</span>
+                        </div>
                       </div>
-                      <div className="text-xs text-white/40 truncate flex items-center justify-between">
-                        <span>{playlist.songCount} songs</span>
-                      </div>
-                    </div>
 
-                    {/* Right side with wallpaper toggle */}
-                    <div
-                      className="absolute right-5 hidden group-hover:flex items-center justify-center cursor-pointer"
-                      onClick={() => toggleWallpaperMode()}
-                      style={{ color: "rgba(76, 79, 105, 0.81)" }}
-                    >
-                      <div className="w-[27px] h-[27px] flex items-center justify-center">
-                        <img
-                          src="/media/music-wallpaper.png"
-                          alt="Toggle Wallpaper"
-                          className={`w-auto h-auto max-w-full max-h-full object-cover opacity-60 hover:opacity-100 transition-opacity ${
-                            isWallpaperMode ? "opacity-100" : ""
-                          }`}
-                        />
+                      {/* Right side with wallpaper toggle */}
+                      <div
+                        className="absolute right-5 hidden group-hover:flex items-center justify-center cursor-pointer"
+                        onClick={() => toggleWallpaperMode()}
+                        style={{ color: "rgba(76, 79, 105, 0.81)" }}
+                      >
+                        <div className="w-[27px] h-[27px] flex items-center justify-center">
+                          <img
+                            src="/media/music-wallpaper.png"
+                            alt="Toggle Wallpaper"
+                            className={`w-auto h-auto max-w-full max-h-full object-cover opacity-60 hover:opacity-100 transition-opacity ${
+                              isWallpaperMode ? "opacity-100" : ""
+                            }`}
+                          />
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
     </DropdownMenuContent>
   );
 };
 
-// Inside MenuBar.tsx - add this right next to your MusicDropdown component
-// No separate files needed - just like your music dropdown implementation
-
-// Just replace the PDFReaderDropdown and ZenithPDFReader components with these fixed versions:
-
-// Just replace the PDFReaderDropdown and ZenithPDFReader components with these fixed versions:
-
-// Then update the component to receive the prop
-// In MenuBar.tsx, add this PDFReaderDropdown component
 const PDFReaderDropdown: React.FC<{ onOpenFullscreen: () => void }> = ({
   onOpenFullscreen,
 }) => {
@@ -477,187 +487,202 @@ const PDFReaderDropdown: React.FC<{ onOpenFullscreen: () => void }> = ({
 
   return (
     <DropdownMenuContent
-      className="w-[350px] p-3 space-y-3"
+      className="w-[350px] p-3 space-y-3 backdrop-blur-[18px] relative bg-[#00000090]"
       align="end"
       alignOffset={-3}
       sideOffset={4}
       style={{
-        backgroundColor: getColor("black-thick"),
-        borderColor: getColor("Brd"),
+        borderColor: "rgba(255, 255, 255, 0.06)",
+        border: "0.6px solid rgba(255, 255, 255, 0.06)",
         borderRadius: "9px",
         fontFamily: "var(--font-exemplar)",
+        position: "relative", // Required for absolute positioning of children
       }}
     >
-      {/* PDF Preview */}
-      <div className="flex items-center gap-3">
-        <img
-          src="/apps/48/media/law-preview.jpg"
-          alt={`Law ${currentPage}`}
-          className="w-14 h-14 rounded"
-          onError={(e) => {
-            e.currentTarget.src = "/media/system/_empty_image.png";
-          }}
-        />
-        <div className="flex-1 min-w-0">
-          <div
-            className="text-sm font-medium truncate"
-            style={{ color: getColor("latte") }}
-          >
-            Law {currentPage <= 48 ? currentPage : "—"}:{" "}
-            {currentPage === 1
-              ? "Never Outshine the Master"
-              : `Law ${currentPage}`}
-          </div>
-          <div
-            className="text-xs truncate"
-            style={{ color: "rgba(76, 79, 105, 0.72)" }}
-          >
-            The 48 Laws of Power
-          </div>
-        </div>
-      </div>
-
-      {/* Page Navigation Bar */}
-      <div className="space-y-1">
-        <div className="flex items-center gap-2 px-1 relative h-4">
-          <div className="w-full bg-white/10 rounded-full h-[3px]">
-            <div
-              className="absolute left-0 top-0 h-full rounded-full"
-              style={{
-                width: `${(currentPage / totalPages) * 100}%`,
-                backgroundColor: "rgba(76, 79, 105, 0.81)",
-              }}
-            />
-          </div>
-        </div>
-        <div className="flex justify-between px-1">
-          <span
-            className="text-xs"
-            style={{ color: "rgba(76, 79, 105, 0.81)" }}
-          >
-            Page {currentPage}
-          </span>
-          <span
-            className="text-xs"
-            style={{ color: "rgba(76, 79, 105, 0.81)" }}
-          >
-            of {totalPages}
-          </span>
-        </div>
-      </div>
-
-      {/* Law Navigation Controls */}
-      <div className="flex justify-center items-center gap-6">
-        <button
-          onClick={prevPage}
-          className="transition-colors"
-          style={{ color: "rgba(76, 79, 105, 0.81)" }}
-        >
-          <ChevronLeft size={20} />
-        </button>
-
-        <button
-          onClick={onOpenFullscreen}
-          className="w-10 h-10 rounded-full flex items-center justify-center transition-colors"
-          style={{
-            backgroundColor: "rgba(76, 79, 105, 0.2)",
-            color: "rgba(76, 79, 105, 0.81)",
-          }}
-        >
-          <BookOpen size={20} />
-        </button>
-
-        <button
-          onClick={nextPage}
-          className="transition-colors"
-          style={{ color: "rgba(76, 79, 105, 0.81)" }}
-        >
-          <ChevronRight size={20} />
-        </button>
-      </div>
-
-      {/* Bookmarks Section */}
-      <div>
-        <button
-          className="flex items-center gap-2 w-full px-2 py-1.5 rounded hover:bg-white/5 transition-colors"
-          style={{ color: "rgba(76, 79, 105, 0.81)" }}
-        >
-          <Bookmark size={14} />
-          <span className="text-sm flex-1 text-left">Bookmarks</span>
-        </button>
-
-        <div className="space-y-2 pt-2">
-          {bookmarks.length > 0 ? (
-            bookmarks.map((page) => (
-              <div
-                key={`bookmark-${page}`}
-                className="flex items-center gap-3 p-2 rounded hover:bg-white/5 transition-colors relative"
-                onClick={() => setCurrentPage(page)}
-              >
-                <div className="w-8 h-8 rounded bg-black/30 flex items-center justify-center">
-                  <Text
-                    size={14}
-                    style={{ color: "rgba(76, 79, 105, 0.81)" }}
-                  />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div
-                    className="text-sm truncate"
-                    style={{ color: "rgba(76, 79, 105, 0.81)" }}
-                  >
-                    Law {page}
-                  </div>
-                  <div
-                    className="text-xs truncate"
-                    style={{ color: "rgba(76, 79, 105, 0.5)" }}
-                  >
-                    Page {page}
-                  </div>
-                </div>
-              </div>
-            ))
-          ) : (
-            <div
-              className="text-sm italic px-2"
-              style={{ color: "rgba(76, 79, 105, 0.5)" }}
-            >
-              No bookmarks yet
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Quick Actions */}
+      {/* Light gradient overlay */}
       <div
-        className="flex justify-around pt-2 border-t"
-        style={{ borderColor: getColor("Brd") }}
-      >
-        <button
-          className="p-2 rounded-full hover:bg-white/5"
-          onClick={toggleBookmark}
-          style={{
-            color: bookmarks.includes(currentPage)
-              ? "#FFD700"
-              : "rgba(76, 79, 105, 0.81)",
-          }}
+        className="absolute inset-0 w-full h-full rounded-[9px]"
+        style={{
+          background:
+            "linear-gradient(180deg, rgba(0, 0, 0, 0.3) 30%, rgba(0, 0, 0, 0.15) 100%)",
+          opacity: 0.7,
+          pointerEvents: "none",
+        }}
+      />
+
+      {/* Content wrapper */}
+      <div className="relative z-10 space-y-3">
+        {/* PDF Preview */}
+        <div className="flex items-center gap-3">
+          <img
+            src="/apps/48/media/law-preview.jpg"
+            alt={`Law ${currentPage}`}
+            className="w-14 h-14 rounded"
+            onError={(e) => {
+              e.currentTarget.src = "/media/system/_empty_image.png";
+            }}
+          />
+          <div className="flex-1 min-w-0">
+            <div
+              className="text-sm font-medium truncate"
+              style={{ color: getColor("latte") }}
+            >
+              Law {currentPage <= 48 ? currentPage : "—"}:{" "}
+              {currentPage === 1
+                ? "Never Outshine the Master"
+                : `Law ${currentPage}`}
+            </div>
+            <div
+              className="text-xs truncate"
+              style={{ color: "rgba(76, 79, 105, 0.72)" }}
+            >
+              The 48 Laws of Power
+            </div>
+          </div>
+        </div>
+
+        {/* Page Navigation Bar */}
+        <div className="space-y-1">
+          <div className="flex items-center gap-2 px-1 relative h-4">
+            <div className="w-full bg-white/10 rounded-full h-[3px]">
+              <div
+                className="absolute left-0 top-0 h-full rounded-full"
+                style={{
+                  width: `${(currentPage / totalPages) * 100}%`,
+                  backgroundColor: "rgba(76, 79, 105, 0.81)",
+                }}
+              />
+            </div>
+          </div>
+          <div className="flex justify-between px-1">
+            <span
+              className="text-xs"
+              style={{ color: "rgba(76, 79, 105, 0.81)" }}
+            >
+              Page {currentPage}
+            </span>
+            <span
+              className="text-xs"
+              style={{ color: "rgba(76, 79, 105, 0.81)" }}
+            >
+              of {totalPages}
+            </span>
+          </div>
+        </div>
+
+        {/* Law Navigation Controls */}
+        <div className="flex justify-center items-center gap-6">
+          <button
+            onClick={prevPage}
+            className="transition-colors"
+            style={{ color: "rgba(76, 79, 105, 0.81)" }}
+          >
+            <ChevronLeft size={20} />
+          </button>
+
+          <button
+            onClick={onOpenFullscreen}
+            className="w-10 h-10 rounded-full flex items-center justify-center transition-colors"
+            style={{
+              backgroundColor: "rgba(76, 79, 105, 0.2)",
+              color: "rgba(76, 79, 105, 0.81)",
+            }}
+          >
+            <BookOpen size={20} />
+          </button>
+
+          <button
+            onClick={nextPage}
+            className="transition-colors"
+            style={{ color: "rgba(76, 79, 105, 0.81)" }}
+          >
+            <ChevronRight size={20} />
+          </button>
+        </div>
+
+        {/* Bookmarks Section */}
+        <div>
+          <button
+            className="flex items-center gap-2 w-full px-2 py-1.5 rounded hover:bg-white/5 transition-colors"
+            style={{ color: "rgba(76, 79, 105, 0.81)" }}
+          >
+            <Bookmark size={14} />
+            <span className="text-sm flex-1 text-left">Bookmarks</span>
+          </button>
+
+          <div className="space-y-2 pt-2">
+            {bookmarks.length > 0 ? (
+              bookmarks.map((page) => (
+                <div
+                  key={`bookmark-${page}`}
+                  className="flex items-center gap-3 p-2 rounded hover:bg-white/5 transition-colors relative"
+                  onClick={() => setCurrentPage(page)}
+                >
+                  <div className="w-8 h-8 rounded bg-black/30 flex items-center justify-center">
+                    <Text
+                      size={14}
+                      style={{ color: "rgba(76, 79, 105, 0.81)" }}
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div
+                      className="text-sm truncate"
+                      style={{ color: "rgba(76, 79, 105, 0.81)" }}
+                    >
+                      Law {page}
+                    </div>
+                    <div
+                      className="text-xs truncate"
+                      style={{ color: "rgba(76, 79, 105, 0.5)" }}
+                    >
+                      Page {page}
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div
+                className="text-sm italic px-2"
+                style={{ color: "rgba(76, 79, 105, 0.5)" }}
+              >
+                No bookmarks yet
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Quick Actions */}
+        <div
+          className="flex justify-around pt-2 border-t"
+          style={{ borderColor: getColor("Brd") }}
         >
-          <Bookmark size={18} />
-        </button>
-        <button
-          className="p-2 rounded-full hover:bg-white/5"
-          onClick={() => setIsAnnotating(!isAnnotating)}
-          style={{
-            color: isAnnotating ? "#7B6CBD" : "rgba(76, 79, 105, 0.81)",
-          }}
-        >
-          <Text size={18} />
-        </button>
-        <button
-          className="p-2 rounded-full hover:bg-white/5"
-          style={{ color: "rgba(76, 79, 105, 0.81)" }}
-        >
-          <Download size={18} />
-        </button>
+          <button
+            className="p-2 rounded-full hover:bg-white/5"
+            onClick={toggleBookmark}
+            style={{
+              color: bookmarks.includes(currentPage)
+                ? "#FFD700"
+                : "rgba(76, 79, 105, 0.81)",
+            }}
+          >
+            <Bookmark size={18} />
+          </button>
+          <button
+            className="p-2 rounded-full hover:bg-white/5"
+            onClick={() => setIsAnnotating(!isAnnotating)}
+            style={{
+              color: isAnnotating ? "#7B6CBD" : "rgba(76, 79, 105, 0.81)",
+            }}
+          >
+            <Text size={18} />
+          </button>
+          <button
+            className="p-2 rounded-full hover:bg-white/5"
+            style={{ color: "rgba(76, 79, 105, 0.81)" }}
+          >
+            <Download size={18} />
+          </button>
+        </div>
       </div>
     </DropdownMenuContent>
   );
@@ -973,30 +998,45 @@ export const MenuBar = () => {
                       </motion.button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent
-                      className="min-w-[280px] p-1"
+                      className="min-w-[280px] p-1 backdrop-blur-[18px] relative bg-[#00000090]"
                       align="start"
                       alignOffset={-3}
                       sideOffset={4}
                       style={{
-                        backgroundColor: getColor("black-med"),
-                        borderColor: getColor("Brd"),
+                        borderColor: "rgba(255, 255, 255, 0.06)",
+                        border: "0.6px solid rgba(255, 255, 255, 0.06)",
+                        position: "relative", // Required for absolute positioning of children
                       }}
                     >
-                      {flows.map((flow) => (
-                        <DropdownMenuItem
-                          key={flow.id}
-                          onClick={() => handleFlowSelect(flow)}
-                          className="flex items-center justify-between px-3 py-2 hover:bg-white/5 rounded-md cursor-pointer"
-                          style={{
-                            color: "rgba(76, 79, 105, 0.81)",
-                          }}
-                        >
-                          <span className="text-sm">{flow.name}</span>
-                          {flow.id === activeOSFlowId && (
-                            <Check className="w-4 h-4 ml-2" />
-                          )}
-                        </DropdownMenuItem>
-                      ))}
+                      {/* Light gradient overlay */}
+                      <div
+                        className="absolute inset-0 w-full h-full rounded-md"
+                        style={{
+                          background:
+                            "linear-gradient(180deg, rgba(0, 0, 0, 0.3) 30%, rgba(0, 0, 0, 0.15) 100%)",
+                          opacity: 0.7,
+                          pointerEvents: "none",
+                        }}
+                      />
+
+                      {/* Content - needs z-index to appear above layers */}
+                      <div className="relative z-10">
+                        {flows.map((flow) => (
+                          <DropdownMenuItem
+                            key={flow.id}
+                            onClick={() => handleFlowSelect(flow)}
+                            className="flex items-center justify-between px-3 py-2 hover:bg-white/5 rounded-md cursor-pointer"
+                            style={{
+                              color: "rgba(76, 79, 105, 0.81)",
+                            }}
+                          >
+                            <span className="text-sm">{flow.name}</span>
+                            {flow.id === activeOSFlowId && (
+                              <Check className="w-4 h-4 ml-2" />
+                            )}
+                          </DropdownMenuItem>
+                        ))}
+                      </div>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
