@@ -47,12 +47,43 @@ export const FloatingDock = ({
     <motion.div
       onMouseMove={(e) => mouseX.set(e.pageX)}
       onMouseLeave={() => mouseX.set(Infinity)}
-      className="flex h-16 items-end rounded-[19px] px-4 pb-3"
+      className="flex h-16 items-end rounded-[19px] px-4 pb-3 relative"
       style={{
-        backgroundColor,
         border: `0.6px solid ${borderColor}`,
       }}
     >
+      {/* GLASS EFFECT - Layer 1: Backdrop Blur */}
+      <div className="absolute inset-0 rounded-[19px] backdrop-blur-[16px] -z-10" />
+
+      {/* GLASS EFFECT - Layer 2: Gradient Overlay */}
+      <div
+        className="absolute inset-0 rounded-[19px] -z-10"
+        style={{
+          background:
+            "linear-gradient(180deg, rgba(0, 0, 0, 0.3) 30%, rgba(0, 0, 0, 0.15) 100%)",
+          opacity: 0.7,
+        }}
+      />
+
+      {/* GLASS EFFECT - Layer 3: Noise Texture (optional) */}
+      <div
+        className="absolute inset-0 rounded-[19px] mix-blend-overlay opacity-[0.03] -z-10"
+        style={{
+          backgroundImage: "url('/noise.png')",
+          backgroundRepeat: "repeat",
+        }}
+      />
+
+      {/* GLASS EFFECT - Layer 4: Top Highlight */}
+      <div
+        className="absolute top-0 left-0 right-0 h-[1px] rounded-t-[19px] -z-10"
+        style={{
+          background:
+            "linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.07) 50%, transparent 100%)",
+        }}
+      />
+
+      {/* The actual dock items - these need to be above the glass effect */}
       {items?.map((item) => (
         <IconContainer
           mouseX={mouseX}

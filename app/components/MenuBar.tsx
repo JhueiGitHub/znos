@@ -896,144 +896,177 @@ export const MenuBar = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -MENU_HEIGHT }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="fixed top-0 left-0 right-0 h-8 flex items-center justify-between px-2 z-[9999] backdrop-blur-sm"
+            className="fixed top-0 left-0 right-0 h-8 z-[9999] backdrop-blur-[16px]"
             style={{
-              backgroundColor: getColor("Glass"),
-              borderBottom: `1px solid ${getColor("Brd")}`,
               pointerEvents: "auto",
+              borderBottom: `1px solid rgba(255, 255, 255, 0.06)`,
             }}
           >
-            <div className="flex items-center gap-3">
-              <IconButton src="/icns/system/_dopa.png" />
-              <IconButton
-                src="/icns/system/_stellar.png"
-                onClick={() => {}} // Empty handler for now
-              />
+            {/* Light gradient overlay that adds depth */}
+            <div
+              className="absolute inset-0 w-full h-full"
+              style={{
+                background:
+                  "linear-gradient(180deg, rgba(0, 0, 0, 0.3) 30%, rgba(0, 0, 0, 0.15) 100%)",
+                opacity: 0.7,
+              }}
+            />
 
-              <div className="transform -translate-x-[4.5px]">
-                <DropdownMenu
-                  onOpenChange={(open) => {
-                    setDropdownOpen(open);
-                    if (open) {
-                      queryClient.invalidateQueries({
-                        queryKey: ["orion-config"],
-                      });
-                      queryClient.invalidateQueries({
-                        queryKey: ["orion-stream", orionConfig?.flow?.streamId],
-                      });
-                    }
-                  }}
-                >
-                  <DropdownMenuTrigger asChild>
-                    <motion.button
-                      className="relative p-2 rounded-md flex items-center justify-center hover:bg-white/5"
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      <motion.img
-                        src="/icns/system/_orion.png"
-                        alt="Orion"
-                        className="w-4 h-4"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.1 }}
-                      />
-                    </motion.button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent
-                    className="min-w-[280px] p-1"
-                    align="start"
-                    alignOffset={-3}
-                    sideOffset={4}
-                    style={{
-                      backgroundColor: getColor("black-med"),
-                      borderColor: getColor("Brd"),
-                    }}
-                  >
-                    {flows.map((flow) => (
-                      <DropdownMenuItem
-                        key={flow.id}
-                        onClick={() => handleFlowSelect(flow)}
-                        className="flex items-center justify-between px-3 py-2 hover:bg-white/5 rounded-md cursor-pointer"
-                        style={{
-                          color: "rgba(76, 79, 105, 0.81)",
-                        }}
-                      >
-                        <span className="text-sm">{flow.name}</span>
-                        {flow.id === activeOSFlowId && (
-                          <Check className="w-4 h-4 ml-2" />
-                        )}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </div>
+            {/* Subtle noise texture layer for realism */}
+            <div
+              className="absolute inset-0 w-full h-full mix-blend-overlay opacity-[0.03]"
+              style={{
+                backgroundImage: "url('/noise.png')",
+                backgroundRepeat: "repeat",
+              }}
+            />
 
-            <div className="flex">
-              <div className="flex items-center gap-2">
-                <SystemIcon
-                  src="/apps/48/48.png"
-                  onOpenChange={setDropdownOpen}
-                >
-                  <PDFReaderDropdown
-                    onOpenFullscreen={() => setIsPDFOpen(true)}
-                  />
-                </SystemIcon>
+            {/* Subtle top highlight */}
+            <div
+              className="absolute top-0 left-0 right-0 h-[1px]"
+              style={{
+                background:
+                  "linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.07) 50%, transparent 100%)",
+              }}
+            />
 
-                <SystemIcon
-                  src="/icns/system/_duo.png"
-                  onOpenChange={setDropdownOpen}
-                >
-                  <DuolingoImageDropdown
-                    onLessonSelect={(lessonId) => {
-                      console.log(`Selected item: ${lessonId}`);
-                      // Handle the selection based on the area clicked
+            {/* Content container */}
+            <div className="relative h-full flex items-center justify-between px-2">
+              <div className="flex items-center gap-3">
+                <IconButton src="/icns/system/_dopa.png" />
+                <IconButton
+                  src="/icns/system/_stellar.png"
+                  onClick={() => {}} // Empty handler for now
+                />
 
-                      // For example:
-                      if (lessonId.startsWith("lesson")) {
-                        // Handle lesson selection
-                        const lessonNumber = lessonId.replace("lesson", "");
-                        console.log(`Opening lesson ${lessonNumber}`);
-                      } else if (lessonId === "dailyGoals") {
-                        // Open daily goals view
-                        console.log("Opening daily goals");
-                      } else if (lessonId === "schedule") {
-                        // Open practice schedule
-                        console.log("Opening practice schedule");
+                <div className="transform -translate-x-[4.5px]">
+                  <DropdownMenu
+                    onOpenChange={(open) => {
+                      setDropdownOpen(open);
+                      if (open) {
+                        queryClient.invalidateQueries({
+                          queryKey: ["orion-config"],
+                        });
+                        queryClient.invalidateQueries({
+                          queryKey: [
+                            "orion-stream",
+                            orionConfig?.flow?.streamId,
+                          ],
+                        });
                       }
                     }}
-                  />
-                </SystemIcon>
-                <SystemIcon
-                  src="/icns/system/_play.png"
-                  onOpenChange={setDropdownOpen}
-                >
-                  <MusicDropdown
-                    currentSong={
-                      songs[currentSongIndex]
-                        ? {
-                            title: songs[currentSongIndex].title,
-                            artist: songs[currentSongIndex].artist,
-                          }
-                        : { title: "song1", artist: "Unknown Artist" }
-                    }
-                    isPlaying={isPlaying}
-                    onPlayPause={togglePlay}
-                    onNext={playNext}
-                    onPrevious={playPrevious}
-                    progress={songProgress}
-                    currentTime={currentTime}
-                    duration={duration}
-                  />
-                </SystemIcon>
-                <div
-                  className="text-xs font-medium pl-[6px]"
-                  style={{
-                    color: "rgba(76, 79, 105, 0.81)",
-                  }}
-                >
-                  {formattedDate}
+                  >
+                    <DropdownMenuTrigger asChild>
+                      <motion.button
+                        className="relative p-2 rounded-md flex items-center justify-center hover:bg-white/5"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        <motion.img
+                          src="/icns/system/_orion.png"
+                          alt="Orion"
+                          className="w-4 h-4"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ delay: 0.1 }}
+                        />
+                      </motion.button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent
+                      className="min-w-[280px] p-1"
+                      align="start"
+                      alignOffset={-3}
+                      sideOffset={4}
+                      style={{
+                        backgroundColor: getColor("black-med"),
+                        borderColor: getColor("Brd"),
+                      }}
+                    >
+                      {flows.map((flow) => (
+                        <DropdownMenuItem
+                          key={flow.id}
+                          onClick={() => handleFlowSelect(flow)}
+                          className="flex items-center justify-between px-3 py-2 hover:bg-white/5 rounded-md cursor-pointer"
+                          style={{
+                            color: "rgba(76, 79, 105, 0.81)",
+                          }}
+                        >
+                          <span className="text-sm">{flow.name}</span>
+                          {flow.id === activeOSFlowId && (
+                            <Check className="w-4 h-4 ml-2" />
+                          )}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </div>
+
+              <div className="flex">
+                <div className="flex items-center gap-2">
+                  <SystemIcon
+                    src="/apps/48/48.png"
+                    onOpenChange={setDropdownOpen}
+                  >
+                    <PDFReaderDropdown
+                      onOpenFullscreen={() => setIsPDFOpen(true)}
+                    />
+                  </SystemIcon>
+
+                  <SystemIcon
+                    src="/icns/system/_duo.png"
+                    onOpenChange={setDropdownOpen}
+                  >
+                    <DuolingoImageDropdown
+                      onLessonSelect={(lessonId) => {
+                        console.log(`Selected item: ${lessonId}`);
+                        // Handle the selection based on the area clicked
+
+                        // For example:
+                        if (lessonId.startsWith("lesson")) {
+                          // Handle lesson selection
+                          const lessonNumber = lessonId.replace("lesson", "");
+                          console.log(`Opening lesson ${lessonNumber}`);
+                        } else if (lessonId === "dailyGoals") {
+                          // Open daily goals view
+                          console.log("Opening daily goals");
+                        } else if (lessonId === "schedule") {
+                          // Open practice schedule
+                          console.log("Opening practice schedule");
+                        }
+                      }}
+                    />
+                  </SystemIcon>
+                  <SystemIcon
+                    src="/icns/system/_play.png"
+                    onOpenChange={setDropdownOpen}
+                  >
+                    <MusicDropdown
+                      currentSong={
+                        songs[currentSongIndex]
+                          ? {
+                              title: songs[currentSongIndex].title,
+                              artist: songs[currentSongIndex].artist,
+                            }
+                          : { title: "song1", artist: "Unknown Artist" }
+                      }
+                      isPlaying={isPlaying}
+                      onPlayPause={togglePlay}
+                      onNext={playNext}
+                      onPrevious={playPrevious}
+                      progress={songProgress}
+                      currentTime={currentTime}
+                      duration={duration}
+                    />
+                  </SystemIcon>
+                  <div
+                    className="text-xs font-medium pl-[6px]"
+                    style={{
+                      color: "rgba(76, 79, 105, 0.81)",
+                    }}
+                  >
+                    {formattedDate}
+                  </div>
                 </div>
               </div>
             </div>

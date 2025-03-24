@@ -207,7 +207,7 @@ const Dock: React.FC = () => {
             >
               <FloatingDock
                 items={dockItems}
-                backgroundColor={getColor("Glass")}
+                backgroundColor="transparent" // Changed to transparent since we're handling the background in FloatingDock
                 borderColor={getColor("Brd")}
               />
             </motion.div>

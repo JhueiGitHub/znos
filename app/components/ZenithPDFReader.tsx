@@ -12,6 +12,11 @@ import {
 } from "lucide-react";
 import { useStyles } from "@/app/hooks/useStyles";
 import * as pdfjs from "pdfjs-dist";
+import localFont from "next/font/local";
+
+const exemplarPro = localFont({
+  src: "../../public/fonts/ExemplarPro.otf",
+});
 
 // Define types for better type safety
 interface ZenithPDFReaderProps {
@@ -460,7 +465,7 @@ const ZenithPDFReader: React.FC<ZenithPDFReaderProps> = ({
   // Main component render
   return (
     <motion.div
-      className="fixed inset-0 z-[9999] flex flex-col bg-black/80 backdrop-blur-lg"
+      className="fixed inset-0 z-[9999] flex flex-col bg-black/30 backdrop-blur-lg"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -475,10 +480,10 @@ const ZenithPDFReader: React.FC<ZenithPDFReaderProps> = ({
         }}
       >
         <div className="flex items-center gap-4">
-          <BookOpen size={20} color={getColor("Text Primary (Hd)")} />
+          <BookOpen size={20} color={getColor("latte")} />
           <h1
-            className="text-xl font-medium"
-            style={{ color: getColor("Text Primary (Hd)") }}
+            className="text-xl font-medium text-[#4C4F69]"
+            style={exemplarPro.style}
           >
             48 Laws of Power
           </h1>
@@ -491,14 +496,14 @@ const ZenithPDFReader: React.FC<ZenithPDFReaderProps> = ({
           <button
             className="p-2 rounded-full hover:bg-white/10 transition-colors"
             onClick={() => setShowSidebar(!showSidebar)}
-            style={{ color: getColor("Text Primary (Hd)") }}
+            style={{ color: getColor("latte") }}
           >
             <Menu size={18} />
           </button>
           <button
             className="p-2 rounded-full hover:bg-white/10 transition-colors"
             onClick={onClose}
-            style={{ color: getColor("Text Primary (Hd)") }}
+            style={{ color: getColor("latte") }}
           >
             <X size={18} />
           </button>
@@ -523,7 +528,7 @@ const ZenithPDFReader: React.FC<ZenithPDFReaderProps> = ({
               <div className="p-4">
                 <h3
                   className="font-medium mb-4"
-                  style={{ color: getColor("Text Primary (Hd)") }}
+                  style={{ color: getColor("latte") }}
                 >
                   Contents
                 </h3>
@@ -547,7 +552,7 @@ const ZenithPDFReader: React.FC<ZenithPDFReaderProps> = ({
                           color:
                             currentPage === lawNumber
                               ? "#4C4F69"
-                              : getColor("Text Primary (Hd)"),
+                              : getColor("latte"),
                           fontWeight:
                             currentPage === lawNumber ? "bold" : "normal",
                         }}
@@ -664,7 +669,7 @@ const ZenithPDFReader: React.FC<ZenithPDFReaderProps> = ({
             whileTap={{ scale: 0.95 }}
             style={{
               backgroundColor: getColor("Glass"),
-              color: getColor("Text Primary (Hd)"),
+              color: getColor("latte"),
               opacity: currentPage > 1 ? 1 : 0.5,
             }}
             onClick={() => turnPage("prev")}
@@ -679,7 +684,7 @@ const ZenithPDFReader: React.FC<ZenithPDFReaderProps> = ({
             whileTap={{ scale: 0.95 }}
             style={{
               backgroundColor: getColor("Glass"),
-              color: getColor("Text Primary (Hd)"),
+              color: getColor("latte"),
               opacity: currentPage < totalPages ? 1 : 0.5,
             }}
             onClick={() => turnPage("next")}
@@ -700,7 +705,7 @@ const ZenithPDFReader: React.FC<ZenithPDFReaderProps> = ({
       >
         <div
           className="flex items-center gap-3"
-          style={{ color: getColor("Text Primary (Hd)") }}
+          style={{ color: getColor("latte") }}
         >
           <span>
             Page {currentPage} of {totalPages || 476}
@@ -726,7 +731,7 @@ const ZenithPDFReader: React.FC<ZenithPDFReaderProps> = ({
             style={{
               color: bookmarks.includes(currentPage)
                 ? "#FFD700"
-                : getColor("Text Primary (Hd)"),
+                : getColor("latte"),
             }}
           >
             <Bookmark size={18} />
@@ -738,7 +743,7 @@ const ZenithPDFReader: React.FC<ZenithPDFReaderProps> = ({
             whileTap={{ scale: 0.95 }}
             onClick={() => setIsAddingNote(!isAddingNote)}
             style={{
-              color: isAddingNote ? "#4C4F69" : getColor("Text Primary (Hd)"),
+              color: isAddingNote ? "#4C4F69" : getColor("latte"),
             }}
           >
             <Text size={18} />
