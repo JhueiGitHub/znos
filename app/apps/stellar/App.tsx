@@ -21,7 +21,7 @@ export default function App({ initialFolderId }: AppProps) {
       <DragProvider>
         <FolderProvider initialFolderId={initialFolderId}>
           <StellarKeyboardEvents />
-          <div className="flex h-full w-full">
+          <div className="flex h-full w-full bg-[#00000045] ">
             <Sidebar />
             <main className="flex flex-1 flex-col min-w-0">
               <NavBar />

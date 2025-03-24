@@ -44,14 +44,11 @@ const Window: React.FC<WindowProps> = ({ app, isActive }) => {
       exit={{ scale: 0, opacity: 0 }}
       style={{
         zIndex: isActive ? 100 : 1,
-        backgroundColor: getColor("Glass"),
-        border: `1px solid ${getColor("Brd")}`,
       }}
-      className="fixed inset-0 w-full h-full flex flex-col rounded-lg shadow-lg overflow-hidden"
+      className="fixed inset-0 w-full h-full flex flex-col shadow-lg overflow-hidden backdrop-blur-[18px] bg-[#00000030]"
     >
       <div
-        className="p-2 flex justify-between items-center"
-        style={{ backgroundColor: getColor("Glass") }}
+        className="p-[9px] flex justify-between items-center backdrop-blur-[18px] bg-[#0000009f]"
         onClick={() => setActiveApp(app.id)}
       >
         <div className="flex space-x-2">
