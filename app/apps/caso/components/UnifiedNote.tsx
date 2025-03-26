@@ -59,6 +59,7 @@ const UnifiedNote: React.FC<UnifiedNoteProps> = ({
   const [notePosition, setNotePosition] = useState<Position>(position);
 
   // Store dimensions in component state
+  // Initialize dimensions with fixed values first to ensure compatibility
   const [noteDimensions, setNoteDimensions] = useState<Dimensions>({
     width: isLinkNote ? 300 : 200,
     height: "auto",
@@ -86,15 +87,42 @@ const UnifiedNote: React.FC<UnifiedNoteProps> = ({
     (state) => state.updateItemPosition
   );
 
-  // Load saved position from localStorage on mount
+  // Helper to ensure dimensions are type-safe
+  const ensureValidDimensions = (dimensions: any): Dimensions => {
+    // Get width - ensure it's either a number or specifically "auto"
+    const width =
+      dimensions.width === "auto"
+        ? "auto"
+        : typeof dimensions.width === "number"
+          ? dimensions.width
+          : 200; // Default fallback
+
+    // Get height - ensure it's either a number or specifically "auto"
+    const height =
+      dimensions.height === "auto"
+        ? "auto"
+        : typeof dimensions.height === "number"
+          ? dimensions.height
+          : "auto"; // Default fallback
+
+    return { width, height };
+  };
+
+  // Modified load effect to properly handle store dimensions and defaults
   useEffect(() => {
+    // First try to get the item from the store
+    const board = useMilanoteStore.getState().boards[boardId];
+    const storeItem = board?.items.find((item) => item.id === id);
+
+    // Position handling (same as before)
     const posStorageKey = getPositionStorageKey(id);
     const savedPosition = localStorage.getItem(posStorageKey);
 
-    if (savedPosition) {
+    if (storeItem?.position) {
+      setNotePosition(storeItem.position);
+    } else if (savedPosition) {
       try {
         const parsedPosition = JSON.parse(savedPosition);
-        // Only use saved position if it has valid coordinates
         if (
           typeof parsedPosition.x === "number" &&
           typeof parsedPosition.y === "number"
@@ -107,27 +135,58 @@ const UnifiedNote: React.FC<UnifiedNoteProps> = ({
       }
     }
 
-    // Load saved dimensions
-    const dimStorageKey = getDimensionsStorageKey(id);
-    const savedDimensions = localStorage.getItem(dimStorageKey);
+    // Dimensions handling - check multiple sources
+    let dimensionsFound = false;
 
-    if (savedDimensions) {
-      try {
-        const parsedDimensions = JSON.parse(savedDimensions);
-        // Only use saved dimensions if they're valid
-        if (
-          (typeof parsedDimensions.width === "number" ||
-            parsedDimensions.width === "auto") &&
-          (typeof parsedDimensions.height === "number" ||
-            parsedDimensions.height === "auto")
-        ) {
-          setNoteDimensions(parsedDimensions);
-        }
-      } catch (e) {
-        console.error("Failed to parse saved dimensions", e);
+    // 1. Fix the dimensions loading from store
+    if (storeItem?.size) {
+      dimensionsFound = true;
+      // Only update if different from current
+      if (
+        storeItem.size.width !== noteDimensions.width ||
+        storeItem.size.height !== noteDimensions.height
+      ) {
+        setNoteDimensions(ensureValidDimensions(storeItem.size));
       }
     }
-  }, [id, boardId, updateItemPosition]);
+
+    // 2. Second priority: Check localStorage
+    if (!dimensionsFound) {
+      const dimStorageKey = getDimensionsStorageKey(id);
+      const savedDimensions = localStorage.getItem(dimStorageKey);
+
+      // 2. Fix the dimensions loading from localStorage
+      if (savedDimensions) {
+        try {
+          const parsedDimensions = JSON.parse(savedDimensions);
+          const validDimensions = ensureValidDimensions(parsedDimensions);
+          dimensionsFound = true;
+          setNoteDimensions(validDimensions);
+
+          // Also update the store with these dimensions
+          useMilanoteStore
+            .getState()
+            .updateItemDimensions(boardId, id, validDimensions);
+        } catch (e) {
+          console.error("Failed to parse saved dimensions", e);
+        }
+      }
+    }
+
+    // 3. If no dimensions were found, ensure defaults are set in the store
+    // 3. Fix the default dimensions
+    if (!dimensionsFound) {
+      const defaultDimensions: Dimensions = {
+        width: isLinkNote ? 300 : 200,
+        height: "auto" as const, // Use const assertion to ensure it's exactly "auto"
+      };
+
+      // Set in store to ensure persistence
+      useMilanoteStore
+        .getState()
+        .updateItemDimensions(boardId, id, defaultDimensions);
+    }
+  }, [boardId, id, isLinkNote]);
 
   // Save position to localStorage whenever it changes
   useEffect(() => {
@@ -433,7 +492,7 @@ const UnifiedNote: React.FC<UnifiedNoteProps> = ({
     [onDragEnd]
   );
 
-  // Handle resize start - similar to drag start
+  // Modified resize handling to ensure proper persistence
   const handleResizeStart = useCallback(() => {
     // Ensure we're in VIEW mode for resizing
     if (textareaRef.current && document.activeElement === textareaRef.current) {
@@ -448,12 +507,25 @@ const UnifiedNote: React.FC<UnifiedNoteProps> = ({
   }, []);
 
   // Handle final dimensions on resize end
+  // 5. Also fix the handleResizeEnd function
   const handleResizeEnd = useCallback(
     (finalDimensions: Dimensions) => {
-      setNoteDimensions(finalDimensions);
+      // Ensure dimensions are valid
+      const validDimensions = ensureValidDimensions(finalDimensions);
 
-      // Update store if needed (not necessary for current implementation, but good for extensions)
-      // updateItem(boardId, id, { dimensions: finalDimensions });
+      // Update local state first
+      setNoteDimensions(validDimensions);
+
+      // Then ensure store is updated
+      useMilanoteStore
+        .getState()
+        .updateItemDimensions(boardId, id, validDimensions);
+
+      // Also directly update localStorage as a backup
+      localStorage.setItem(
+        getDimensionsStorageKey(id),
+        JSON.stringify(validDimensions)
+      );
     },
     [boardId, id]
   );
@@ -547,6 +619,28 @@ const UnifiedNote: React.FC<UnifiedNoteProps> = ({
       </>
     );
   };
+
+  // Check if we need to update noteDimensions from the store on each render
+  useEffect(() => {
+    const board = useMilanoteStore.getState().boards[boardId];
+    const storeItem = board?.items.find((item) => item.id === id);
+
+    // If dimensions in store are different from local state, update local state
+    // 4. Fix dimension updates from store
+    if (storeItem?.size) {
+      const storeDimensions = ensureValidDimensions(storeItem.size);
+
+      const currentWidth = noteDimensions.width;
+      const currentHeight = noteDimensions.height;
+      const storeWidth = storeDimensions.width;
+      const storeHeight = storeDimensions.height;
+
+      // Only update if actually different to avoid render loops
+      if (currentWidth !== storeWidth || currentHeight !== storeHeight) {
+        setNoteDimensions(storeDimensions);
+      }
+    }
+  }, [boardId, id, noteDimensions]);
 
   return (
     <DraggableItem

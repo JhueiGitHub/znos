@@ -70,6 +70,24 @@ const DraggableItem: React.FC<DraggableItemProps> = ({
   );
   const bringToFront = useMilanoteStore((state) => state.bringToFront);
 
+  // Helper to ensure dimensions are type-safe
+  const sanitizeDimensions = (dimensions: any): Dimensions => {
+    return {
+      width:
+        dimensions.width === "auto"
+          ? "auto"
+          : typeof dimensions.width === "number"
+            ? dimensions.width
+            : 200,
+      height:
+        dimensions.height === "auto"
+          ? "auto"
+          : typeof dimensions.height === "number"
+            ? dimensions.height
+            : "auto",
+    };
+  };
+
   // Handle mouse down for drag start
   const handleMouseDown = (e: React.MouseEvent) => {
     // Don't drag if mouse is on textarea or interactive elements
@@ -299,7 +317,6 @@ const DraggableItem: React.FC<DraggableItemProps> = ({
     ]
   );
 
-  // Handle mouse up
   const handleMouseUp = useCallback(
     (e: MouseEvent) => {
       // Reset the mousedown ref
@@ -311,25 +328,36 @@ const DraggableItem: React.FC<DraggableItemProps> = ({
         const element = elementRef.current;
         if (element) {
           // Get the final dimensions
-          const width = parseFloat(
-            element.dataset.width || dimensions.width.toString()
-          );
-          const height = parseFloat(
-            element.dataset.height || dimensions.height.toString()
-          );
+          const width = element.dataset.width
+            ? parseFloat(element.dataset.width)
+            : typeof dimensions.width === "number"
+              ? dimensions.width
+              : null;
+
+          const height = element.dataset.height
+            ? parseFloat(element.dataset.height)
+            : typeof dimensions.height === "number"
+              ? dimensions.height
+              : null;
+
           const x = parseFloat(element.dataset.x || position.x.toString());
           const y = parseFloat(element.dataset.y || position.y.toString());
 
           // Ensure we have valid dimensions
-          const finalWidth = isNaN(width) ? dimensions.width : width;
-          const finalHeight = isNaN(height) ? dimensions.height : height;
+          const rawDimensions = {
+            width: width !== null ? width : dimensions.width,
+            height: height !== null ? height : dimensions.height,
+          };
+
+          // Sanitize dimensions to ensure they match the expected types
+          const finalDimensions = sanitizeDimensions(rawDimensions);
 
           // Update position too if it changed during resize
           updateItemPosition(boardId, id, { x, y });
 
-          // Notify parent
+          // Notify parent about final dimensions
           if (onResizeEnd) {
-            onResizeEnd({ width: finalWidth, height: finalHeight });
+            onResizeEnd(finalDimensions);
           }
 
           // Restore transition
@@ -539,6 +567,7 @@ const DraggableItem: React.FC<DraggableItemProps> = ({
     );
   };
 
+  // Modify the JSX return to properly set dimensions
   return (
     <div
       ref={elementRef}

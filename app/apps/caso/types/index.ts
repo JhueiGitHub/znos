@@ -7,7 +7,6 @@ export interface Position {
   y: number;
 }
 
-// New type for dimensions
 export interface Dimensions {
   width: number | "auto";
   height: number | "auto";
@@ -54,7 +53,7 @@ export interface MilanoteItem {
   id: string;
   type: ItemType;
   position: Position;
-  size?: Size;
+  size?: Dimensions;
   content: ItemContent;
   zIndex?: number;
 }

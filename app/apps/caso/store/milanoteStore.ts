@@ -1,4 +1,5 @@
 // app/apps/mila/store/milanoteStore.ts
+
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import {
@@ -8,6 +9,7 @@ import {
   Position,
   ItemType,
   ItemContent,
+  Dimensions,
 } from "../types";
 import { SAMPLE_BOARDS } from "../data/sampleData";
 
@@ -44,7 +46,7 @@ interface MilanoteState {
     type: ItemType,
     position: Position,
     content: T,
-    size?: { width: number; height: number }
+    size?: Dimensions // Changed to Dimensions
   ) => string;
   updateItem: (
     boardId: string,
@@ -67,6 +69,13 @@ interface MilanoteState {
   // State management
   resetState: () => void;
   importState: (state: Partial<MilanoteState>) => void;
+
+  // Dimensions handling
+  updateItemDimensions: (
+    boardId: string,
+    itemId: string,
+    dimensions: Dimensions
+  ) => void;
 }
 
 // Get a unique store name for this user
@@ -203,9 +212,10 @@ export const useMilanoteStore = create<MilanoteState>()(
           },
         }));
 
-        // Clean up localStorage entry
+        // Clean up localStorage entries
         if (typeof window !== "undefined") {
           localStorage.removeItem(`milanote_note_pos_${itemId}`);
+          localStorage.removeItem(`milanote_note_dim_${itemId}`);
         }
       },
 
@@ -238,7 +248,7 @@ export const useMilanoteStore = create<MilanoteState>()(
         });
       },
 
-      // Add new state management functions
+      // State management functions
       resetState: () => {
         set({
           boards: SAMPLE_BOARDS,
@@ -258,6 +268,34 @@ export const useMilanoteStore = create<MilanoteState>()(
               ? newState.boards
               : SAMPLE_BOARDS,
         }));
+      },
+
+      // Dimensions handling
+      updateItemDimensions: (boardId, itemId, dimensions) => {
+        set((state) => ({
+          boards: {
+            ...state.boards,
+            [boardId]: {
+              ...state.boards[boardId],
+              items: state.boards[boardId].items.map((item) =>
+                item.id === itemId
+                  ? {
+                      ...item,
+                      size: dimensions,
+                    }
+                  : item
+              ),
+            },
+          },
+        }));
+
+        // Also save to localStorage for resilience
+        if (typeof window !== "undefined") {
+          localStorage.setItem(
+            `milanote_note_dim_${itemId}`,
+            JSON.stringify(dimensions)
+          );
+        }
       },
     }),
     {
