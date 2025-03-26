@@ -46,6 +46,6 @@
     ".next/types/**/*.ts",
     ".next/types/**/*.tsx",
     "apps/figma/types/**/*.d.ts"
-  ],
+, "app/apps/streetfighter/game/index.js"  ],
   "exclude": ["node_modules"]
 }
