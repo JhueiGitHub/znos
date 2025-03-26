@@ -182,12 +182,13 @@ export const LinkEmbed: React.FC<LinkEmbedProps> = ({ url, onLoad }) => {
   // Direct rendering for Sketchfab URLs without waiting for data fetching
   if (isSketchfabUrl && sketchfabId) {
     return (
-      <SketchfabEmbed
-        modelId={sketchfabId}
-        title={embedData?.title || "3D Model"}
-        width={300}
-        height={320}
-      />
+      <div className="w-full h-full" style={{ minHeight: "240px" }}>
+        <SketchfabEmbed
+          modelId={sketchfabId}
+          title={embedData?.title || "3D Model"}
+          // No explicit width/height props - let it fill container
+        />
+      </div>
     );
   }
 
@@ -258,14 +259,16 @@ export const LinkEmbed: React.FC<LinkEmbedProps> = ({ url, onLoad }) => {
         />
       );
 
+    // And update the case statement for Sketchfab in the switch
     case "sketchfab":
       return (
-        <SketchfabEmbed
-          modelId={embedData.modelId}
-          title={embedData.title || "3D Model"}
-          width={300}
-          height={embedHeight}
-        />
+        <div className="w-full h-full" style={{ minHeight: "240px" }}>
+          <SketchfabEmbed
+            modelId={embedData.modelId}
+            title={embedData.title || "3D Model"}
+            // No explicit width/height props - let it fill container
+          />
+        </div>
       );
 
     case "website":

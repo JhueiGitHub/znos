@@ -6,15 +6,15 @@ import { Loader2, ExternalLink } from "lucide-react";
 interface SketchfabEmbedProps {
   modelId: string;
   title?: string;
-  width?: number;
-  height?: number;
+  width?: number | string; // Allow for "100%" or other responsive values
+  height?: number | string; // Allow for "100%" or other responsive values
 }
 
 export const SketchfabEmbed: React.FC<SketchfabEmbedProps> = ({
   modelId,
   title = "3D Model",
-  width = 320,
-  height = 240,
+  width = "100%", // Default to 100% instead of fixed width
+  height = "100%", // Default to 100% instead of fixed height
 }) => {
   const { getColor } = useStyles();
   const [loading, setLoading] = useState(true);
@@ -53,11 +53,16 @@ export const SketchfabEmbed: React.FC<SketchfabEmbedProps> = ({
 
   return (
     <div
-      className="sketchfab-embed rounded relative overflow-hidden"
+      className="sketchfab-embed rounded relative overflow-hidden w-full h-full"
       style={{
-        width,
-        height,
         backgroundColor: getColor("night"),
+        // If width/height are numbers, add px, otherwise use as is
+        width: typeof width === "number" ? `${width}px` : width,
+        height: typeof height === "number" ? `${height}px` : height,
+        // Ensure the embed takes up all available space
+        flex: 1,
+        display: "flex",
+        flexDirection: "column",
       }}
     >
       {/* Loading overlay */}
@@ -100,6 +105,9 @@ export const SketchfabEmbed: React.FC<SketchfabEmbedProps> = ({
         allowFullScreen
         onLoad={handleIframeLoad}
         onError={handleIframeError}
+        style={{
+          flexGrow: 1, // Make iframe grow to fill the container
+        }}
       ></iframe>
     </div>
   );

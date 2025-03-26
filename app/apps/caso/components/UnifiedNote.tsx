@@ -666,8 +666,8 @@ const UnifiedNote: React.FC<UnifiedNoteProps> = ({
       data-note-id={id}
     >
       {showEmbed ? (
-        // Link embed view
-        <div className="p-2 drag-handle">
+        // Link embed view with full height
+        <div className="p-2 drag-handle h-full flex flex-col">
           <LinkEmbed url={content.url} onLoad={handleEmbedDataLoad} />
         </div>
       ) : (
