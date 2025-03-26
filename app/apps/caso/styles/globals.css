@@ -144,3 +144,58 @@
 .milanote-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.2);
 }
+
+/* Style for resize handles - hidden by default */
+.resize-handle {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+/* Style for resize corner handles - add visual element */
+.resize-handle-corner {
+  border-radius: 2px;
+  background-color: transparent;
+}
+
+/* Show resize handles when parent is hovered or selected */
+.milanote-item:hover .resize-handle,
+.milanote-item.resizing .resize-handle {
+  opacity: 0.5;
+}
+
+/* Style for resize indicators - always visible when selected */
+.resize-indicator {
+  pointer-events: none; /* Make sure they don't interfere with resize handles */
+}
+
+/* Animation for the resize indicators */
+@keyframes pulse {
+  0% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.7;
+  }
+}
+
+.resize-indicator-corner {
+  animation: pulse 2s infinite ease-in-out;
+}
+
+/* Custom style for when an item is being resized */
+.milanote-item.resizing {
+  transition: none !important; /* Disable transitions while resizing */
+}
+
+/* Give selected notes a subtle animation */
+.milanote-item[data-note-id]:has(.resize-indicator) {
+  transition: box-shadow 0.3s ease;
+}
+
+/* Style for elements that should show text cursor in edit mode */
+.milanote-item[data-note-id] textarea:focus {
+  cursor: text !important;
+}

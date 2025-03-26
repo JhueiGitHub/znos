@@ -1,6 +1,6 @@
 // app/apps/mila/components/UnifiedNote.tsx
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { NoteContent, LinkContent, Position } from "../types";
+import { NoteContent, LinkContent, Position, Dimensions } from "../types";
 import DraggableItem from "./DraggableItem";
 import { useMilanoteStore } from "../store/milanoteStore";
 import { useStyles } from "@/app/hooks/useStyles";
@@ -23,6 +23,9 @@ const URL_REGEX =
 
 // Generate a unique storage key for position tracking
 const getPositionStorageKey = (id: string) => `milanote_note_pos_${id}`;
+
+// Generate a unique storage key for dimensions tracking
+const getDimensionsStorageKey = (id: string) => `milanote_note_dim_${id}`;
 
 const UnifiedNote: React.FC<UnifiedNoteProps> = ({
   id,
@@ -55,6 +58,12 @@ const UnifiedNote: React.FC<UnifiedNoteProps> = ({
   // Store the actual position in the component state to prevent teleporting
   const [notePosition, setNotePosition] = useState<Position>(position);
 
+  // Store dimensions in component state
+  const [noteDimensions, setNoteDimensions] = useState<Dimensions>({
+    width: isLinkNote ? 300 : 200,
+    height: "auto",
+  });
+
   // References
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const lastSavedText = useRef(text);
@@ -79,8 +88,8 @@ const UnifiedNote: React.FC<UnifiedNoteProps> = ({
 
   // Load saved position from localStorage on mount
   useEffect(() => {
-    const storageKey = getPositionStorageKey(id);
-    const savedPosition = localStorage.getItem(storageKey);
+    const posStorageKey = getPositionStorageKey(id);
+    const savedPosition = localStorage.getItem(posStorageKey);
 
     if (savedPosition) {
       try {
@@ -97,6 +106,27 @@ const UnifiedNote: React.FC<UnifiedNoteProps> = ({
         console.error("Failed to parse saved position", e);
       }
     }
+
+    // Load saved dimensions
+    const dimStorageKey = getDimensionsStorageKey(id);
+    const savedDimensions = localStorage.getItem(dimStorageKey);
+
+    if (savedDimensions) {
+      try {
+        const parsedDimensions = JSON.parse(savedDimensions);
+        // Only use saved dimensions if they're valid
+        if (
+          (typeof parsedDimensions.width === "number" ||
+            parsedDimensions.width === "auto") &&
+          (typeof parsedDimensions.height === "number" ||
+            parsedDimensions.height === "auto")
+        ) {
+          setNoteDimensions(parsedDimensions);
+        }
+      } catch (e) {
+        console.error("Failed to parse saved dimensions", e);
+      }
+    }
   }, [id, boardId, updateItemPosition]);
 
   // Save position to localStorage whenever it changes
@@ -104,6 +134,12 @@ const UnifiedNote: React.FC<UnifiedNoteProps> = ({
     const storageKey = getPositionStorageKey(id);
     localStorage.setItem(storageKey, JSON.stringify(notePosition));
   }, [id, notePosition]);
+
+  // Save dimensions to localStorage whenever they change
+  useEffect(() => {
+    const storageKey = getDimensionsStorageKey(id);
+    localStorage.setItem(storageKey, JSON.stringify(noteDimensions));
+  }, [id, noteDimensions]);
 
   // Update the component position when the dragged position changes
   useEffect(() => {
@@ -156,11 +192,16 @@ const UnifiedNote: React.FC<UnifiedNoteProps> = ({
             color: content.color || "night-med",
           });
 
-        // Save position in localStorage for the new note
+        // Save position and dimensions in localStorage for the new note
         if (newNoteId) {
           localStorage.setItem(
             getPositionStorageKey(newNoteId),
             JSON.stringify(currentPosition)
+          );
+
+          localStorage.setItem(
+            getDimensionsStorageKey(newNoteId),
+            JSON.stringify({ width: 300, height: "auto" })
           );
         }
       } else if (!isUrlOnly(text) && isLinkNote) {
@@ -179,11 +220,16 @@ const UnifiedNote: React.FC<UnifiedNoteProps> = ({
             color: content.color || "night-med",
           });
 
-        // Save position in localStorage for the new note
+        // Save position and dimensions in localStorage for the new note
         if (newNoteId) {
           localStorage.setItem(
             getPositionStorageKey(newNoteId),
             JSON.stringify(currentPosition)
+          );
+
+          localStorage.setItem(
+            getDimensionsStorageKey(newNoteId),
+            JSON.stringify({ width: 200, height: "auto" })
           );
         }
       } else {
@@ -240,7 +286,7 @@ const UnifiedNote: React.FC<UnifiedNoteProps> = ({
     [boardId, id, bringToFront, isLinkNote, isSelected, mode]
   );
 
-  // Handle keydown events
+  // Handle keydown events in the textarea
   const handleKeyDown = (e: React.KeyboardEvent) => {
     // Toggle shorthand on § key
     if (e.key === "§") {
@@ -250,6 +296,12 @@ const UnifiedNote: React.FC<UnifiedNoteProps> = ({
 
     // Bring note to front when typing
     bringToFront(boardId, id);
+
+    // Important: When in EDIT mode, stopPropagation for Backspace
+    // This prevents the global keydown handler from picking it up
+    if (e.key === "Backspace" || e.key === "Delete") {
+      e.stopPropagation();
+    }
   };
 
   // Handle embed data load
@@ -304,12 +356,38 @@ const UnifiedNote: React.FC<UnifiedNoteProps> = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [id, isSelected, mode]);
 
-  // Calculate width based on note type
-  const noteWidth = isLinkNote ? 300 : 200;
+  // Handle keydown for deleting notes with Backspace
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Only handle Backspace key
+      if (e.key === "Backspace" || e.key === "Delete") {
+        // Only delete when the note is selected but NOT in edit mode
+        if (isSelected && mode === "VIEW") {
+          // Make sure we're not currently editing text in any input field
+          const activeElement = document.activeElement;
+          const isEditingText =
+            activeElement instanceof HTMLInputElement ||
+            activeElement instanceof HTMLTextAreaElement;
+
+          if (!isEditingText) {
+            e.preventDefault(); // Prevent browser back navigation
+            deleteItem(boardId, id);
+          }
+        }
+      }
+    };
+
+    // Add global keydown listener
+    window.addEventListener("keydown", handleKeyDown);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isSelected, mode, boardId, id, deleteItem]);
 
   // Apply shorthand visual effects with different styles based on mode
   const noteStyle = getShorthandStyles({
-    width: noteWidth,
     backgroundColor: getColor(content.color || "night-med"),
     border: `1px solid ${getColor("graphite-thin")}`,
     transition: "box-shadow 0.3s ease, transform 0.2s ease",
@@ -355,6 +433,31 @@ const UnifiedNote: React.FC<UnifiedNoteProps> = ({
     [onDragEnd]
   );
 
+  // Handle resize start - similar to drag start
+  const handleResizeStart = useCallback(() => {
+    // Ensure we're in VIEW mode for resizing
+    if (textareaRef.current && document.activeElement === textareaRef.current) {
+      textareaRef.current.blur();
+    }
+    setMode("VIEW");
+  }, []);
+
+  // Handle resize updates during resize
+  const handleResize = useCallback((dimensions: Dimensions) => {
+    setNoteDimensions(dimensions);
+  }, []);
+
+  // Handle final dimensions on resize end
+  const handleResizeEnd = useCallback(
+    (finalDimensions: Dimensions) => {
+      setNoteDimensions(finalDimensions);
+
+      // Update store if needed (not necessary for current implementation, but good for extensions)
+      // updateItem(boardId, id, { dimensions: finalDimensions });
+    },
+    [boardId, id]
+  );
+
   // Get appropriate cursor style based on mode
   const getCursorStyle = () => {
     if (isLinkNote) return "";
@@ -363,11 +466,97 @@ const UnifiedNote: React.FC<UnifiedNoteProps> = ({
     return "";
   };
 
+  // Render resize handle indicators when selected
+  const renderResizeIndicators = () => {
+    if (!isSelected) return null;
+
+    const indicatorStyle = {
+      backgroundColor: getColor("latte"),
+      position: "absolute" as const,
+      borderRadius: "2px",
+      zIndex: 15,
+    };
+
+    return (
+      <>
+        {/* Corner indicators */}
+        <div
+          className="resize-indicator resize-indicator-corner"
+          style={{
+            ...indicatorStyle,
+            width: "6px",
+            height: "6px",
+            bottom: "-3px",
+            right: "-3px",
+          }}
+        />
+        <div
+          className="resize-indicator resize-indicator-corner"
+          style={{
+            ...indicatorStyle,
+            width: "6px",
+            height: "6px",
+            bottom: "-3px",
+            left: "-3px",
+          }}
+        />
+        <div
+          className="resize-indicator resize-indicator-corner"
+          style={{
+            ...indicatorStyle,
+            width: "6px",
+            height: "6px",
+            top: "-3px",
+            right: "-3px",
+          }}
+        />
+        <div
+          className="resize-indicator resize-indicator-corner"
+          style={{
+            ...indicatorStyle,
+            width: "6px",
+            height: "6px",
+            top: "-3px",
+            left: "-3px",
+          }}
+        />
+
+        {/* Edge indicators */}
+        <div
+          className="resize-indicator resize-indicator-edge"
+          style={{
+            ...indicatorStyle,
+            width: "12px",
+            height: "4px",
+            bottom: "-2px",
+            left: "50%",
+            transform: "translateX(-50%)",
+          }}
+        />
+        <div
+          className="resize-indicator resize-indicator-edge"
+          style={{
+            ...indicatorStyle,
+            width: "4px",
+            height: "12px",
+            right: "-2px",
+            top: "50%",
+            transform: "translateY(-50%)",
+          }}
+        />
+      </>
+    );
+  };
+
   return (
     <DraggableItem
       id={id}
       boardId={boardId}
       position={notePosition}
+      dimensions={noteDimensions}
+      minWidth={isLinkNote ? 200 : 100}
+      minHeight={60}
+      isResizable={isSelected}
       zIndex={zIndex}
       className={`rounded shadow-lg overflow-hidden`}
       style={{
@@ -376,6 +565,9 @@ const UnifiedNote: React.FC<UnifiedNoteProps> = ({
       }}
       onDragStart={handleDragStartInternal}
       onDragEnd={handleDragEnd}
+      onResizeStart={handleResizeStart}
+      onResize={handleResize}
+      onResizeEnd={handleResizeEnd}
       onClick={handleNoteClick}
       data-note-id={id}
     >
@@ -439,6 +631,9 @@ const UnifiedNote: React.FC<UnifiedNoteProps> = ({
               dangerouslySetInnerHTML={{ __html: "" }}
             />
           )}
+
+          {/* Visual indicators for resize when selected */}
+          {renderResizeIndicators()}
         </div>
       )}
     </DraggableItem>

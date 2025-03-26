@@ -7,6 +7,12 @@ export interface Position {
   y: number;
 }
 
+// New type for dimensions
+export interface Dimensions {
+  width: number | "auto";
+  height: number | "auto";
+}
+
 export interface Size {
   width: number;
   height: number;

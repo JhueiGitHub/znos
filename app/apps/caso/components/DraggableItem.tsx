@@ -1,12 +1,16 @@
 // app/apps/mila/components/DraggableItem.tsx
 import React, { useRef, useState, useEffect, useCallback } from "react";
-import { Position } from "../types";
+import { Position, Dimensions } from "../types";
 import { useMilanoteStore } from "../store/milanoteStore";
 
 interface DraggableItemProps {
   id: string;
   boardId: string;
   position: Position;
+  dimensions?: Dimensions; // New prop for dimensions
+  minWidth?: number; // Minimum width constraint
+  minHeight?: number; // Minimum height constraint
+  isResizable?: boolean; // Flag to enable/disable resize
   zIndex?: number;
   children: React.ReactNode;
   className?: string;
@@ -15,13 +19,29 @@ interface DraggableItemProps {
   onDoubleClick?: (e: React.MouseEvent) => void;
   onDragStart?: () => void;
   onDragEnd?: (finalPosition?: Position) => void;
+  onResizeStart?: () => void;
+  onResize?: (dimensions: Dimensions) => void;
+  onResizeEnd?: (finalDimensions: Dimensions) => void;
   "data-note-id"?: string;
 }
+
+// Resize handle positions
+type ResizeHandlePosition =
+  | "top-left"
+  | "top-right"
+  | "bottom-left"
+  | "bottom-right"
+  | "right"
+  | "bottom";
 
 const DraggableItem: React.FC<DraggableItemProps> = ({
   id,
   boardId,
   position,
+  dimensions = { width: "auto", height: "auto" },
+  minWidth = 100,
+  minHeight = 60,
+  isResizable = false,
   zIndex = 1,
   children,
   className = "",
@@ -30,10 +50,18 @@ const DraggableItem: React.FC<DraggableItemProps> = ({
   onDoubleClick,
   onDragStart,
   onDragEnd,
+  onResizeStart,
+  onResize,
+  onResizeEnd,
   "data-note-id": noteId,
 }) => {
   const [isDragging, setIsDragging] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
+  const [resizeHandle, setResizeHandle] = useState<ResizeHandlePosition | null>(
+    null
+  );
   const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const [resizeOffset, setResizeOffset] = useState({ x: 0, y: 0 });
   const elementRef = useRef<HTMLDivElement>(null);
   const mouseDownStartRef = useRef<{ x: number; y: number } | null>(null);
 
@@ -50,6 +78,48 @@ const DraggableItem: React.FC<DraggableItemProps> = ({
       (e.target as HTMLElement).tagName.toLowerCase() === "input" ||
       (e.target as HTMLElement).tagName.toLowerCase() === "button"
     ) {
+      return;
+    }
+
+    // Check if this is a resize handle
+    const targetEl = e.target as HTMLElement;
+    const isResizeHandleClick = targetEl.closest(".resize-handle");
+
+    if (isResizeHandleClick && isResizable) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      // Get which handle was clicked
+      const handlePos = targetEl.getAttribute(
+        "data-handle-position"
+      ) as ResizeHandlePosition;
+      setResizeHandle(handlePos);
+
+      // Record initial position for resizing
+      mouseDownStartRef.current = { x: e.clientX, y: e.clientY };
+
+      // Record initial dimensions
+      const element = elementRef.current;
+      if (!element) return;
+
+      const rect = element.getBoundingClientRect();
+
+      // Calculate the offset for maintaining position while resizing from top/left
+      setResizeOffset({
+        x: rect.right - e.clientX,
+        y: rect.bottom - e.clientY,
+      });
+
+      // Bring item to front
+      bringToFront(boardId, id);
+
+      // Start resize mode
+      setIsResizing(true);
+
+      if (onResizeStart) {
+        onResizeStart();
+      }
+
       return;
     }
 
@@ -87,11 +157,98 @@ const DraggableItem: React.FC<DraggableItemProps> = ({
     bringToFront(boardId, id);
   };
 
-  // Handle mouse move for dragging - attach to window to capture all movement
+  // Handle mouse move for dragging and resizing
   const handleMouseMove = useCallback(
     (e: MouseEvent) => {
       // If no mouse down event happened, ignore
       if (!mouseDownStartRef.current) return;
+
+      // Get canvas element and its transformation for scaling
+      const element = elementRef.current;
+      if (!element) return;
+
+      const canvasEl = element.closest(".milanote-canvas");
+      if (!canvasEl) return;
+
+      const canvasRect = canvasEl.getBoundingClientRect();
+      const canvasTransform = window.getComputedStyle(canvasEl).transform;
+
+      // Extract scale from matrix
+      let scale = 1;
+      try {
+        const matrix = new DOMMatrix(canvasTransform);
+        scale = matrix.a || 1;
+      } catch (err) {
+        console.warn("Failed to parse transform matrix, using default scale");
+      }
+
+      // Handle resizing
+      if (isResizing && resizeHandle) {
+        const rect = element.getBoundingClientRect();
+        let newWidth = rect.width;
+        let newHeight = rect.height;
+        let newX = parseFloat(element.style.left) || position.x;
+        let newY = parseFloat(element.style.top) || position.y;
+
+        // Calculate new dimensions based on which handle is being dragged
+        switch (resizeHandle) {
+          case "right":
+            newWidth = (e.clientX - rect.left + resizeOffset.x / 2) / scale;
+            break;
+          case "bottom":
+            newHeight = (e.clientY - rect.top + resizeOffset.y / 2) / scale;
+            break;
+          case "bottom-right":
+            newWidth = (e.clientX - rect.left + resizeOffset.x / 2) / scale;
+            newHeight = (e.clientY - rect.top + resizeOffset.y / 2) / scale;
+            break;
+          case "bottom-left":
+            newWidth = (rect.right - e.clientX + resizeOffset.x / 2) / scale;
+            newX =
+              (e.clientX - canvasRect.left) / scale -
+              resizeOffset.x / 2 / scale;
+            newHeight = (e.clientY - rect.top + resizeOffset.y / 2) / scale;
+            break;
+          case "top-right":
+            newWidth = (e.clientX - rect.left + resizeOffset.x / 2) / scale;
+            newHeight = (rect.bottom - e.clientY + resizeOffset.y / 2) / scale;
+            newY =
+              (e.clientY - canvasRect.top) / scale - resizeOffset.y / 2 / scale;
+            break;
+          case "top-left":
+            newWidth = (rect.right - e.clientX + resizeOffset.x / 2) / scale;
+            newHeight = (rect.bottom - e.clientY + resizeOffset.y / 2) / scale;
+            newX =
+              (e.clientX - canvasRect.left) / scale -
+              resizeOffset.x / 2 / scale;
+            newY =
+              (e.clientY - canvasRect.top) / scale - resizeOffset.y / 2 / scale;
+            break;
+        }
+
+        // Apply minimum size constraints
+        newWidth = Math.max(newWidth, minWidth);
+        newHeight = Math.max(newHeight, minHeight);
+
+        // Update the element style directly
+        element.style.width = `${newWidth}px`;
+        element.style.height = `${newHeight}px`;
+        element.style.left = `${newX}px`;
+        element.style.top = `${newY}px`;
+
+        // Store for final update
+        element.dataset.width = newWidth.toString();
+        element.dataset.height = newHeight.toString();
+        element.dataset.x = newX.toString();
+        element.dataset.y = newY.toString();
+
+        // Notify parent of resize
+        if (onResize) {
+          onResize({ width: newWidth, height: newHeight });
+        }
+
+        return;
+      }
 
       // If we're not dragging yet, check if we should start
       if (!isDragging) {
@@ -113,25 +270,6 @@ const DraggableItem: React.FC<DraggableItemProps> = ({
 
       // If we're now dragging, update position
       if (isDragging) {
-        const element = elementRef.current;
-        if (!element) return;
-
-        // Get canvas element and its transformation
-        const canvasEl = element.closest(".milanote-canvas");
-        if (!canvasEl) return;
-
-        const canvasRect = canvasEl.getBoundingClientRect();
-        const canvasTransform = window.getComputedStyle(canvasEl).transform;
-
-        // Extract scale from matrix
-        let scale = 1;
-        try {
-          const matrix = new DOMMatrix(canvasTransform);
-          scale = matrix.a || 1;
-        } catch (err) {
-          console.warn("Failed to parse transform matrix, using default scale");
-        }
-
         // Calculate new position in canvas coordinates
         const x = (e.clientX - canvasRect.left) / scale - offset.x / scale;
         const y = (e.clientY - canvasRect.top) / scale - offset.y / scale;
@@ -145,7 +283,20 @@ const DraggableItem: React.FC<DraggableItemProps> = ({
         element.dataset.y = y.toString();
       }
     },
-    [isDragging, offset, onDragStart, boardId, id]
+    [
+      isDragging,
+      isResizing,
+      resizeHandle,
+      offset,
+      resizeOffset,
+      onDragStart,
+      boardId,
+      id,
+      position,
+      minWidth,
+      minHeight,
+      onResize,
+    ]
   );
 
   // Handle mouse up
@@ -154,6 +305,42 @@ const DraggableItem: React.FC<DraggableItemProps> = ({
       // Reset the mousedown ref
       const wasMouseDown = !!mouseDownStartRef.current;
       mouseDownStartRef.current = null;
+
+      // Handle resize end
+      if (isResizing) {
+        const element = elementRef.current;
+        if (element) {
+          // Get the final dimensions
+          const width = parseFloat(
+            element.dataset.width || dimensions.width.toString()
+          );
+          const height = parseFloat(
+            element.dataset.height || dimensions.height.toString()
+          );
+          const x = parseFloat(element.dataset.x || position.x.toString());
+          const y = parseFloat(element.dataset.y || position.y.toString());
+
+          // Ensure we have valid dimensions
+          const finalWidth = isNaN(width) ? dimensions.width : width;
+          const finalHeight = isNaN(height) ? dimensions.height : height;
+
+          // Update position too if it changed during resize
+          updateItemPosition(boardId, id, { x, y });
+
+          // Notify parent
+          if (onResizeEnd) {
+            onResizeEnd({ width: finalWidth, height: finalHeight });
+          }
+
+          // Restore transition
+          element.style.transition = "";
+        }
+
+        // Reset resizing state
+        setIsResizing(false);
+        setResizeHandle(null);
+        return;
+      }
 
       // If we weren't dragging, but had mousedown, this is a click
       if (wasMouseDown && !isDragging && onClick) {
@@ -197,7 +384,18 @@ const DraggableItem: React.FC<DraggableItemProps> = ({
         setIsDragging(false);
       }
     },
-    [isDragging, onClick, updateItemPosition, boardId, id, onDragEnd, position]
+    [
+      isDragging,
+      isResizing,
+      onClick,
+      updateItemPosition,
+      boardId,
+      id,
+      onDragEnd,
+      onResizeEnd,
+      position,
+      dimensions,
+    ]
   );
 
   // Add and remove event listeners
@@ -206,15 +404,39 @@ const DraggableItem: React.FC<DraggableItemProps> = ({
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("mouseup", handleMouseUp);
 
-    // Update UI for dragging state
+    // Update UI for dragging/resizing state
     if (isDragging) {
       if (elementRef.current) {
         elementRef.current.classList.add("dragging");
       }
       document.body.style.cursor = "grabbing";
+    } else if (isResizing) {
+      if (elementRef.current) {
+        elementRef.current.classList.add("resizing");
+      }
+
+      // Set appropriate cursor based on resize handle
+      switch (resizeHandle) {
+        case "top-left":
+        case "bottom-right":
+          document.body.style.cursor = "nwse-resize";
+          break;
+        case "top-right":
+        case "bottom-left":
+          document.body.style.cursor = "nesw-resize";
+          break;
+        case "right":
+          document.body.style.cursor = "ew-resize";
+          break;
+        case "bottom":
+          document.body.style.cursor = "ns-resize";
+          break;
+        default:
+          document.body.style.cursor = "default";
+      }
     } else {
       if (elementRef.current) {
-        elementRef.current.classList.remove("dragging");
+        elementRef.current.classList.remove("dragging", "resizing");
       }
       document.body.style.cursor = "";
     }
@@ -225,16 +447,109 @@ const DraggableItem: React.FC<DraggableItemProps> = ({
       window.removeEventListener("mouseup", handleMouseUp);
       document.body.style.cursor = "";
     };
-  }, [isDragging, handleMouseMove, handleMouseUp]);
+  }, [isDragging, isResizing, resizeHandle, handleMouseMove, handleMouseUp]);
+
+  // Render resize handles if resizable and not dragging
+  const renderResizeHandles = () => {
+    if (!isResizable) return null;
+
+    return (
+      <>
+        <div
+          className="resize-handle resize-handle-right"
+          data-handle-position="right"
+          style={{
+            position: "absolute",
+            right: "-3px",
+            top: "50%",
+            transform: "translateY(-50%)",
+            width: "6px",
+            height: "30px",
+            cursor: "ew-resize",
+            zIndex: 10,
+          }}
+        />
+        <div
+          className="resize-handle resize-handle-bottom"
+          data-handle-position="bottom"
+          style={{
+            position: "absolute",
+            bottom: "-3px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            width: "30px",
+            height: "6px",
+            cursor: "ns-resize",
+            zIndex: 10,
+          }}
+        />
+        <div
+          className="resize-handle resize-handle-corner resize-handle-bottom-right"
+          data-handle-position="bottom-right"
+          style={{
+            position: "absolute",
+            bottom: "-3px",
+            right: "-3px",
+            width: "10px",
+            height: "10px",
+            cursor: "nwse-resize",
+            zIndex: 10,
+          }}
+        />
+        <div
+          className="resize-handle resize-handle-corner resize-handle-bottom-left"
+          data-handle-position="bottom-left"
+          style={{
+            position: "absolute",
+            bottom: "-3px",
+            left: "-3px",
+            width: "10px",
+            height: "10px",
+            cursor: "nesw-resize",
+            zIndex: 10,
+          }}
+        />
+        <div
+          className="resize-handle resize-handle-corner resize-handle-top-right"
+          data-handle-position="top-right"
+          style={{
+            position: "absolute",
+            top: "-3px",
+            right: "-3px",
+            width: "10px",
+            height: "10px",
+            cursor: "nesw-resize",
+            zIndex: 10,
+          }}
+        />
+        <div
+          className="resize-handle resize-handle-corner resize-handle-top-left"
+          data-handle-position="top-left"
+          style={{
+            position: "absolute",
+            top: "-3px",
+            left: "-3px",
+            width: "10px",
+            height: "10px",
+            cursor: "nwse-resize",
+            zIndex: 10,
+          }}
+        />
+      </>
+    );
+  };
 
   return (
     <div
       ref={elementRef}
-      className={`milanote-item ${className} ${isDragging ? "dragging" : ""}`}
+      className={`milanote-item ${className} ${isDragging ? "dragging" : ""} ${isResizing ? "resizing" : ""}`}
       style={{
         position: "absolute",
         left: `${position.x}px`,
         top: `${position.y}px`,
+        width: dimensions.width === "auto" ? "auto" : `${dimensions.width}px`,
+        height:
+          dimensions.height === "auto" ? "auto" : `${dimensions.height}px`,
         zIndex,
         touchAction: "none", // Prevent touch actions to avoid conflicts
         ...style,
@@ -244,6 +559,7 @@ const DraggableItem: React.FC<DraggableItemProps> = ({
       data-note-id={noteId}
     >
       {children}
+      {renderResizeHandles()}
     </div>
   );
 };
