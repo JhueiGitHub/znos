@@ -11,10 +11,11 @@ interface DraggableItemProps {
   children: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
-  onClick?: (e: React.MouseEvent) => void; // Add onClick prop
+  onClick?: (e: React.MouseEvent) => void;
   onDoubleClick?: (e: React.MouseEvent) => void;
   onDragStart?: () => void;
-  onDragEnd?: (finalPosition?: Position) => void; // Updated to accept Position
+  onDragEnd?: (finalPosition?: Position) => void;
+  "data-note-id"?: string;
 }
 
 const DraggableItem: React.FC<DraggableItemProps> = ({
@@ -25,14 +26,17 @@ const DraggableItem: React.FC<DraggableItemProps> = ({
   children,
   className = "",
   style = {},
-  onClick, // Use the onClick prop
+  onClick,
   onDoubleClick,
   onDragStart,
   onDragEnd,
+  "data-note-id": noteId,
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const elementRef = useRef<HTMLDivElement>(null);
+  const mouseDownStartRef = useRef<{ x: number; y: number } | null>(null);
+
   const updateItemPosition = useMilanoteStore(
     (state) => state.updateItemPosition
   );
@@ -40,7 +44,7 @@ const DraggableItem: React.FC<DraggableItemProps> = ({
 
   // Handle mouse down for drag start
   const handleMouseDown = (e: React.MouseEvent) => {
-    // Don't start drag if it's on the textarea or other interactive elements
+    // Don't drag if mouse is on textarea or interactive elements
     if (
       (e.target as HTMLElement).tagName.toLowerCase() === "textarea" ||
       (e.target as HTMLElement).tagName.toLowerCase() === "input" ||
@@ -49,11 +53,16 @@ const DraggableItem: React.FC<DraggableItemProps> = ({
       return;
     }
 
-    // Only handle drag on the drag handle or when the whole element is draggable
-    if (!e.target || !(e.target as HTMLElement).closest(".drag-handle")) return;
+    // Only handle drag on the drag handle
+    if (!e.target || !(e.target as HTMLElement).closest(".drag-handle")) {
+      return;
+    }
 
     e.preventDefault();
     e.stopPropagation();
+
+    // Record initial position for threshold detection
+    mouseDownStartRef.current = { x: e.clientX, y: e.clientY };
 
     // Get the element's current position
     const element = elementRef.current;
@@ -61,23 +70,7 @@ const DraggableItem: React.FC<DraggableItemProps> = ({
 
     const rect = element.getBoundingClientRect();
 
-    // Get canvas element for coordinate calculation
-    const canvasEl = element.closest(".milanote-canvas");
-    if (!canvasEl) return;
-
-    const canvasRect = canvasEl.getBoundingClientRect();
-
-    // Extract canvas scale
-    let scale = 1;
-    try {
-      const canvasTransform = window.getComputedStyle(canvasEl).transform;
-      const matrix = new DOMMatrix(canvasTransform);
-      scale = matrix.a || 1;
-    } catch (err) {
-      console.warn("Failed to parse transform matrix, using default scale");
-    }
-
-    // Calculate the mouse offset within the element accounting for canvas scale
+    // Calculate the mouse offset within the element
     const mouseXInElement = e.clientX - rect.left;
     const mouseYInElement = e.clientY - rect.top;
 
@@ -90,121 +83,147 @@ const DraggableItem: React.FC<DraggableItemProps> = ({
     // Reset any transitions to ensure smooth dragging
     element.style.transition = "none";
 
-    setIsDragging(true);
-
     // Bring this item to the front
     bringToFront(boardId, id);
-
-    // Notify parent that dragging has started
-    onDragStart?.();
   };
 
   // Handle mouse move for dragging - attach to window to capture all movement
   const handleMouseMove = useCallback(
     (e: MouseEvent) => {
-      if (!isDragging) return;
+      // If no mouse down event happened, ignore
+      if (!mouseDownStartRef.current) return;
 
-      const element = elementRef.current;
-      if (!element) return;
+      // If we're not dragging yet, check if we should start
+      if (!isDragging) {
+        const dx = Math.abs(e.clientX - mouseDownStartRef.current.x);
+        const dy = Math.abs(e.clientY - mouseDownStartRef.current.y);
 
-      // Get canvas element and its transformation
-      const canvasEl = element.closest(".milanote-canvas");
-      if (!canvasEl) return;
+        // Use a lower threshold to start dragging more quickly (3px)
+        if (dx < 3 && dy < 3) {
+          return; // Below threshold, not dragging yet
+        }
 
-      const canvasRect = canvasEl.getBoundingClientRect();
-      const canvasTransform = window.getComputedStyle(canvasEl).transform;
+        // Started dragging, set state and notify parent
+        setIsDragging(true);
 
-      // Extract scale and translation from matrix
-      let scale = 1;
-      try {
-        const matrix = new DOMMatrix(canvasTransform);
-        scale = matrix.a || 1;
-      } catch (err) {
-        console.warn("Failed to parse transform matrix, using default scale");
+        if (onDragStart) {
+          onDragStart();
+        }
       }
 
-      // Calculate new position in canvas coordinates
-      // This is critical for smooth dragging - we need the precise position
-      const x = (e.clientX - canvasRect.left) / scale - offset.x / scale;
-      const y = (e.clientY - canvasRect.top) / scale - offset.y / scale;
+      // If we're now dragging, update position
+      if (isDragging) {
+        const element = elementRef.current;
+        if (!element) return;
 
-      // Directly set left/top for more reliable positioning (vs transform)
-      element.style.left = `${x}px`;
-      element.style.top = `${y}px`;
+        // Get canvas element and its transformation
+        const canvasEl = element.closest(".milanote-canvas");
+        if (!canvasEl) return;
 
-      // Store for final position update
-      element.dataset.x = x.toString();
-      element.dataset.y = y.toString();
+        const canvasRect = canvasEl.getBoundingClientRect();
+        const canvasTransform = window.getComputedStyle(canvasEl).transform;
 
-      // Request an animation frame to ensure smoother rendering
-      requestAnimationFrame(() => {
-        if (elementRef.current) {
-          elementRef.current.style.transition = "none";
+        // Extract scale from matrix
+        let scale = 1;
+        try {
+          const matrix = new DOMMatrix(canvasTransform);
+          scale = matrix.a || 1;
+        } catch (err) {
+          console.warn("Failed to parse transform matrix, using default scale");
         }
-      });
+
+        // Calculate new position in canvas coordinates
+        const x = (e.clientX - canvasRect.left) / scale - offset.x / scale;
+        const y = (e.clientY - canvasRect.top) / scale - offset.y / scale;
+
+        // Directly set left/top for more reliable positioning
+        element.style.left = `${x}px`;
+        element.style.top = `${y}px`;
+
+        // Store for final position update
+        element.dataset.x = x.toString();
+        element.dataset.y = y.toString();
+      }
     },
-    [isDragging, offset]
+    [isDragging, offset, onDragStart, boardId, id]
   );
 
-  // Update the onDragEnd callback to pass the final position back to the parent
-  const handleMouseUp = useCallback(() => {
-    if (!isDragging) return;
+  // Handle mouse up
+  const handleMouseUp = useCallback(
+    (e: MouseEvent) => {
+      // Reset the mousedown ref
+      const wasMouseDown = !!mouseDownStartRef.current;
+      mouseDownStartRef.current = null;
 
-    const element = elementRef.current;
-    if (!element) return;
+      // If we weren't dragging, but had mousedown, this is a click
+      if (wasMouseDown && !isDragging && onClick) {
+        // This was a simple click, trigger the click handler
+        const syntheticEvent = {
+          clientX: e.clientX,
+          clientY: e.clientY,
+          target: e.target,
+          preventDefault: () => {},
+          stopPropagation: () => {},
+        } as unknown as React.MouseEvent;
 
-    // Get the final position from dataset (stored during drag)
-    const x = parseFloat(element.dataset.x || "0");
-    const y = parseFloat(element.dataset.y || "0");
+        onClick(syntheticEvent);
+      }
 
-    // Ensure we have valid coordinates
-    const finalX = isNaN(x) ? position.x : x;
-    const finalY = isNaN(y) ? position.y : y;
+      // If we were dragging, finalize the drag
+      if (isDragging) {
+        const element = elementRef.current;
+        if (element) {
+          // Get the final position
+          const x = parseFloat(element.dataset.x || "0");
+          const y = parseFloat(element.dataset.y || "0");
 
-    // Update the position in the store with properly validated coordinates
-    updateItemPosition(boardId, id, { x: finalX, y: finalY });
+          // Ensure we have valid coordinates
+          const finalX = isNaN(x) ? position.x : x;
+          const finalY = isNaN(y) ? position.y : y;
 
-    // Pass the final position back to the parent component
-    if (onDragEnd) {
-      onDragEnd({ x: finalX, y: finalY });
-    }
+          // Update the position in the store
+          updateItemPosition(boardId, id, { x: finalX, y: finalY });
 
-    // Restore transition for smooth subsequent movements
-    element.style.transition = "";
+          // Notify parent
+          if (onDragEnd) {
+            onDragEnd({ x: finalX, y: finalY });
+          }
 
-    setIsDragging(false);
-  }, [isDragging, updateItemPosition, boardId, id, onDragEnd, position]);
+          // Restore transition
+          element.style.transition = "";
+        }
+
+        // Reset dragging state
+        setIsDragging(false);
+      }
+    },
+    [isDragging, onClick, updateItemPosition, boardId, id, onDragEnd, position]
+  );
 
   // Add and remove event listeners
   useEffect(() => {
-    if (isDragging) {
-      window.addEventListener("mousemove", handleMouseMove);
-      window.addEventListener("mouseup", handleMouseUp);
+    // Always listen for these events
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
 
-      // Apply dragging class
+    // Update UI for dragging state
+    if (isDragging) {
       if (elementRef.current) {
         elementRef.current.classList.add("dragging");
       }
-
-      // Set cursor to grabbing
       document.body.style.cursor = "grabbing";
     } else {
-      // Clean up
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
-
       if (elementRef.current) {
         elementRef.current.classList.remove("dragging");
       }
-
-      // Reset cursor
-      document.body.style.cursor = "default";
+      document.body.style.cursor = "";
     }
 
+    // Cleanup
     return () => {
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
-      document.body.style.cursor = "default";
+      document.body.style.cursor = "";
     };
   }, [isDragging, handleMouseMove, handleMouseUp]);
 
@@ -221,8 +240,8 @@ const DraggableItem: React.FC<DraggableItemProps> = ({
         ...style,
       }}
       onMouseDown={handleMouseDown}
-      onClick={onClick} // Use the onClick prop correctly
       onDoubleClick={onDoubleClick}
+      data-note-id={noteId}
     >
       {children}
     </div>

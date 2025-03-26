@@ -43,7 +43,14 @@ const UnifiedNote: React.FC<UnifiedNoteProps> = ({
     isLinkNote ? content.url : content.text || ""
   );
   const [embedData, setEmbedData] = useState<any>(null);
-  const [isFocused, setIsFocused] = useState(false);
+
+  // Track view mode - two distinct modes: VIEW or EDIT
+  // VIEW: Note is just displayed, can be selected, dragged
+  // EDIT: Note is in edit mode, textarea is focused
+  const [mode, setMode] = useState<"VIEW" | "EDIT">("VIEW");
+
+  // Selected state for highlighting
+  const [isSelected, setIsSelected] = useState(false);
 
   // Store the actual position in the component state to prevent teleporting
   const [notePosition, setNotePosition] = useState<Position>(position);
@@ -112,6 +119,7 @@ const UnifiedNote: React.FC<UnifiedNoteProps> = ({
       // Set a timeout to ensure DOM is ready
       setTimeout(() => {
         if (textareaRef.current) {
+          setMode("EDIT");
           textareaRef.current.focus();
           isNewNoteRef.current = false; // Only focus once
         }
@@ -206,23 +214,30 @@ const UnifiedNote: React.FC<UnifiedNoteProps> = ({
     updateItem,
   ]);
 
-  // Handle clicks to ensure focus
+  // Handle clicks on the note
   const handleNoteClick = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation();
 
-      // Only handle clicks that aren't on interactive elements
-      if ((e.target as HTMLElement).tagName.toLowerCase() !== "textarea") {
-        if (textareaRef.current && !isLinkNote) {
-          // Focus the textarea when clicking anywhere on the note
-          textareaRef.current.focus();
+      // Always bring the note to front
+      bringToFront(boardId, id);
 
-          // Make sure it's brought to front
-          bringToFront(boardId, id);
-        }
+      // If already selected, switch to edit mode
+      if (isSelected && mode === "VIEW" && !isLinkNote) {
+        setMode("EDIT");
+
+        // Schedule focus to ensure it happens after render
+        setTimeout(() => {
+          if (textareaRef.current) {
+            textareaRef.current.focus();
+          }
+        }, 0);
+      } else {
+        // First click just selects
+        setIsSelected(true);
       }
     },
-    [boardId, id, bringToFront, isLinkNote]
+    [boardId, id, bringToFront, isLinkNote, isSelected, mode]
   );
 
   // Handle keydown events
@@ -256,31 +271,83 @@ const UnifiedNote: React.FC<UnifiedNoteProps> = ({
     return () => deactivate();
   }, [activate, deactivate]);
 
+  // Handle document clicks to deselect when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      // Only process if we're selected or in edit mode
+      if (isSelected || mode === "EDIT") {
+        // Get all elements above the click point
+        const elementsAtPoint = document.elementsFromPoint(
+          e.clientX,
+          e.clientY
+        );
+
+        // Check if any element is this note
+        const isClickInsideNote = elementsAtPoint.some((element) =>
+          element.closest(`[data-note-id="${id}"]`)
+        );
+
+        if (!isClickInsideNote) {
+          // If clicked outside, exit edit mode and deselect
+          setMode("VIEW");
+          setIsSelected(false);
+
+          // Blur the textarea if it's focused
+          if (document.activeElement === textareaRef.current) {
+            textareaRef.current?.blur();
+          }
+        }
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [id, isSelected, mode]);
+
   // Calculate width based on note type
   const noteWidth = isLinkNote ? 300 : 200;
 
-  // Apply shorthand visual effects
+  // Apply shorthand visual effects with different styles based on mode
   const noteStyle = getShorthandStyles({
     width: noteWidth,
     backgroundColor: getColor(content.color || "night-med"),
     border: `1px solid ${getColor("graphite-thin")}`,
     transition: "box-shadow 0.3s ease, transform 0.2s ease",
-    // Add a subtle outline when focused
-    ...(isFocused && !isLinkNote
-      ? { boxShadow: `0 0 0 1px ${getColor("graphite")}` }
+    // Selection highlighting
+    ...(isSelected ? { boxShadow: `0 0 0 2px ${getColor("latte")}` } : {}),
+    // More prominent focus when in edit mode
+    ...(mode === "EDIT" && !isLinkNote
+      ? {
+          boxShadow: `0 0 0 2px ${getColor("latte")}, 0 0 0 4px ${getColor("graphite")}`,
+        }
       : {}),
   });
 
   // Determine if we should show a link embed
   const showEmbed = isLinkNote && content.url;
 
-  // Handle position updates - fixed the type mismatch issue
+  // Handle drag start - blur textarea and ensure we're in view mode
+  const handleDragStartInternal = useCallback(() => {
+    // Ensure any focused textarea is blurred
+    if (textareaRef.current && document.activeElement === textareaRef.current) {
+      textareaRef.current.blur();
+    }
+
+    // Switch to view mode during drag
+    setMode("VIEW");
+
+    if (onDragStart) {
+      onDragStart();
+    }
+  }, [onDragStart]);
+
+  // Handle position updates
   const handleDragEnd = useCallback(
     (finalPosition?: Position) => {
       if (finalPosition) {
         setNotePosition(finalPosition);
       }
-      // Call parent's onDragEnd if provided
+
       if (onDragEnd) {
         onDragEnd();
       }
@@ -288,17 +355,29 @@ const UnifiedNote: React.FC<UnifiedNoteProps> = ({
     [onDragEnd]
   );
 
+  // Get appropriate cursor style based on mode
+  const getCursorStyle = () => {
+    if (isLinkNote) return "";
+    if (mode === "EDIT") return "text";
+    if (isSelected) return "pointer";
+    return "";
+  };
+
   return (
     <DraggableItem
       id={id}
       boardId={boardId}
       position={notePosition}
       zIndex={zIndex}
-      className={`rounded shadow-lg overflow-hidden ${isLinkNote ? "" : "cursor-text"}`}
-      style={noteStyle}
-      onDragStart={onDragStart}
+      className={`rounded shadow-lg overflow-hidden`}
+      style={{
+        ...noteStyle,
+        cursor: getCursorStyle(),
+      }}
+      onDragStart={handleDragStartInternal}
       onDragEnd={handleDragEnd}
       onClick={handleNoteClick}
+      data-note-id={id}
     >
       {showEmbed ? (
         // Link embed view
@@ -306,12 +385,12 @@ const UnifiedNote: React.FC<UnifiedNoteProps> = ({
           <LinkEmbed url={content.url} onLoad={handleEmbedDataLoad} />
         </div>
       ) : (
-        // Editable note view (always in edit mode - no switching)
-        // Apply drag-handle class to outer div but not to textarea area
-        <div className="w-full h-full">
-          {/* Header area for dragging */}
+        // Note with overlay view for selection and drag
+        <div className="w-full h-full relative">
+          {/* Top drag handle area */}
           <div className="absolute top-0 left-0 right-0 h-8 drag-handle" />
 
+          {/* Textarea for editing */}
           <textarea
             ref={textareaRef}
             className="w-full h-full bg-transparent border-none resize-none p-3 milanote-scrollbar outline-none"
@@ -320,8 +399,10 @@ const UnifiedNote: React.FC<UnifiedNoteProps> = ({
               fontFamily: getFont("Text Secondary"),
               minHeight: "100px",
               caretColor: getColor("latte"),
-              zIndex: 2, // Ensure textarea is above drag handle
+              zIndex: 2,
               position: "relative",
+              // Only allow interaction when in EDIT mode
+              pointerEvents: mode === "EDIT" ? "auto" : "none",
             }}
             value={text}
             onChange={(e) => setText(e.target.value)}
@@ -330,15 +411,34 @@ const UnifiedNote: React.FC<UnifiedNoteProps> = ({
               e.stopPropagation();
               bringToFront(boardId, id);
             }}
-            onMouseDown={(e) => {
-              // Prevent drag behavior when clicking on textarea
-              e.stopPropagation();
+            onFocus={() => {
+              setMode("EDIT");
+              setIsSelected(true);
             }}
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => setIsFocused(false)}
+            onBlur={() => {
+              // Only exit edit mode if the note is still selected
+              if (isSelected) {
+                setMode("VIEW");
+              }
+            }}
             spellCheck="false"
             autoFocus={text === ""}
+            readOnly={mode !== "EDIT"} // Important: readonly when not in edit mode
           />
+
+          {/* Overlay layer for view mode - catches clicks and allows dragging */}
+          {mode === "VIEW" && (
+            <div
+              className="absolute inset-0 cursor-pointer drag-handle"
+              style={{
+                zIndex: 3,
+                cursor: "move",
+              }}
+              onClick={handleNoteClick}
+              // Ensure this div doesn't block text visibility
+              dangerouslySetInnerHTML={{ __html: "" }}
+            />
+          )}
         </div>
       )}
     </DraggableItem>
