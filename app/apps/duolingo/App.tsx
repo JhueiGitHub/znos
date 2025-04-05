@@ -2,34 +2,17 @@
 "use client";
 
 import React from "react";
-import { DuolingoProvider, useDuolingoState } from "./contexts/DuolingoContext";
-import SnakeLessonLayout from "./components/SnakeLessonLayout";
-import LessonView from "./components/LessonView";
+import { DuolingoProvider } from "./contexts/DuolingoContext";
+import DuolingoMainView from "./components/DuolingoMainView"; // Import the main view
 import { zenith } from "./styles/zenithStyles";
 
-// Internal component to access context
-const DuolingoContent = () => {
-  const { isLessonActive } = useDuolingoState();
-
-  return (
-    // Make this container use flex and center items
-    <div
-      className={`flex items-center justify-center h-full w-full ${zenith.tailwind.bgBlackGlass} ${zenith.tailwind.textGraphite} rounded-lg overflow-hidden`}
-    >
-      {/* The SnakeLessonLayout or LessonView will be centered */}
-      {isLessonActive ? <LessonView /> : <SnakeLessonLayout />}
-    </div>
-  );
-};
-
-// Main App component
 export default function App() {
   return (
-    <div className="p-1 h-full w-full">
-      {" "}
-      {/* Padding around the app window */}
+    // Padding around the app window / Zenith background glass
+    // Removed centering here as DuolingoMainView handles it internally now
+    <div className={`p-1 h-full w-full ${zenith.tailwind.bgBlackGlass}`}>
       <DuolingoProvider>
-        <DuolingoContent />
+        <DuolingoMainView />
       </DuolingoProvider>
     </div>
   );

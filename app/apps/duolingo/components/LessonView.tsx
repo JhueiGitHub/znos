@@ -15,15 +15,15 @@ import TranslateExercise from "./exercises/TranslateExercise";
 import MultipleChoiceExercise from "./exercises/MultipleChoiceExercise";
 import MatchPairsExercise from "./exercises/MatchPairsExercise";
 
-// Simple Back Arrow Icon
+// Compact Back Arrow Icon
 const BackArrowIcon = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     fill="none"
     viewBox="0 0 24 24"
-    strokeWidth={1.5}
+    strokeWidth={2}
     stroke="currentColor"
-    className="size-6"
+    className="size-5"
   >
     <path
       strokeLinecap="round"
@@ -36,19 +36,40 @@ const BackArrowIcon = () => (
 const LessonView = () => {
   const { currentLesson, currentExerciseIndex, feedback, isLessonComplete } =
     useDuolingoState();
-  const { exitLesson } = useDuolingoActions(); // Use exitLesson for back button
+  const { exitLesson } = useDuolingoActions();
 
-  if (!currentLesson) return null;
+  // Early exit if no lesson is active (shouldn't happen with current logic, but safe)
+  if (!currentLesson)
+    return (
+      <div
+        className={`flex items-center justify-center h-full ${zenith.tailwind.textGraphite} text-sm`}
+      >
+        No active lesson.
+      </div>
+    );
+
+  // Render Completion Screen if lesson is complete
   if (isLessonComplete) {
-    return <LessonComplete />;
+    return <LessonComplete />; // Ensure this is also styled for narrow view
   }
 
-  const exercise: Exercise = currentLesson.exercises[currentExerciseIndex];
+  const exercise: Exercise | undefined =
+    currentLesson.exercises[currentExerciseIndex];
   const progress =
-    (currentExerciseIndex / currentLesson.exercises.length) * 100;
+    currentLesson.exercises.length > 0
+      ? ((currentExerciseIndex + 1) / currentLesson.exercises.length) * 100
+      : 0; // Show progress based on completed steps
 
   const renderExercise = () => {
-    // ... (renderExercise switch statement remains the same)
+    if (!exercise)
+      return (
+        <div
+          className={`${zenith.tailwind.textGraphite} text-center p-4 text-sm`}
+        >
+          End of lesson?
+        </div>
+      );
+
     switch (exercise.type) {
       case "TRANSLATE_TO_ITALIAN":
       case "TRANSLATE_TO_ENGLISH":
@@ -56,62 +77,72 @@ const LessonView = () => {
       case "MULTIPLE_CHOICE_TRANSLATE":
         return <MultipleChoiceExercise key={exercise.id} exercise={exercise} />;
       case "MATCH_PAIRS":
+        // Needs careful styling for narrow view
         return <MatchPairsExercise key={exercise.id} exercise={exercise} />;
       default:
-        return <div>Unsupported exercise type</div>;
+        // Assert exhaustiveness check (optional)
+        // const _exhaustiveCheck: never = exercise;
+        return (
+          <div className="text-red-500 text-xs p-2">
+            Error: Unknown exercise type: {(exercise as any).type}
+          </div>
+        );
     }
   };
 
   return (
-    <div className="flex flex-col h-full relative">
-      {/* Header Area - Updated with Back Button */}
+    <div className="flex flex-col h-full w-full relative text-xs sm:text-sm">
+      {/* Header */}
       <div
-        className={`flex items-center p-3 border-b ${zenith.tailwind.borderWhiteBrd}`}
+        className={`flex items-center p-2 border-b ${zenith.tailwind.borderWhiteBrd} gap-2 flex-shrink-0`}
       >
-        {/* Back Button */}
         <button
-          onClick={exitLesson} // Use exitLesson action
-          className={`p-1 mr-3 ${zenith.tailwind.textGraphite} hover:text-[${zenith.colors.white}] rounded-md hover:bg-white/10 transition-colors`}
-          aria-label="Back to Lessons"
+          onClick={exitLesson}
+          className={`p-1 ${zenith.tailwind.textGraphite} hover:text-[${zenith.colors.white}] rounded-md hover:bg-white/10 transition-colors`}
+          aria-label="Back"
+          title="Back to Lessons"
         >
           <BackArrowIcon />
         </button>
-        {/* Progress Bar */}
         <div className="flex-grow">
           <ProgressBar progress={progress} />
         </div>
       </div>
 
-      {/* Exercise Area (no changes needed here) */}
-      <div className="flex-grow flex items-center justify-center p-6 md:p-10">
+      {/* Exercise Content Area (Scrolls if needed, though exercises should be compact) */}
+      <div className="flex-grow flex flex-col justify-center p-3 overflow-y-auto scrollbar-thin scrollbar-thumb-latte/30 scrollbar-track-transparent">
         <AnimatePresence mode="wait">
           <motion.div
-            key={currentExerciseIndex}
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -50 }}
+            key={currentExerciseIndex} // Animate based on index change
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="w-full max-w-3xl"
+            className="w-full"
           >
             {renderExercise()}
           </motion.div>
         </AnimatePresence>
       </div>
 
-      {/* Feedback Banner Area (no changes needed here) */}
-      <AnimatePresence>
-        {feedback.show && (
-          <motion.div
-            className="absolute bottom-0 left-0 right-0"
-            initial={{ y: "100%" }}
-            animate={{ y: 0 }}
-            exit={{ y: "100%" }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          >
-            <FeedbackBanner />
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Footer / Feedback Area */}
+      <div className="flex-shrink-0 h-[65px]">
+        {" "}
+        {/* Reserve consistent space */}
+        <AnimatePresence>
+          {feedback.show && (
+            <motion.div
+              className="absolute bottom-0 left-0 right-0 z-10" // Ensure feedback is on top
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            >
+              <FeedbackBanner />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 };

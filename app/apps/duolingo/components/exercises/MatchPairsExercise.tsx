@@ -1,16 +1,24 @@
 // /root/app/apps/duolingo/components/exercises/MatchPairsExercise.tsx
 "use client";
 import React, { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion } from "framer-motion"; // Removed AnimateSharedLayout as it's deprecated
 import {
   useDuolingoActions,
   useDuolingoState,
 } from "../../contexts/DuolingoContext";
 import {
   MatchPairsExercise as MatchPairsExerciseType,
-  MatchPair,
+  MatchPairItem,
 } from "../../types/DuolingoTypes";
 import { zenith } from "../../styles/zenithStyles";
+import { shuffle } from "lodash"; // npm install lodash @types/lodash
+
+// Interface extending MatchPairItem for component state
+interface SelectablePairItem extends MatchPairItem {
+  isSelected: boolean;
+  isMatched: boolean;
+  side: "A" | "B"; // Type definition is correct here
+}
 
 interface MatchPairsExerciseProps {
   exercise: MatchPairsExerciseType;
@@ -19,95 +27,129 @@ interface MatchPairsExerciseProps {
 const MatchPairsExercise = ({ exercise }: MatchPairsExerciseProps) => {
   const { submitAnswer } = useDuolingoActions();
   const { feedback } = useDuolingoState();
-  const [shuffledPairs, setShuffledPairs] = useState<MatchPair[]>([]);
-  const [selectedPairId, setSelectedPairId] = useState<string | null>(null);
-  const [matchedPairs, setMatchedPairs] = useState<Record<string, string>>({}); // Stores { id: matchedId }
+  const [items, setItems] = useState<SelectablePairItem[]>([]);
+  const [selectedItem, setSelectedItem] = useState<SelectablePairItem | null>(
+    null
+  );
 
-  // Shuffle pairs on mount or exercise change
   useEffect(() => {
-    setShuffledPairs([...exercise.pairs].sort(() => Math.random() - 0.5));
-    setSelectedPairId(null);
-    setMatchedPairs({});
+    // --- FIX: Explicitly type items before flatMap ---
+    const allItems = exercise.pairs.flatMap((p) => {
+      // Define with the correct SelectablePairItem type
+      const itemA: SelectablePairItem = {
+        ...p.itemA,
+        isSelected: false,
+        isMatched: false,
+        side: "A",
+      };
+      const itemB: SelectablePairItem = {
+        ...p.itemB,
+        isSelected: false,
+        isMatched: false,
+        side: "B",
+      };
+      return [itemA, itemB];
+    });
+    // --- End Fix ---
+    setItems(shuffle(allItems));
+    setSelectedItem(null);
   }, [exercise]);
 
-  const handleSelectPair = (pair: MatchPair) => {
-    if (feedback.show || matchedPairs[pair.id]) return; // Cannot select if submitted or already matched
+  const handleSelectItem = (item: SelectablePairItem) => {
+    if (feedback.show || item.isMatched) return;
 
-    if (!selectedPairId) {
-      // First selection
-      setSelectedPairId(pair.id);
+    if (!selectedItem) {
+      setSelectedItem(item);
+      setItems((prevItems) =>
+        prevItems.map((i) =>
+          i.id === item.id
+            ? { ...i, isSelected: true }
+            : { ...i, isSelected: false }
+        )
+      );
     } else {
-      // Second selection - check for match
-      const firstSelected = shuffledPairs.find((p) => p.id === selectedPairId);
-      if (firstSelected && firstSelected.matchId === pair.id) {
-        // Correct match!
-        setMatchedPairs((prev) => ({
-          ...prev,
-          [selectedPairId]: pair.id,
-          [pair.id]: selectedPairId,
-        }));
-        setSelectedPairId(null); // Reset selection
-        // Check if all pairs are matched
-        if (Object.keys(matchedPairs).length + 2 === exercise.pairs.length) {
-          // Create the answer object for submission
-          const answer = {
-            ...matchedPairs,
-            [selectedPairId]: pair.id,
-            [pair.id]: selectedPairId,
-          };
-          submitAnswer(answer);
+      if (item.id === selectedItem.id) {
+        setSelectedItem(null);
+        setItems((prevItems) =>
+          prevItems.map((i) => ({ ...i, isSelected: false }))
+        );
+        return;
+      }
+
+      const correctPairDef = exercise.pairs.find(
+        (p) => p.itemA.id === selectedItem.id || p.itemB.id === selectedItem.id
+      );
+      const expectedMatchId = correctPairDef
+        ? correctPairDef.itemA.id === selectedItem.id
+          ? correctPairDef.itemB.id
+          : correctPairDef.itemA.id
+        : null;
+
+      if (expectedMatchId === item.id) {
+        // Correct Match
+        const newlyMatchedIds = [item.id, selectedItem.id];
+        const updatedItems = items.map((i) =>
+          newlyMatchedIds.includes(i.id)
+            ? { ...i, isSelected: false, isMatched: true }
+            : i
+        );
+        setItems(updatedItems);
+        setSelectedItem(null);
+
+        const allMatched = updatedItems.every((i) => i.isMatched);
+        if (allMatched) {
+          // --- FIX: Submit something meaningful or adapt context ---
+          // Submit the matched pairs state for potential validation/logging
+          const submittedAnswerForContext = updatedItems
+            .filter((i) => i.isMatched)
+            .map((i) => ({ id: i.id, matched: true })); // Example format
+          submitAnswer(submittedAnswerForContext as any); // Cast needed if context expects string/string[]
+          console.log("MatchPairs: All matched! Submitting result.");
         }
       } else {
-        // Incorrect match - reset selection (add visual feedback later if needed)
-        setSelectedPairId(null);
-        // TODO: Add brief visual "shake" or incorrect indicator?
+        // Incorrect Match
+        setSelectedItem(null);
+        setItems((prevItems) =>
+          prevItems.map((i) => ({ ...i, isSelected: false }))
+        );
+        // TODO: Add subtle visual feedback for incorrect attempt
       }
     }
   };
 
-  const allMatched = Object.keys(matchedPairs).length === exercise.pairs.length;
-
   return (
-    <div className="flex flex-col items-center w-full">
-      <h2
-        className={`text-xl md:text-2xl mb-8 text-center ${zenith.tailwind.textWhite}`}
-      >
+    <div className="flex flex-col items-center w-full gap-3 text-center">
+      <p className={`text-sm mb-1 ${zenith.tailwind.textWhite}`}>
         {exercise.prompt}
-      </h2>
-
-      <div className="grid grid-cols-2 gap-4 w-full max-w-md">
-        {shuffledPairs.map((pair) => {
-          const isSelected = selectedPairId === pair.id;
-          const isMatched = !!matchedPairs[pair.id];
-
+      </p>
+      <div className="flex flex-col gap-2 w-full">
+        {items.map((item) => {
           let buttonStyle = `${zenith.tailwind.bgBlackGlass} ${zenith.tailwind.textGraphite} border ${zenith.tailwind.borderWhiteBrd} hover:bg-white/10`;
-          if (isSelected) {
+          if (item.isSelected) {
             buttonStyle = `${zenith.tailwind.accentButtonBg} ${zenith.tailwind.textWhite} border ${zenith.tailwind.borderLatte}`;
           }
-          if (isMatched) {
-            buttonStyle = `${zenith.tailwind.bgCorrect}/54 <span class="math-inline">\{zenith\.tailwind\.textWhite\} border\-\[</span>{zenith.colors.correct}]/54 opacity-70 cursor-default`; // Faded correct, disabled look
+          if (item.isMatched) {
+            buttonStyle = `${zenith.tailwind.bgCorrect}/30 border-[${zenith.colors.correct}]/50 opacity-60 cursor-default`;
           }
 
           return (
             <motion.button
-              key={pair.id}
-              onClick={() => handleSelectPair(pair)}
-              disabled={isMatched || feedback.show} // Disable if matched or submitted
-              className={`w-full p-4 rounded-xl text-center text-lg transition-all duration-200 ease-in-out disabled:cursor-not-allowed ${buttonStyle}`}
-              whileHover={{ scale: !isMatched && !feedback.show ? 1.05 : 1 }}
-              whileTap={{ scale: !isMatched && !feedback.show ? 0.95 : 1 }}
+              key={item.id}
+              layout
+              onClick={() => handleSelectItem(item)}
+              disabled={item.isMatched || feedback.show}
+              className={`w-full p-2.5 rounded-lg text-xs sm:text-sm text-center transition-colors duration-150 ease-in-out disabled:cursor-not-allowed ${buttonStyle}`}
+              whileHover={{
+                scale: !item.isMatched && !feedback.show ? 1.03 : 1,
+              }}
+              whileTap={{ scale: !item.isMatched && !feedback.show ? 0.98 : 1 }}
             >
-              {pair.text}
+              {item.text}
             </motion.button>
           );
         })}
       </div>
-      {/* No submit button needed here, submission happens when all pairs are matched */}
-      {feedback.show && !feedback.correct && (
-        <p className={`mt-4 text-lg ${zenith.tailwind.textGraphite}`}>
-          Keep trying to match the pairs!
-        </p> // Generic message if incorrect on submit (though submit happens on completion)
-      )}
+      {!feedback.show && <div className="h-[65px]"></div>}
     </div>
   );
 };
