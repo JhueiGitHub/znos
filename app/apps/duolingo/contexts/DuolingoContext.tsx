@@ -7,12 +7,16 @@ import React, {
   ReactNode,
   useMemo,
 } from "react";
-import { italianLessons } from "../data/italianLessons";
-import { Lesson, Exercise } from "../types/DuolingoTypes";
+// --- FIXED IMPORT ---
+import { italianLessonNodes } from "../data/italianLessons";
+// --- UPDATED TYPE IMPORTS ---
+import { LessonNodeData, Exercise } from "../types/DuolingoTypes";
 
 interface DuolingoState {
-  lessons: Lesson[];
-  currentLesson: Lesson | null;
+  // --- Use LessonNodeData[] for the list ---
+  lessons: LessonNodeData[];
+  // --- Use LessonNodeData for the current item ---
+  currentLesson: LessonNodeData | null;
   currentExerciseIndex: number;
   isLessonActive: boolean;
   isLessonComplete: boolean;
@@ -21,7 +25,7 @@ interface DuolingoState {
 
 interface DuolingoActions {
   startLesson: (lessonId: string) => void;
-  submitAnswer: (answer: string | string[] | { [key: string]: string }) => void; // Adapt based on exercise type
+  submitAnswer: (answer: string | string[] | { [key: string]: string }) => void;
   nextExercise: () => void;
   exitLesson: () => void;
   retryLesson: () => void;
@@ -36,7 +40,8 @@ const DuolingoActionsContext = createContext<DuolingoActions | undefined>(
 
 export const DuolingoProvider = ({ children }: { children: ReactNode }) => {
   const [state, setState] = useState<DuolingoState>({
-    lessons: italianLessons,
+    // --- Initialize with italianLessonNodes ---
+    lessons: italianLessonNodes,
     currentLesson: null,
     currentExerciseIndex: 0,
     isLessonActive: false,
@@ -47,30 +52,47 @@ export const DuolingoProvider = ({ children }: { children: ReactNode }) => {
   const actions = useMemo(
     () => ({
       startLesson: (lessonId: string) => {
-        const lesson = state.lessons.find((l) => l.id === lessonId);
-        if (lesson) {
+        // Find the node (which is LessonNodeData type) from the state
+        const lessonNode = state.lessons.find((node) => node.id === lessonId);
+        // Ensure it's a valid node with exercises before starting
+        if (
+          lessonNode &&
+          lessonNode.exercises &&
+          lessonNode.exercises.length > 0
+        ) {
           setState((prev) => ({
             ...prev,
-            currentLesson: lesson,
+            // Set currentLesson to the found node
+            currentLesson: lessonNode,
             currentExerciseIndex: 0,
             isLessonActive: true,
             isLessonComplete: false,
             feedback: { show: false, correct: false, message: "" },
           }));
+        } else if (lessonNode) {
+          console.warn(
+            `Lesson node ${lessonNode.id} has no exercises or is not a startable type.`
+          );
+          // Optionally show a user message here
+        } else {
+          console.error(`Lesson node with id ${lessonId} not found.`);
         }
       },
 
       submitAnswer: (
         userAnswer: string | string[] | { [key: string]: string }
       ) => {
-        if (!state.currentLesson || state.feedback.show) return; // Prevent double submission
+        if (!state.currentLesson || state.feedback.show) return;
 
+        // currentLesson is LessonNodeData, exercises are directly accessible
         const exercise =
           state.currentLesson.exercises[state.currentExerciseIndex];
+        if (!exercise) {
+          console.error("Current exercise is undefined.");
+          return; // Exit if exercise is not found
+        }
         let isCorrect = false;
         let message = "";
-
-        // Normalize string answers for comparison
         const normalize = (ans: string) =>
           ans
             .trim()
@@ -80,34 +102,41 @@ export const DuolingoProvider = ({ children }: { children: ReactNode }) => {
         switch (exercise.type) {
           case "TRANSLATE_TO_ITALIAN":
           case "TRANSLATE_TO_ENGLISH":
+            // Ensure correctAnswer is treated as string[]
+            const correctAnswers = (exercise as any).correctAnswer as string[];
             const normalizedUserAnswer = Array.isArray(userAnswer)
               ? normalize(userAnswer.join(" "))
               : normalize(userAnswer as string);
-            isCorrect = exercise.correctAnswer.some(
+            isCorrect = correctAnswers.some(
               (correct) => normalize(correct) === normalizedUserAnswer
             );
             message = isCorrect
               ? "Correct!"
-              : `Correct answer: ${exercise.correctAnswer[0]}`;
+              : `Correct answer: ${correctAnswers[0]}`;
             break;
           case "MULTIPLE_CHOICE_TRANSLATE":
-            isCorrect = userAnswer === exercise.correctAnswer;
+            const correctChoice = (exercise as any).correctAnswer as string;
+            isCorrect = userAnswer === correctChoice;
             message = isCorrect
               ? "Correct!"
-              : `Correct answer: ${exercise.correctAnswer}`;
+              : `Correct answer: ${correctChoice}`;
             break;
           case "MATCH_PAIRS":
-            // Check if all pairs provided by userAnswer match the exercise definitions
+            const correctPairs = (exercise as any).pairs as {
+              id: string;
+              matchId: string;
+            }[];
             const userPairs = userAnswer as { [key: string]: string };
-            isCorrect = exercise.pairs.every(
-              (p) => userPairs[p.id] === p.matchId
-            );
+            // Check if number of provided pairs matches expected pairs
+            const userPairKeys = Object.keys(userPairs);
+            isCorrect =
+              correctPairs.every((p) => userPairs[p.id] === p.matchId) &&
+              userPairKeys.length === correctPairs.length;
+
             message = isCorrect
               ? "All pairs matched!"
               : "Some pairs are incorrect.";
-            // Provide more specific feedback if needed
             break;
-          // Add cases for other exercise types
         }
 
         setState((prev) => ({
@@ -124,14 +153,13 @@ export const DuolingoProvider = ({ children }: { children: ReactNode }) => {
           setState((prev) => ({
             ...prev,
             currentExerciseIndex: nextIndex,
-            feedback: { show: false, correct: false, message: "" }, // Reset feedback
+            feedback: { show: false, correct: false, message: "" },
           }));
         } else {
-          // Lesson complete
           setState((prev) => ({
             ...prev,
             isLessonComplete: true,
-            feedback: { show: false, correct: false, message: "" }, // Reset feedback for completion screen
+            feedback: { show: false, correct: false, message: "" },
           }));
         }
       },
@@ -149,7 +177,6 @@ export const DuolingoProvider = ({ children }: { children: ReactNode }) => {
 
       retryLesson: () => {
         if (!state.currentLesson) return;
-        // Simply reset the index and completion status for the current lesson
         setState((prev) => ({
           ...prev,
           currentExerciseIndex: 0,
@@ -158,8 +185,14 @@ export const DuolingoProvider = ({ children }: { children: ReactNode }) => {
         }));
       },
     }),
-    [state]
-  ); // Recreate actions only if state changes (might need refinement based on dependencies)
+    // Ensure dependencies are correct, especially state.lessons and state.currentLesson
+    [
+      state.currentLesson,
+      state.currentExerciseIndex,
+      state.feedback.show,
+      state.lessons,
+    ]
+  );
 
   return (
     <DuolingoStateContext.Provider value={state}>
@@ -170,6 +203,7 @@ export const DuolingoProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
+// --- Hooks remain the same ---
 export const useDuolingoState = () => {
   const context = useContext(DuolingoStateContext);
   if (context === undefined) {

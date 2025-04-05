@@ -5,20 +5,17 @@ export type ExerciseType =
   | "TRANSLATE_TO_ENGLISH"
   | "MULTIPLE_CHOICE_TRANSLATE"
   | "MATCH_PAIRS";
-// Add more types like 'FILL_IN_BLANK', 'LISTEN_AND_TYPE' etc. later
 
 export interface BaseExercise {
   id: string;
   type: ExerciseType;
   prompt: string;
 }
-
 export interface TranslateExercise extends BaseExercise {
   type: "TRANSLATE_TO_ITALIAN" | "TRANSLATE_TO_ENGLISH";
-  correctAnswer: string[]; // Array to allow multiple correct variations
-  options: string[]; // Word bank options
+  correctAnswer: string[];
+  options: string[];
 }
-
 export interface MultipleChoiceExercise extends BaseExercise {
   type: "MULTIPLE_CHOICE_TRANSLATE";
   options: string[];
@@ -31,16 +28,33 @@ export interface MatchPair {
 }
 export interface MatchPairsExercise extends BaseExercise {
   type: "MATCH_PAIRS";
-  pairs: MatchPair[]; // Pairs will be shuffled in the component
+  pairs: MatchPair[];
 }
-
 export type Exercise =
   | TranslateExercise
   | MultipleChoiceExercise
-  | MatchPairsExercise; // Union of all exercise types
+  | MatchPairsExercise;
 
-export interface Lesson {
+export type LessonNodeType = "start" | "lesson" | "checkpoint";
+export type LessonNodeStatus = "locked" | "available" | "completed";
+
+export interface NodePosition {
+  x: number; // PIXELS from left
+  y: number; // PIXELS from top
+}
+
+export interface NodeSize {
+  // Optional size override
+  width: number;
+  height: number;
+}
+
+export interface LessonNodeData {
   id: string;
   title: string;
+  type: LessonNodeType;
+  status: LessonNodeStatus;
   exercises: Exercise[];
+  position: NodePosition;
+  size?: NodeSize; // Add optional size
 }

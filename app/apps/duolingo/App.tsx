@@ -3,32 +3,31 @@
 
 import React from "react";
 import { DuolingoProvider, useDuolingoState } from "./contexts/DuolingoContext";
-import LessonSelection from "./components/LessonSelection";
+import SnakeLessonLayout from "./components/SnakeLessonLayout";
 import LessonView from "./components/LessonView";
-import { zenith } from "./styles/zenithStyles"; // Import Zenith styles
+import { zenith } from "./styles/zenithStyles";
 
 // Internal component to access context
 const DuolingoContent = () => {
   const { isLessonActive } = useDuolingoState();
 
   return (
+    // Make this container use flex and center items
     <div
-      className={`flex flex-col h-full w-full ${zenith.tailwind.bgBlackGlass} ${zenith.tailwind.textGraphite} rounded-lg overflow-hidden`}
+      className={`flex items-center justify-center h-full w-full ${zenith.tailwind.bgBlackGlass} ${zenith.tailwind.textGraphite} rounded-lg overflow-hidden`}
     >
-      {isLessonActive ? <LessonView /> : <LessonSelection />}
+      {/* The SnakeLessonLayout or LessonView will be centered */}
+      {isLessonActive ? <LessonView /> : <SnakeLessonLayout />}
     </div>
   );
 };
 
-// Main App component that wraps content with the Provider
+// Main App component
 export default function App() {
   return (
-    // Wrap the entire app in the DuolingoProvider
-    // The outer div simulates the app window padding/margin if needed,
-    // assuming the OrionOS window component provides the actual frame.
     <div className="p-1 h-full w-full">
       {" "}
-      {/* Adjust padding as needed */}
+      {/* Padding around the app window */}
       <DuolingoProvider>
         <DuolingoContent />
       </DuolingoProvider>
