@@ -156,8 +156,7 @@ const MatchPairsExercise: React.FC<Props> = ({
       </motion.div>
 
       <motion.h2
-        className="text-lg font-bold mb-4"
-        style={{ color: getColor("Graphite") }}
+        className="text-lg font-bold mb-4 text-white/80"
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
       >

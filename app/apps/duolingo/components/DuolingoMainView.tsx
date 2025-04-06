@@ -96,7 +96,7 @@ const DuolingoMainView = () => {
     <div className="flex items-center justify-center h-[480px] w-full overflow-hidden">
       <div
         ref={containerRef}
-        className="relative h-full w-[210px] overflow-hidden rounded-lg border border-white/10" // Added subtle border
+        className="relative h-full w-[270px] overflow-hidden rounded-lg border border-white/10" // Added subtle border
       >
         <AnimatePresence mode="wait">
           {!isLessonActive ? (
@@ -107,7 +107,7 @@ const DuolingoMainView = () => {
               initial="hidden"
               animate="visible"
               exit="exit"
-              className="h-full w-[195px] ml-[18px]  overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-latte/50 scrollbar-track-transparent"
+              className="h-full w-[195px] ml-[45px]  overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-latte/50 scrollbar-track-transparent"
             >
               <div className="relative" style={{ height: `${snakeHeight}px` }}>
                 <SnakePath nodes={italianLessonNodes} />

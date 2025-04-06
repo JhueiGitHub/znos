@@ -119,12 +119,12 @@ const LessonView: React.FC = () => {
       <div className="flex items-center justify-between p-3 border-b border-white/5">
         <button
           onClick={exitLesson}
-          className="text-white/60 hover:text-white transition-colors"
+          className="text-[#4C4F69]/80 hover:text-[#4C4F69]/100 transition-colors"
         >
           <X size={16} />
         </button>
 
-        <div className="flex-1 mx-2">
+        <div className="flex-1 ml-2 w-full">
           <div className="w-full bg-white/10 h-2 rounded-full overflow-hidden">
             <motion.div
               className="h-full rounded-full"
@@ -137,7 +137,7 @@ const LessonView: React.FC = () => {
         </div>
 
         {/* Empty div to maintain spacing */}
-        <div className="w-4"></div>
+        <div className="w-[6px]"></div>
       </div>
 
       {/* Exercise content */}
@@ -216,13 +216,8 @@ const LessonView: React.FC = () => {
 
         {/* Action button */}
         <motion.button
-          className="w-full py-3 rounded-xl font-bold text-sm border"
-          style={{
-            backgroundColor:
-              answer || feedback.show ? getColor("latte") : "#191919",
-            color: answer || feedback.show ? "white" : "#333333",
-            borderColor: getColor("Brd"),
-          }}
+          className="w-full py-3 rounded-xl font-bold text-sm border border-white/10 hover:bg-white/5 transition-colors"
+          style={{ color: "rgba(76, 79, 105, 0.81)" }}
           whileHover={answer || feedback.show ? { scale: 1.02 } : {}}
           whileTap={answer || feedback.show ? { scale: 0.98 } : {}}
           disabled={!answer && !feedback.show}

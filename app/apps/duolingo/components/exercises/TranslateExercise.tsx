@@ -1,6 +1,6 @@
 // /root/app/apps/duolingo/components/exercises/TranslateExercise.tsx
-import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence, Reorder } from "framer-motion";
 import { TranslateExercise as TranslateExerciseType } from "../../types/DuolingoTypes";
 import { VolumeIcon } from "lucide-react";
 import { playAudio } from "../../utils/audioUtils";
@@ -26,8 +26,10 @@ const TranslateExercise: React.FC<Props> = ({
   // Local state for word banks
   const [selectedTiles, setSelectedTiles] = useState<string[]>([]);
   const [availableTiles, setAvailableTiles] = useState<string[]>([]);
+  const [animatingTile, setAnimatingTile] = useState<string | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  // Initialize tiles on component mount
+  // Init tiles on component mount
   useEffect(() => {
     // Reset selections when exercise changes
     setSelectedTiles(userAnswer || []);
@@ -38,8 +40,12 @@ const TranslateExercise: React.FC<Props> = ({
       (word) => !selected.includes(word)
     );
 
-    // Shuffle available tiles
-    setAvailableTiles(shuffleArray(available));
+    // Shuffle available tiles - but only on initial load
+    if (availableTiles.length === 0) {
+      setAvailableTiles(shuffleArray(available));
+    } else {
+      setAvailableTiles(available);
+    }
 
     // Play audio if available
     if (exercise.audioSrc) {
@@ -47,7 +53,7 @@ const TranslateExercise: React.FC<Props> = ({
     }
   }, [exercise, userAnswer]);
 
-  // Function to shuffle array
+  // Function to shuffle array - only for initial state
   const shuffleArray = (array: string[]): string[] => {
     const shuffled = [...array];
     for (let i = shuffled.length - 1; i > 0; i--) {
@@ -57,18 +63,24 @@ const TranslateExercise: React.FC<Props> = ({
     return shuffled;
   };
 
-  // Handle selecting a tile from the word bank
+  // Handle selecting a tile from the word bank - now with smoother animation
   const handleTileSelect = (tile: string, index: number) => {
     if (isChecking) return;
 
-    // Add to selected tiles
+    // Mark this tile as animating
+    setAnimatingTile(tile);
+
+    // Add to selected tiles - this happens immediately
     const newSelected = [...selectedTiles, tile];
     setSelectedTiles(newSelected);
 
-    // Remove from available tiles
-    const newAvailable = [...availableTiles];
-    newAvailable.splice(index, 1);
-    setAvailableTiles(newAvailable);
+    // Remove from available tiles in a predictable way - maintain order but remove this item
+    setAvailableTiles((prev) => prev.filter((item) => item !== tile));
+
+    // Clear animating state after animation completes
+    setTimeout(() => {
+      setAnimatingTile(null);
+    }, 300);
 
     // Update parent component
     onAnswer(newSelected);
@@ -78,14 +90,36 @@ const TranslateExercise: React.FC<Props> = ({
   const handleTileRemove = (tile: string, index: number) => {
     if (isChecking) return;
 
+    // Mark this tile as animating
+    setAnimatingTile(tile);
+
     // Remove from selected tiles
     const newSelected = [...selectedTiles];
     newSelected.splice(index, 1);
     setSelectedTiles(newSelected);
 
-    // Add back to available tiles
-    const newAvailable = [...availableTiles, tile];
+    // Add back to available tiles in a predictable location
+    // Find where this tile should go based on original exercise order
+    const originalOrder = exercise.options;
+    const insertIndex = originalOrder.indexOf(tile);
+
+    // Figure out where to insert in current available tiles
+    let targetIndex = 0;
+    for (let i = 0; i < insertIndex; i++) {
+      if (availableTiles.includes(originalOrder[i])) {
+        targetIndex++;
+      }
+    }
+
+    // Insert at the right position to maintain original relative order
+    const newAvailable = [...availableTiles];
+    newAvailable.splice(targetIndex, 0, tile);
     setAvailableTiles(newAvailable);
+
+    // Clear animating state
+    setTimeout(() => {
+      setAnimatingTile(null);
+    }, 300);
 
     // Update parent component
     onAnswer(newSelected.length > 0 ? newSelected : []);
@@ -108,9 +142,9 @@ const TranslateExercise: React.FC<Props> = ({
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full" ref={containerRef}>
       {/* Text to translate */}
-      <div className="mb-4">
+      <div className="">
         <motion.div
           className="inline-block px-3 py-1 rounded-full text-xs font-bold border mb-3"
           style={{
@@ -134,8 +168,7 @@ const TranslateExercise: React.FC<Props> = ({
             <VolumeIcon size={18} style={{ color: getColor("latte") }} />
           </motion.button>
           <motion.div
-            className="text-lg font-bold"
-            style={{ color: getColor("Graphite") }}
+            className="text-lg font-bold text-white/80"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
@@ -145,8 +178,7 @@ const TranslateExercise: React.FC<Props> = ({
         </div>
 
         <motion.p
-          className="mt-2 mb-4 text-sm"
-          style={{ color: getColor("Graphite") }}
+          className="mt-2 mb-4 text-sm text-white/60"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4 }}
@@ -176,22 +208,24 @@ const TranslateExercise: React.FC<Props> = ({
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
       >
-        <AnimatePresence mode="popLayout">
+        <div className="flex flex-wrap gap-2">
           {selectedTiles.map((tile, index) => (
             <motion.div
               key={`selected-${tile}-${index}`}
-              initial={{ scale: 0, opacity: 0 }}
+              layout
+              initial={{
+                scale: animatingTile === tile ? 0.8 : 1,
+                opacity: animatingTile === tile ? 0 : 1,
+              }}
               animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0, opacity: 0 }}
-              transition={{ type: "spring", stiffness: 500, damping: 30 }}
-              className="px-3 py-1.5 rounded-lg text-white text-sm cursor-pointer border"
+              transition={{
+                type: "spring",
+                stiffness: 500,
+                damping: 30,
+              }}
+              className="px-3 py-1.5 rounded-lg text-white/70 text-sm cursor-pointer border border-white/10 hover:bg-white/5 transition-colors"
               style={{
-                backgroundColor: showFeedback
-                  ? isCorrect()
-                    ? getColor("latte")
-                    : "#333333"
-                  : "#191919",
-                borderColor: getColor("Brd"),
+                color: "rgba(76, 79, 105, 0.81)", // Latte with glass effect
               }}
               onClick={() => !isChecking && handleTileRemove(tile, index)}
               whileHover={{ scale: isChecking ? 1 : 1.05 }}
@@ -200,37 +234,36 @@ const TranslateExercise: React.FC<Props> = ({
               {tile}
             </motion.div>
           ))}
-        </AnimatePresence>
+        </div>
       </motion.div>
 
-      {/* Word bank */}
+      {/* Word bank - now with stable positions */}
       <div className="flex flex-wrap gap-2 justify-center mt-auto">
-        <AnimatePresence mode="popLayout">
-          {availableTiles.map((tile, index) => (
-            <motion.div
-              key={`available-${tile}-${index}`}
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0, opacity: 0 }}
-              transition={{
-                type: "spring",
-                stiffness: 500,
-                damping: 30,
-                delay: 0.1 * index,
-              }}
-              className="px-3 py-1.5 rounded-lg text-white text-sm cursor-pointer border hover:bg-black"
-              style={{
-                backgroundColor: "#191919",
-                borderColor: getColor("Brd"),
-              }}
-              onClick={() => handleTileSelect(tile, index)}
-              whileHover={{ scale: isChecking ? 1 : 1.05 }}
-              whileTap={{ scale: isChecking ? 1 : 0.95 }}
-            >
-              {tile}
-            </motion.div>
-          ))}
-        </AnimatePresence>
+        {availableTiles.map((tile, index) => (
+          <motion.div
+            key={`available-${tile}`}
+            layout
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{
+              scale: animatingTile === tile ? 0.8 : 1,
+              opacity: animatingTile === tile ? 0 : 1,
+              transition: { duration: 0.2 },
+            }}
+            transition={{
+              type: "spring",
+              stiffness: 500,
+              damping: 30,
+            }}
+            className="px-3 py-1.5 rounded-lg  text-white text-sm cursor-pointer border border-white/10 hover:bg-white/5 transition-colors"
+            style={{ color: "rgba(76, 79, 105, 0.81)" }}
+            onClick={() => handleTileSelect(tile, index)}
+            whileHover={{ scale: isChecking ? 1 : 1.05 }}
+            whileTap={{ scale: isChecking ? 1 : 0.95 }}
+          >
+            {tile}
+          </motion.div>
+        ))}
       </div>
     </div>
   );

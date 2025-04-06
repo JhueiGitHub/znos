@@ -18,7 +18,7 @@ const ProgressBar = ({ progress }: ProgressBarProps) => {
       className={`w-full h-2 ${zenith.tailwind.bgBlackGlass} rounded-full overflow-hidden border ${zenith.tailwind.borderWhiteBrd}`}
     >
       <motion.div
-        className={`h-full ${zenith.tailwind.accentButtonBg} rounded-full`} // Use Latte accent
+        className={`h-full ${zenith.tailwind.accentButtonBg} rounded-full `} // Use Latte accent
         initial={{ width: "0%" }}
         animate={{ width: `${clampedProgress}%` }}
         transition={{ duration: 0.5, ease: "easeOut" }} // Smoother ease

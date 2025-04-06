@@ -1,4 +1,3 @@
-// /root/app/components/MenuBar.tsx
 "use client";
 
 import React, { useEffect, useState, useMemo, useRef } from "react";
@@ -36,19 +35,13 @@ import { StreamWithFlows, FlowWithComponents } from "@/app/types/flow";
 import { FlowComponent } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-// Original baseline imports
+// Add imports
 import { useMusicContext } from "../apps/music/context/MusicContext";
-// REMOVED: import DuolingoImageDropdown from "./DuolingoImageDropdown";
 import PDFReader from "./PDFReader";
 import * as pdfjs from "pdfjs-dist";
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
 import ZenithPDFReader from "./ZenithPDFReader";
 
-// *** ADDED: New Duolingo App Imports ***
-import { DuolingoProvider } from "../apps/duolingo/contexts/DuolingoContext";
-import DuolingoMainView from "../apps/duolingo/components/DuolingoMainView";
-
-// Interfaces from the original baseline code
 interface PDFReaderDropdownProps {
   onOpenFullscreen: () => void;
 }
@@ -70,26 +63,24 @@ interface PDFPageProxy {
   render: (options: any) => { promise: Promise<void> };
 }
 
-// Font from the original baseline code
 import localFont from "next/font/local";
+import { DuolingoProvider } from "../apps/duolingo/contexts/DuolingoContext";
+import DuolingoMainView from "../apps/duolingo/components/DuolingoMainView";
 
 const exemplarPro = localFont({
   src: "../../public/fonts/ExemplarPro.otf",
 });
 
-// Constants from the original baseline code
 const MENU_HEIGHT = 32;
 const TRIGGER_AREA_HEIGHT = 20;
 
-// Props Interface from the original baseline code
 interface SystemIconProps {
   src: string;
   children: React.ReactNode;
   onReset?: () => Promise<void>;
-  onOpenChange?: (open: boolean) => void;
+  onOpenChange?: (open: boolean) => void; // Add this prop
 }
 
-// Helper Function from the original baseline code
 const formatTime = (seconds: number): string => {
   if (!seconds) return "0:00";
   const minutes = Math.floor(seconds / 60);
@@ -97,7 +88,8 @@ const formatTime = (seconds: number): string => {
   return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
 };
 
-// IconButton Component from the original baseline code
+// First, let's create a simpler IconButton component for the non-dropdown icons
+// First, let's create a simpler IconButton component for the non-dropdown icons
 const IconButton: React.FC<{ src: string; onClick?: () => void }> = ({
   src,
   onClick,
@@ -121,12 +113,12 @@ const IconButton: React.FC<{ src: string; onClick?: () => void }> = ({
   );
 };
 
-// MusicDropdown Interface from the original baseline code
+// Update the MusicDropdown interface
 interface MusicDropdownProps {
   currentSong?: {
     title: string;
     artist: string;
-    thumbnail?: string; // Thumbnail is optional in the prop type
+    thumbnail?: string;
   };
   isPlaying: boolean;
   onPlayPause: () => void;
@@ -137,10 +129,9 @@ interface MusicDropdownProps {
   duration: number;
 }
 
-// MusicDropdown Component EXACTLY from the original baseline code ("OKAY NO THIS MENU BAR;")
-// Including the lack of chevron on the playlist button and the internal thumbnail fallback logic
+// This is the complete MusicDropdown component to replace the existing one
 const MusicDropdown: React.FC<MusicDropdownProps> = ({
-  currentSong = { title: "song1", artist: "Unknown Artist" }, // Original default prop value
+  currentSong = { title: "song1", artist: "Unknown Artist" },
   isPlaying,
   onPlayPause,
   onNext,
@@ -160,14 +151,16 @@ const MusicDropdown: React.FC<MusicDropdownProps> = ({
     toggleWallpaperMode,
     fmModeEnabled,
     toggleFmMode,
+    // New shuffle-related properties from context
     shuffleModeEnabled,
     toggleShuffleMode,
     resetShuffleForPlaylist,
-  } = useMusicContext(); // Assuming context provides these
+  } = useMusicContext();
   const [isHovering, setIsHovering] = useState(false);
   const [hoverPosition, setHoverPosition] = useState(0);
   const progressBarRef = useRef<HTMLDivElement>(null);
 
+  // Calculate hover time for preview
   const getHoverTime = (clientX: number) => {
     if (!progressBarRef.current) return 0;
     const rect = progressBarRef.current.getBoundingClientRect();
@@ -176,23 +169,25 @@ const MusicDropdown: React.FC<MusicDropdownProps> = ({
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (!progressBarRef.current || duration <= 0) return;
+    if (!progressBarRef.current) return;
     const hoverTime = getHoverTime(e.clientX);
     setHoverPosition((hoverTime / duration) * 100);
   };
 
   const handleProgressBarClick = (e: React.MouseEvent) => {
-    if (!progressBarRef.current || duration <= 0) return;
+    if (!progressBarRef.current) return;
     const clickTime = getHoverTime(e.clientX);
     seek(clickTime);
   };
 
+  // Handle toggling shuffle mode or resetting shuffle
   const handleShuffleToggle = (playlistId: string) => {
-    // Original baseline logic assumes these exist if currentPlaylist exists
     if (shuffleModeEnabled[playlistId]) {
+      // If shuffle is already enabled, reset it
       resetShuffleForPlaylist(playlistId);
-      toggleShuffleMode(playlistId);
+      toggleShuffleMode(playlistId); // Disable shuffle mode
     } else {
+      // Enable shuffle mode
       toggleShuffleMode(playlistId);
     }
   };
@@ -207,7 +202,7 @@ const MusicDropdown: React.FC<MusicDropdownProps> = ({
         borderColor: "rgba(255, 255, 255, 0.06)",
         border: "0.6px solid rgba(255, 255, 255, 0.06)",
         borderRadius: "9px",
-        position: "relative",
+        position: "relative", // Required for absolute positioning of children
       }}
     >
       {/* Light gradient overlay */}
@@ -225,10 +220,9 @@ const MusicDropdown: React.FC<MusicDropdownProps> = ({
       <div className="relative z-10 space-y-3">
         {/* Current Song Info */}
         <div className="flex items-center gap-3">
-          {/* *** Ensures fallback to empty image if currentSong.thumbnail is missing/undefined *** */}
           <img
             src={currentSong?.thumbnail || "/media/system/_empty_image.png"}
-            alt={currentSong?.title || "No song"} // Alt text uses optional chaining too
+            alt={currentSong.title}
             className="w-12 h-12 rounded"
             style={exemplarPro.style}
           />
@@ -237,13 +231,13 @@ const MusicDropdown: React.FC<MusicDropdownProps> = ({
               className="text-sm font-medium truncate text-white"
               style={exemplarPro.style}
             >
-              {currentSong?.title || "---"} {/* Fallback text */}
+              {currentSong.title}
             </div>
             <div
               className="text-xs text-white/60 truncate"
               style={exemplarPro.style}
             >
-              {currentSong?.artist || "---"} {/* Fallback text */}
+              {currentSong.artist}
             </div>
           </div>
         </div>
@@ -258,7 +252,9 @@ const MusicDropdown: React.FC<MusicDropdownProps> = ({
             onMouseMove={handleMouseMove}
             onClick={handleProgressBarClick}
           >
+            {/* Base progress bar background */}
             <div className="w-full bg-white/10 rounded-full h-[3px] transition-all relative">
+              {/* Active progress */}
               <div
                 className="absolute left-0 top-0 h-full rounded-full transition-all duration-200"
                 style={{
@@ -266,6 +262,8 @@ const MusicDropdown: React.FC<MusicDropdownProps> = ({
                   backgroundColor: "rgba(76, 79, 105, 0.81)",
                 }}
               />
+
+              {/* Current position marker - positioned above the progress bar */}
               <div
                 className="absolute w-[2px] h-4 -top-[6.5px] rounded-full bg-[#626581] -translate-x-1/2 transition-opacity duration-200"
                 style={{
@@ -273,7 +271,9 @@ const MusicDropdown: React.FC<MusicDropdownProps> = ({
                   opacity: isHovering ? 1 : 0,
                 }}
               />
-              {isHovering && duration > 0 && (
+
+              {/* Hover position marker - positioned above the progress bar */}
+              {isHovering && (
                 <div
                   className="absolute w-[2px] h-4 -top-[6.5px] rounded-full bg-[#626581] -translate-x-1/2 opacity-40"
                   style={{
@@ -287,28 +287,27 @@ const MusicDropdown: React.FC<MusicDropdownProps> = ({
             <span className="text-xs text-[rgba(76,79,105,0.81)]">
               {formatTime(currentTime)}
             </span>
+
             <div className="flex flex-col items-start">
-              {" "}
-              {/* Original items-start */}
               <span className="text-xs text-[rgba(76,79,105,0.81)]">
                 {formatTime(duration)}
               </span>
-              {/* Shuffle Button - Original baseline logic */}
+              {/* Shuffle Button - Position under the left timestamp */}
               {currentPlaylist && (
                 <button
                   onClick={() => handleShuffleToggle(currentPlaylist.id)}
-                  className="mt-[5.7px] ml-[2.1px] opacity-60 hover:opacity-100 transition-opacity" // Original styling
+                  className="mt-[5.7px] ml-[2.1px] opacity-60 hover:opacity-100 transition-opacity"
                   style={{ color: "rgba(76, 79, 105, 0.81)" }}
                   title={
-                    shuffleModeEnabled[currentPlaylist.id] // Assumes exists
+                    shuffleModeEnabled[currentPlaylist.id]
                       ? "Reset shuffle"
                       : "Shuffle playlist"
                   }
                 >
-                  {shuffleModeEnabled[currentPlaylist.id] ? ( // Assumes exists
-                    <Repeat size={18} /> // Original size 18
+                  {shuffleModeEnabled[currentPlaylist.id] ? (
+                    <Repeat size={18} />
                   ) : (
-                    <Shuffle size={18} /> // Original size 18
+                    <Shuffle size={18} />
                   )}
                 </button>
               )}
@@ -340,7 +339,6 @@ const MusicDropdown: React.FC<MusicDropdownProps> = ({
 
         {/* Playlists Section */}
         <div>
-          {/* *** THIS IS THE BUTTON FROM THE ORIGINAL BASELINE CODE - NO CHEVRON *** */}
           <button
             onClick={() => setShowPlaylists(!showPlaylists)}
             className="flex items-center gap-2 w-full px-2 py-1.5 rounded hover:bg-white/5 transition-colors"
@@ -352,7 +350,6 @@ const MusicDropdown: React.FC<MusicDropdownProps> = ({
               className="w-4 h-4"
             />
             <span className="text-sm flex-1 text-left">Playlists</span>
-            {/* *** NO CHEVRON ICON HERE *** */}
           </button>
 
           <AnimatePresence>
@@ -362,96 +359,85 @@ const MusicDropdown: React.FC<MusicDropdownProps> = ({
                 animate={{ height: "auto", opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
                 transition={{ duration: 0.2 }}
-                className="overflow-hidden" // Original class
+                className="overflow-hidden"
               >
                 <div className="space-y-2 pt-2">
-                  {" "}
-                  {/* Original spacing/padding */}
-                  {/* Original baseline mapping logic */}
-                  {(playlists || []).map(
-                    (
-                      playlist // Added || [] for safety mapping undefined
-                    ) => (
-                      <div
-                        key={playlist.id}
-                        className="flex items-center gap-3 p-2 rounded hover:bg-white/5 transition-colors relative group" // Original classes
-                      >
-                        {/* Left side with thumbnail and play button */}
-                        <div className="relative">
-                          <img
-                            src={playlist.thumbnail} // Original src
-                            alt={playlist.name}
-                            className="w-10 h-10 rounded" // Original size
-                          />
-                          <div
-                            className="absolute inset-0 hidden group-hover:flex items-center justify-center bg-black/50 rounded cursor-pointer" // Original overlay
-                            onClick={() => playPlaylist(playlist.id)} // Assumes exists
-                          >
-                            <Play
-                              size={20}
-                              className="text-white" // Original class
-                              style={{
-                                color: "rgba(76, 79, 105, 0.81)", // Original color
-                              }}
-                            />
-                          </div>
-                        </div>
-
-                        {/* Middle section with playlist info */}
-                        <div className="flex-1 min-w-0">
-                          <div
-                            className="text-sm font-medium truncate" // Original classes
-                            style={{
-                              ...exemplarPro.style,
-                              color:
-                                currentPlaylist?.id === playlist.id
-                                  ? "rgba(76, 79, 105, 0.95)" // Original colors
-                                  : "rgba(76, 79, 105, 0.81)",
-                            }}
-                          >
-                            {playlist.name}
-                            <span
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                toggleFmMode(playlist.id); // Assumes exists
-                              }}
-                              style={{
-                                color: fmModeEnabled[playlist.id] // Assumes exists
-                                  ? "inherit"
-                                  : "rgba(76, 79, 105, 0.4)", // Original colors
-                              }}
-                            >
-                              FM
-                            </span>
-                          </div>
-                          <div className="text-xs text-white/40 truncate flex items-center justify-between">
-                            {" "}
-                            {/* Original classes */}
-                            <span>{playlist.songCount} songs</span>
-                          </div>
-                        </div>
-
-                        {/* Right side with wallpaper toggle */}
+                  {playlists.map((playlist) => (
+                    <div
+                      key={playlist.id}
+                      className="flex items-center gap-3 p-2 rounded hover:bg-white/5 transition-colors relative group"
+                    >
+                      {/* Left side with thumbnail and play button */}
+                      <div className="relative">
+                        <img
+                          src={playlist.thumbnail}
+                          alt={playlist.name}
+                          className="w-10 h-10 rounded"
+                        />
                         <div
-                          className="absolute right-5 hidden group-hover:flex items-center justify-center cursor-pointer" // Original classes
-                          onClick={() => toggleWallpaperMode()} // Assumes exists
-                          style={{ color: "rgba(76, 79, 105, 0.81)" }} // Original color
+                          className="absolute inset-0 hidden group-hover:flex items-center justify-center bg-black/50 rounded cursor-pointer"
+                          onClick={() => playPlaylist(playlist.id)}
                         >
-                          <div className="w-[27px] h-[27px] flex items-center justify-center">
-                            {" "}
-                            {/* Original wrapper */}
-                            <img
-                              src="/media/music-wallpaper.png"
-                              alt="Toggle Wallpaper"
-                              className={`w-auto h-auto max-w-full max-h-full object-cover opacity-60 hover:opacity-100 transition-opacity ${
-                                isWallpaperMode ? "opacity-100" : ""
-                              }`} // Original classes
-                            />
-                          </div>
+                          <Play
+                            size={20}
+                            className="text-white"
+                            style={{
+                              color: "rgba(76, 79, 105, 0.81)",
+                            }}
+                          />
                         </div>
                       </div>
-                    )
-                  )}
+
+                      {/* Middle section with playlist info */}
+                      <div className="flex-1 min-w-0">
+                        <div
+                          className="text-sm font-medium truncate"
+                          style={{
+                            ...exemplarPro.style,
+                            color:
+                              currentPlaylist?.id === playlist.id
+                                ? "rgba(76, 79, 105, 0.95)"
+                                : "rgba(76, 79, 105, 0.81)",
+                          }}
+                        >
+                          {playlist.name}
+                          <span
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleFmMode(playlist.id);
+                            }}
+                            style={{
+                              color: fmModeEnabled[playlist.id]
+                                ? "inherit"
+                                : "rgba(76, 79, 105, 0.4)",
+                            }}
+                          >
+                            FM
+                          </span>
+                        </div>
+                        <div className="text-xs text-white/40 truncate flex items-center justify-between">
+                          <span>{playlist.songCount} songs</span>
+                        </div>
+                      </div>
+
+                      {/* Right side with wallpaper toggle */}
+                      <div
+                        className="absolute right-5 hidden group-hover:flex items-center justify-center cursor-pointer"
+                        onClick={() => toggleWallpaperMode()}
+                        style={{ color: "rgba(76, 79, 105, 0.81)" }}
+                      >
+                        <div className="w-[27px] h-[27px] flex items-center justify-center">
+                          <img
+                            src="/media/music-wallpaper.png"
+                            alt="Toggle Wallpaper"
+                            className={`w-auto h-auto max-w-full max-h-full object-cover opacity-60 hover:opacity-100 transition-opacity ${
+                              isWallpaperMode ? "opacity-100" : ""
+                            }`}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </motion.div>
             )}
@@ -462,32 +448,23 @@ const MusicDropdown: React.FC<MusicDropdownProps> = ({
   );
 };
 
-// PDFReaderDropdown Component EXACTLY from the original baseline code ("OKAY NO THIS MENU BAR;")
 const PDFReaderDropdown: React.FC<{ onOpenFullscreen: () => void }> = ({
   onOpenFullscreen,
 }) => {
   const { getColor } = useStyles();
   const [currentPage, setCurrentPage] = useState<number>(() => {
-    // Added safety check for localStorage
-    const storedPage =
-      typeof window !== "undefined"
-        ? localStorage.getItem("pdfReaderCurrentPage")
-        : null;
-    return parseInt(storedPage || "1");
+    return parseInt(localStorage.getItem("pdfReaderCurrentPage") || "1");
   });
   const [totalPages] = useState(476);
   const [isAnnotating, setIsAnnotating] = useState(false);
-  const [bookmarks, setBookmarks] = useState<number[]>([]); // Original simple state []
+  const [bookmarks, setBookmarks] = useState<number[]>([]);
 
-  // Navigation functions from original baseline
+  // Navigation functions
   const nextPage = () => {
     if (currentPage < totalPages) {
       const newPage = currentPage + 1;
       setCurrentPage(newPage);
-      // Added safety check for localStorage
-      if (typeof window !== "undefined") {
-        localStorage.setItem("pdfReaderCurrentPage", newPage.toString());
-      }
+      localStorage.setItem("pdfReaderCurrentPage", newPage.toString());
     }
   };
 
@@ -495,14 +472,10 @@ const PDFReaderDropdown: React.FC<{ onOpenFullscreen: () => void }> = ({
     if (currentPage > 1) {
       const newPage = currentPage - 1;
       setCurrentPage(newPage);
-      // Added safety check for localStorage
-      if (typeof window !== "undefined") {
-        localStorage.setItem("pdfReaderCurrentPage", newPage.toString());
-      }
+      localStorage.setItem("pdfReaderCurrentPage", newPage.toString());
     }
   };
 
-  // Original simple toggle logic from baseline
   const toggleBookmark = () => {
     setBookmarks((prev: number[]) => {
       if (prev.includes(currentPage)) {
@@ -524,7 +497,7 @@ const PDFReaderDropdown: React.FC<{ onOpenFullscreen: () => void }> = ({
         border: "0.6px solid rgba(255, 255, 255, 0.06)",
         borderRadius: "9px",
         fontFamily: "var(--font-exemplar)",
-        position: "relative",
+        position: "relative", // Required for absolute positioning of children
       }}
     >
       {/* Light gradient overlay */}
@@ -610,7 +583,7 @@ const PDFReaderDropdown: React.FC<{ onOpenFullscreen: () => void }> = ({
 
           <button
             onClick={onOpenFullscreen}
-            className="w-10 h-10 rounded-full flex items-center justify-center transition-colors" // Original size
+            className="w-10 h-10 rounded-full flex items-center justify-center transition-colors"
             style={{
               backgroundColor: "rgba(76, 79, 105, 0.2)",
               color: "rgba(76, 79, 105, 0.81)",
@@ -628,7 +601,7 @@ const PDFReaderDropdown: React.FC<{ onOpenFullscreen: () => void }> = ({
           </button>
         </div>
 
-        {/* Bookmarks Section from original baseline */}
+        {/* Bookmarks Section */}
         <div>
           <button
             className="flex items-center gap-2 w-full px-2 py-1.5 rounded hover:bg-white/5 transition-colors"
@@ -639,19 +612,15 @@ const PDFReaderDropdown: React.FC<{ onOpenFullscreen: () => void }> = ({
           </button>
 
           <div className="space-y-2 pt-2">
-            {" "}
-            {/* Original structure */}
             {bookmarks.length > 0 ? (
               bookmarks.map((page) => (
                 <div
                   key={`bookmark-${page}`}
-                  className="flex items-center gap-3 p-2 rounded hover:bg-white/5 transition-colors relative" // Original classes
-                  onClick={() => setCurrentPage(page)} // Original simple onClick
+                  className="flex items-center gap-3 p-2 rounded hover:bg-white/5 transition-colors relative"
+                  onClick={() => setCurrentPage(page)}
                 >
                   <div className="w-8 h-8 rounded bg-black/30 flex items-center justify-center">
-                    {" "}
-                    {/* Original div */}
-                    <Text // Original icon was Text
+                    <Text
                       size={14}
                       style={{ color: "rgba(76, 79, 105, 0.81)" }}
                     />
@@ -674,7 +643,7 @@ const PDFReaderDropdown: React.FC<{ onOpenFullscreen: () => void }> = ({
               ))
             ) : (
               <div
-                className="text-sm italic px-2" // Original style
+                className="text-sm italic px-2"
                 style={{ color: "rgba(76, 79, 105, 0.5)" }}
               >
                 No bookmarks yet
@@ -683,7 +652,7 @@ const PDFReaderDropdown: React.FC<{ onOpenFullscreen: () => void }> = ({
           </div>
         </div>
 
-        {/* Quick Actions from original baseline */}
+        {/* Quick Actions */}
         <div
           className="flex justify-around pt-2 border-t"
           style={{ borderColor: getColor("Brd") }}
@@ -693,7 +662,7 @@ const PDFReaderDropdown: React.FC<{ onOpenFullscreen: () => void }> = ({
             onClick={toggleBookmark}
             style={{
               color: bookmarks.includes(currentPage)
-                ? "#FFD700" // Original color logic
+                ? "#FFD700"
                 : "rgba(76, 79, 105, 0.81)",
             }}
           >
@@ -703,9 +672,7 @@ const PDFReaderDropdown: React.FC<{ onOpenFullscreen: () => void }> = ({
             className="p-2 rounded-full hover:bg-white/5"
             onClick={() => setIsAnnotating(!isAnnotating)}
             style={{
-              color: isAnnotating
-                ? "#7B6CBD" // Original color logic
-                : "rgba(76, 79, 105, 0.81)",
+              color: isAnnotating ? "#7B6CBD" : "rgba(76, 79, 105, 0.81)",
             }}
           >
             <Text size={18} />
@@ -722,13 +689,12 @@ const PDFReaderDropdown: React.FC<{ onOpenFullscreen: () => void }> = ({
   );
 };
 
-// SystemIcon Component EXACTLY from the original baseline code ("OKAY NO THIS MENU BAR;")
 const SystemIcon: React.FC<SystemIconProps> = ({
   src,
   children,
   onOpenChange,
 }) => {
-  const { getColor } = useStyles(); // Original had getColor here
+  const { getColor } = useStyles();
 
   return (
     <DropdownMenu onOpenChange={onOpenChange}>
@@ -753,8 +719,8 @@ const SystemIcon: React.FC<SystemIconProps> = ({
   );
 };
 
-// MenuBar Component Structure EXACTLY from the original baseline code ("OKAY NO THIS MENU BAR;")
 export const MenuBar = () => {
+  // Local state for PDF Reader
   const [isPDFOpen, setIsPDFOpen] = useState(false);
   const { getColor } = useStyles();
   const menuRef = useRef<HTMLDivElement>(null);
@@ -765,37 +731,37 @@ export const MenuBar = () => {
   const router = useRouter();
   const queryClient = useQueryClient();
 
-  // Music Context hook usage from original baseline - NO || {}
+  // Remove these local states since they come from context
+  // const [currentSong, setCurrentSong] = useState<{title: string; artist: string} | undefined>();
+  // const [isPlaying, setIsPlaying] = useState(false);
+  // const [progress, setProgress] = useState(0);
+
+  // Get everything from context instead
   const {
     songs,
     currentSongIndex,
     isPlaying,
-    songProgress, // Original name
+    songProgress, // MUST match the context property name exactly
     togglePlay,
     playNext,
     playPrevious,
-    currentTime,
-    duration,
+    currentTime, // Add this line to get currentTime from context
+    duration, // Ensure duration is also obtained from context
   } = useMusicContext();
 
-  // current song info derivation EXACTLY from original baseline
-  // Passes undefined or { title, artist } ONLY to MusicDropdown prop
-  const currentSongData = songs?.[currentSongIndex];
-  const currentSongForProp = currentSongData
+  // Get current song info
+  const currentSong = songs[currentSongIndex]
     ? {
-        title: currentSongData.title,
-        artist: currentSongData.artist,
-        // NO thumbnail passed here explicitly, matching original baseline
+        title: songs[currentSongIndex].title,
+        artist: songs[currentSongIndex].artist,
       }
     : undefined;
 
-  // useEffect for date from original baseline
   useEffect(() => {
     const timer = setInterval(() => setCurrentDate(new Date()), 60000);
     return () => clearInterval(timer);
   }, []);
 
-  // useEffect for mouse move visibility from original baseline
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       const { clientY } = e;
@@ -813,23 +779,25 @@ export const MenuBar = () => {
       }
     };
 
-    // Added check for window safety
-    if (typeof window !== "undefined") {
-      document.addEventListener("mousemove", handleMouseMove);
-      return () => document.removeEventListener("mousemove", handleMouseMove);
-    }
+    document.addEventListener("mousemove", handleMouseMove);
+    return () => document.removeEventListener("mousemove", handleMouseMove);
   }, [dropdownOpen]);
 
-  // reset mutation from original baseline
   const resetAllData = useMutation({
     mutationFn: async () => {
+      // Execute both resets in parallel
       const [obsidianRes, loomRes] = await Promise.all([
         axios.post("/api/profile/reset-obsidian"),
         axios.post("/api/profile/reset-loom"),
       ]);
-      return { obsidian: obsidianRes.data, loom: loomRes.data };
+
+      return {
+        obsidian: obsidianRes.data,
+        loom: loomRes.data,
+      };
     },
     onSuccess: () => {
+      // Invalidate queries for both apps
       queryClient.invalidateQueries({ queryKey: ["vault-folders"] });
       queryClient.invalidateQueries({ queryKey: ["user-workspaces"] });
       queryClient.invalidateQueries({ queryKey: ["user-notifications"] });
@@ -840,33 +808,31 @@ export const MenuBar = () => {
     },
   });
 
-  // Queries from original baseline
+  // PRESERVED: Original queries
   const { data: orionConfig } = useQuery({
     queryKey: ["orion-config"],
     queryFn: async () => {
       const response = await axios.get("/api/apps/orion/config");
       return response.data;
     },
-    staleTime: 0,
+    staleTime: 0, // Ensure fresh data on each query
   });
 
   const { data: streamData } = useQuery<StreamWithFlows>({
     queryKey: ["orion-stream", orionConfig?.flow?.streamId],
     queryFn: async () => {
-      // Added check from original
-      if (!orionConfig?.flow?.streamId) return null;
       const response = await axios.get(
-        `/api/streams/${orionConfig.flow.streamId}`
+        `/api/streams/${orionConfig?.flow?.streamId}`
       );
       return response.data;
     },
     enabled: !!orionConfig?.flow?.streamId,
-    staleTime: 0,
+    staleTime: 0, // Ensure fresh data on each query
   });
 
   const flows = streamData?.flows || [];
 
-  // flow selection handler from original baseline
+  // PRESERVED: Original flow selection handler
   const handleFlowSelect = async (flow: FlowWithComponents) => {
     setActiveOSFlowId(flow.id);
 
@@ -907,6 +873,7 @@ export const MenuBar = () => {
           },
       cursor: cursor
         ? {
+            // Convert null to undefined to match the OrionConfig type
             tokenId: cursor.tokenId || undefined,
             outlineTokenId: cursor.outlineTokenId || undefined,
           }
@@ -915,7 +882,7 @@ export const MenuBar = () => {
     });
   };
 
-  // date formatting from original baseline
+  // PRESERVED: Original date formatting
   const formattedDate = useMemo(() => {
     const options: Intl.DateTimeFormatOptions = {
       weekday: "short",
@@ -928,9 +895,6 @@ export const MenuBar = () => {
     return currentDate.toLocaleString("en-US", options);
   }, [currentDate]);
 
-  // Color variable defined as in original
-  const latteColorWithOpacity = "rgba(76, 79, 105, 0.81)";
-
   return (
     <>
       <AnimatePresence>
@@ -938,15 +902,11 @@ export const MenuBar = () => {
           <ZenithPDFReader
             onClose={() => setIsPDFOpen(false)}
             initialPage={parseInt(
-              // Added check for window safety
-              (typeof window !== "undefined"
-                ? localStorage.getItem("pdfReaderCurrentPage")
-                : null) || "1"
+              localStorage.getItem("pdfReaderCurrentPage") || "1"
             )}
           />
         )}
       </AnimatePresence>
-      {/* Trigger area div from original baseline */}
       <div
         className="fixed top-0 left-0 right-0 z-[9999]"
         style={{
@@ -965,51 +925,47 @@ export const MenuBar = () => {
             className="fixed top-0 left-0 right-0 h-8 z-[9999] backdrop-blur-[16px]"
             style={{
               pointerEvents: "auto",
-              borderBottom: `1px solid rgba(255, 255, 255, 0.06)`, // Original border style
+              borderBottom: `1px solid rgba(255, 255, 255, 0.06)`,
             }}
           >
-            {/* Layers from original baseline */}
+            {/* Light gradient overlay that adds depth */}
             <div
               className="absolute inset-0 w-full h-full"
               style={{
                 background:
                   "linear-gradient(180deg, rgba(0, 0, 0, 0.3) 30%, rgba(0, 0, 0, 0.15) 100%)",
                 opacity: 0.7,
-                pointerEvents: "none",
               }}
             />
+
+            {/* Subtle noise texture layer for realism */}
             <div
               className="absolute inset-0 w-full h-full mix-blend-overlay opacity-[0.03]"
               style={{
                 backgroundImage: "url('/noise.png')",
                 backgroundRepeat: "repeat",
-                pointerEvents: "none",
               }}
             />
+
+            {/* Subtle top highlight */}
             <div
               className="absolute top-0 left-0 right-0 h-[1px]"
               style={{
                 background:
                   "linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.07) 50%, transparent 100%)",
-                pointerEvents: "none",
               }}
             />
 
-            {/* Content container from original baseline */}
+            {/* Content container */}
             <div className="relative h-full flex items-center justify-between px-2">
-              {/* Left Icons section from original baseline */}
-              <div className="flex items-center gap-1">
-                {" "}
-                {/* Original gap 1 */}
+              <div className="flex items-center gap-3">
                 <IconButton src="/icns/system/_dopa.png" />
                 <IconButton
                   src="/icns/system/_stellar.png"
                   onClick={() => {}} // Empty handler for now
                 />
-                {/* Original Orion Dropdown section */}
-                <div>
-                  {" "}
-                  {/* Removed transform div */}
+
+                <div className="transform -translate-x-[4.5px]">
                   <DropdownMenu
                     onOpenChange={(open) => {
                       setDropdownOpen(open);
@@ -1042,17 +998,15 @@ export const MenuBar = () => {
                         />
                       </motion.button>
                     </DropdownMenuTrigger>
-                    {/* *** ENSURING ORION DROPDOWN STYLES MATCH BASELINE *** */}
                     <DropdownMenuContent
-                      className="min-w-[200px] p-1 backdrop-blur-[18px] relative bg-[#00000090]" // Original min-w-[200px]
+                      className="min-w-[280px] p-1 backdrop-blur-[18px] relative bg-[#00000090]"
                       align="start"
-                      alignOffset={-8} // Original offset -8
+                      alignOffset={-3}
                       sideOffset={4}
                       style={{
                         borderColor: "rgba(255, 255, 255, 0.06)",
                         border: "0.6px solid rgba(255, 255, 255, 0.06)",
-                        position: "relative",
-                        borderRadius: "6px", // Original radius 6px
+                        position: "relative", // Required for absolute positioning of children
                       }}
                     >
                       {/* Light gradient overlay */}
@@ -1065,20 +1019,21 @@ export const MenuBar = () => {
                           pointerEvents: "none",
                         }}
                       />
+
                       {/* Content - needs z-index to appear above layers */}
                       <div className="relative z-10">
-                        {/* Original flow mapping */}
                         {flows.map((flow) => (
                           <DropdownMenuItem
                             key={flow.id}
                             onClick={() => handleFlowSelect(flow)}
-                            // Original flow item styles
-                            className="flex items-center justify-between text-xs px-2 py-1.5 hover:bg-white/10 rounded cursor-pointer"
-                            style={{ color: latteColorWithOpacity }} // Use variable
+                            className="flex items-center justify-between px-3 py-2 hover:bg-white/5 rounded-md cursor-pointer"
+                            style={{
+                              color: "rgba(76, 79, 105, 0.81)",
+                            }}
                           >
-                            <span>{flow.name}</span>
+                            <span className="text-sm">{flow.name}</span>
                             {flow.id === activeOSFlowId && (
-                              <Check className="w-3 h-3 ml-2" /> // Original size 3x3
+                              <Check className="w-4 h-4 ml-2" />
                             )}
                           </DropdownMenuItem>
                         ))}
@@ -1088,69 +1043,76 @@ export const MenuBar = () => {
                 </div>
               </div>
 
-              {/* Right Icons section from original baseline */}
-              <div className="flex items-center gap-1">
-                {" "}
-                {/* Original gap 1 */}
-                <SystemIcon
-                  src="/apps/48/48.png"
-                  onOpenChange={setDropdownOpen}
-                >
-                  <PDFReaderDropdown
-                    onOpenFullscreen={() => setIsPDFOpen(true)}
-                  />
-                </SystemIcon>
-                {/* --- *** TARGET DUOLINGO ICON *** --- */}
-                <SystemIcon
-                  src="/icns/system/_duo.png"
-                  onOpenChange={setDropdownOpen}
-                >
-                  {/* --- *** START REPLACEMENT *** --- */}
-                  <DropdownMenuContent
-                    // Styles from the working Duolingo example (first prompt, first code block)
-                    className="p-0 overflow-hidden backdrop-blur-[18px] relative bg-[#000000cc]"
-                    align="end"
-                    alignOffset={-3}
-                    sideOffset={4}
-                    style={{
-                      width: "178px",
-                      height: "443px",
-                      borderColor: "rgba(255, 255, 255, 0.06)",
-                      border: "0.6px solid rgba(255, 255, 255, 0.06)",
-                      borderRadius: "9px",
-                    }}
-                    onFocusOutside={(e) => e.preventDefault()}
+              <div className="flex">
+                <div className="flex items-center gap-2">
+                  <SystemIcon
+                    src="/apps/48/48.png"
+                    onOpenChange={setDropdownOpen}
                   >
-                    <div className="relative z-10 w-full h-full">
-                      <DuolingoProvider>
-                        <DuolingoMainView />
-                      </DuolingoProvider>
-                    </div>
-                  </DropdownMenuContent>
-                  {/* --- *** END REPLACEMENT *** --- */}
-                </SystemIcon>
-                {/* --- *** END TARGET DUOLINGO ICON *** --- */}
-                <SystemIcon
-                  src="/icns/system/_play.png"
-                  onOpenChange={setDropdownOpen}
-                >
-                  <MusicDropdown
-                    // Pass the prop calculated exactly as in the baseline
-                    currentSong={currentSongForProp}
-                    isPlaying={isPlaying}
-                    onPlayPause={togglePlay}
-                    onNext={playNext}
-                    onPrevious={playPrevious}
-                    progress={songProgress} // Original name 'songProgress'
-                    currentTime={currentTime}
-                    duration={duration}
-                  />
-                </SystemIcon>
-                <div
-                  className="text-xs font-medium pl-1.5" // Original padding
-                  style={{ color: latteColorWithOpacity }} // Use variable
-                >
-                  {formattedDate}
+                    <PDFReaderDropdown
+                      onOpenFullscreen={() => setIsPDFOpen(true)}
+                    />
+                  </SystemIcon>
+
+                  {/* --- *** TARGET DUOLINGO ICON *** --- */}
+                  <SystemIcon
+                    src="/icns/system/_duo.png"
+                    onOpenChange={setDropdownOpen}
+                  >
+                    {/* --- *** START REPLACEMENT *** --- */}
+                    <DropdownMenuContent
+                      // Styles from the working Duolingo example (first prompt, first code block)
+                      className="p-0 backdrop-blur-[18px] relative bg-[#000000cc]"
+                      align="end"
+                      alignOffset={-3}
+                      sideOffset={4}
+                      style={{
+                        width: "270px",
+                        height: "480px",
+                        borderColor: "rgba(255, 255, 255, 0.06)",
+                        border: "0.6px solid rgba(255, 255, 255, 0.06)",
+                        borderRadius: "9px",
+                      }}
+                      onFocusOutside={(e) => e.preventDefault()}
+                    >
+                      <div className="relative z-10 w-full h-full">
+                        <DuolingoProvider>
+                          <DuolingoMainView />
+                        </DuolingoProvider>
+                      </div>
+                    </DropdownMenuContent>
+                    {/* --- *** END REPLACEMENT *** --- */}
+                  </SystemIcon>
+                  <SystemIcon
+                    src="/icns/system/_play.png"
+                    onOpenChange={setDropdownOpen}
+                  >
+                    <MusicDropdown
+                      currentSong={
+                        songs[currentSongIndex]
+                          ? {
+                              title: songs[currentSongIndex].title,
+                              artist: songs[currentSongIndex].artist,
+                            }
+                          : { title: "song1", artist: "Unknown Artist" }
+                      }
+                      isPlaying={isPlaying}
+                      onPlayPause={togglePlay}
+                      onNext={playNext}
+                      onPrevious={playPrevious}
+                      progress={songProgress}
+                      currentTime={currentTime}
+                      duration={duration}
+                    />
+                  </SystemIcon>
+                  <div
+                    className="text-xs font-medium pl-[6px]"
+                    style={{
+                      color: "rgba(76, 79, 105, 0.81)",
+                    }}
+                  >
+                    {formattedDate}
+                  </div>
                 </div>
               </div>
             </div>

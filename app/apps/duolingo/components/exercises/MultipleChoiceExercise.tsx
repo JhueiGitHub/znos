@@ -39,7 +39,7 @@ const MultipleChoiceExercise: React.FC<Props> = ({
     if (text.includes("cat")) return "/apps/duolingo/characters/cat.svg";
     if (text.includes("man")) return "/apps/duolingo/characters/vikramhead.svg";
     if (text.includes("boy")) return "/apps/duolingo/characters/junior.svg";
-    if (text.includes("apple")) return "/apps/duolingo/characters/apple.svg";
+    if (text.includes("apple")) return "/apps/duolingo/characters/apple.png";
     if (text.includes("woman")) return "/apps/duolingo/characters/zari.svg";
     if (text.includes("one")) return "/media/1.svg";
     return "/apps/duolingo/characters/junior.svg";
@@ -131,22 +131,8 @@ const MultipleChoiceExercise: React.FC<Props> = ({
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.1 * (index + 3) }}
                 exit={{ opacity: 0, x: 20 }}
-                className="p-2 rounded-xl cursor-pointer flex items-center border"
-                style={{
-                  backgroundColor:
-                    status === "default"
-                      ? "#191919"
-                      : status === "correct"
-                        ? getColor("latte")
-                        : status === "incorrect"
-                          ? "#333333"
-                          : "#191919",
-                  borderColor:
-                    userAnswer === option && status === "default"
-                      ? "white"
-                      : getColor("Brd"),
-                  opacity: status === "inactive" ? 0.5 : 1,
-                }}
+                className="p-2 rounded-xl cursor-pointer flex items-center border border-white/10 hover:bg-white/5 transition-colors"
+                style={{ color: "rgba(76, 79, 105, 0.81)" }}
                 whileHover={isChecking ? {} : { scale: 1.02 }}
                 whileTap={isChecking ? {} : { scale: 0.98 }}
                 onClick={() => handleOptionClick(option)}
@@ -160,10 +146,10 @@ const MultipleChoiceExercise: React.FC<Props> = ({
                     alt={option}
                     width={48}
                     height={48}
-                    className="object-contain"
+                    className="object-fit"
                   />
                 </div>
-                <span className="flex-1 text-sm font-medium text-white">
+                <span className="flex-1 text-sm font-medium text-white/70">
                   {option}
                 </span>
 
