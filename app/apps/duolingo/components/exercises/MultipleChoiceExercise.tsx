@@ -5,7 +5,7 @@ import { MultipleChoiceExercise as MCExerciseType } from "../../types/DuolingoTy
 import { VolumeIcon, Check, X } from "lucide-react";
 import Image from "next/image";
 import { playAudio } from "../../utils/audioUtils";
-import { zenith } from "../../styles/zenithStyles";
+import { useStyles } from "@/app/hooks/useStyles";
 
 interface Props {
   exercise: MCExerciseType;
@@ -24,6 +24,8 @@ const MultipleChoiceExercise: React.FC<Props> = ({
   correctAnswer,
   showFeedback,
 }) => {
+  const { getColor } = useStyles();
+
   // Play audio when component mounts
   useEffect(() => {
     if (exercise.audioSrc) {
@@ -70,12 +72,17 @@ const MultipleChoiceExercise: React.FC<Props> = ({
       {/* New Word Indicator */}
       <div className="mb-4">
         <motion.div
-          className="inline-block px-3 py-1 rounded-full bg-[#A560FF]/20 text-[#A560FF] text-xs font-bold"
+          className="inline-block px-3 py-1 rounded-full text-xs font-bold border"
+          style={{
+            backgroundColor: "rgba(76, 79, 105, 0.2)",
+            borderColor: getColor("Brd"),
+            color: getColor("latte"),
+          }}
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          NEW WORD
+          ITALIAN
         </motion.div>
       </div>
 
@@ -87,10 +94,11 @@ const MultipleChoiceExercise: React.FC<Props> = ({
           onClick={handleAudioClick}
           aria-label="Play pronunciation"
         >
-          <VolumeIcon size={18} className="text-[#A560FF]" />
+          <VolumeIcon size={18} style={{ color: getColor("latte") }} />
         </motion.button>
         <motion.div
-          className="text-lg font-bold text-[#A560FF]"
+          className="text-lg font-bold"
+          style={{ color: getColor("Graphite") }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
@@ -100,7 +108,8 @@ const MultipleChoiceExercise: React.FC<Props> = ({
       </div>
 
       <motion.p
-        className="text-white/60 mb-4 text-sm"
+        className="mb-4 text-sm"
+        style={{ color: getColor("Graphite") }}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.4 }}
@@ -122,19 +131,30 @@ const MultipleChoiceExercise: React.FC<Props> = ({
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.1 * (index + 3) }}
                 exit={{ opacity: 0, x: 20 }}
-                className={`
-                  p-2 rounded-xl cursor-pointer flex items-center border-2
-                  ${status === "default" ? "bg-[#2E3856] hover:bg-[#364063] border-transparent" : ""}
-                  ${status === "correct" ? "bg-[#58CC02] border-white/50" : ""}
-                  ${status === "incorrect" ? "bg-[#FF4B4B] border-white/50" : ""}
-                  ${status === "inactive" ? "bg-[#2E3856] opacity-50 border-transparent" : ""}
-                  ${userAnswer === option && status === "default" ? "border-white/50" : ""}
-                `}
+                className="p-2 rounded-xl cursor-pointer flex items-center border"
+                style={{
+                  backgroundColor:
+                    status === "default"
+                      ? "#191919"
+                      : status === "correct"
+                        ? getColor("latte")
+                        : status === "incorrect"
+                          ? "#333333"
+                          : "#191919",
+                  borderColor:
+                    userAnswer === option && status === "default"
+                      ? "white"
+                      : getColor("Brd"),
+                  opacity: status === "inactive" ? 0.5 : 1,
+                }}
                 whileHover={isChecking ? {} : { scale: 1.02 }}
                 whileTap={isChecking ? {} : { scale: 0.98 }}
                 onClick={() => handleOptionClick(option)}
               >
-                <div className="w-12 h-12 rounded overflow-hidden bg-[#1A1D2B] flex items-center justify-center mr-3">
+                <div
+                  className="w-12 h-12 rounded overflow-hidden bg-black flex items-center justify-center mr-3 border"
+                  style={{ borderColor: getColor("Brd") }}
+                >
                   <Image
                     src={imageSrc}
                     alt={option}

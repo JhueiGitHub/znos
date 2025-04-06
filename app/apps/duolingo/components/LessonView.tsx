@@ -8,6 +8,7 @@ import {
 import { zenith } from "../styles/zenithStyles";
 import { X, VolumeIcon } from "lucide-react";
 import Image from "next/image";
+import { useStyles } from "@/app/hooks/useStyles";
 import {
   Exercise,
   TranslateExercise as TranslateExerciseType,
@@ -26,22 +27,9 @@ import TranslateExercise from "./exercises/TranslateExercise";
 import MatchPairsExercise from "./exercises/MatchPairsExercise";
 import LessonComplete from "./LessonComplete";
 
-// Hearts UI Component
-const Heart = ({ filled }: { filled: boolean }) => (
-  <div className="w-4 h-4 mx-0.5">
-    <svg
-      viewBox="0 0 24 24"
-      fill={filled ? "#FF4B4B" : "none"}
-      stroke={filled ? "none" : "#FF4B4B"}
-      strokeWidth="2"
-    >
-      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-    </svg>
-  </div>
-);
-
 // Main LessonView Component
 const LessonView: React.FC = () => {
+  const { getColor } = useStyles();
   const { currentLesson, currentExerciseIndex, isLessonComplete, feedback } =
     useDuolingoState();
 
@@ -49,7 +37,6 @@ const LessonView: React.FC = () => {
     useDuolingoActions();
 
   // Local state
-  const [hearts, setHearts] = useState(5);
   const [answer, setAnswer] = useState<any>(null);
   const [isChecking, setIsChecking] = useState(false);
   const [audioPlayed, setAudioPlayed] = useState(false);
@@ -61,13 +48,14 @@ const LessonView: React.FC = () => {
     setAudioPlayed(false);
   }, [currentExerciseIndex]);
 
-  // Handle heart loss on incorrect answer
+  // Handle feedback sound effects
   useEffect(() => {
-    if (feedback.show && !feedback.correct) {
-      setHearts((prev) => Math.max(0, prev - 1));
-      playIncorrectSound();
-    } else if (feedback.show && feedback.correct) {
-      playCorrectSound();
+    if (feedback.show) {
+      if (feedback.correct) {
+        playCorrectSound();
+      } else {
+        playIncorrectSound();
+      }
     }
   }, [feedback]);
 
@@ -97,14 +85,7 @@ const LessonView: React.FC = () => {
 
   // Show lesson complete screen
   if (isLessonComplete) {
-    return (
-      <LessonComplete
-        success={hearts > 0}
-        heartsRemaining={hearts}
-        onContinue={exitLesson}
-        onRetry={retryLesson}
-      />
-    );
+    return <LessonComplete onContinue={exitLesson} onRetry={retryLesson} />;
   }
 
   // Get current exercise
@@ -124,11 +105,7 @@ const LessonView: React.FC = () => {
 
   // Handle continuing to next exercise
   const handleContinue = () => {
-    if (hearts <= 0) {
-      retryLesson();
-    } else {
-      nextExercise();
-    }
+    nextExercise();
   };
 
   // Handle answer selection
@@ -137,8 +114,8 @@ const LessonView: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Top bar with progress, exit, hearts */}
+    <div className="flex flex-col h-full bg-black">
+      {/* Top bar with progress and exit */}
       <div className="flex items-center justify-between p-3 border-b border-white/5">
         <button
           onClick={exitLesson}
@@ -150,7 +127,8 @@ const LessonView: React.FC = () => {
         <div className="flex-1 mx-2">
           <div className="w-full bg-white/10 h-2 rounded-full overflow-hidden">
             <motion.div
-              className="h-full bg-[#58CC02] rounded-full"
+              className="h-full rounded-full"
+              style={{ backgroundColor: getColor("latte") }}
               initial={{ width: 0 }}
               animate={{ width: `${progress}%` }}
               transition={{ duration: 0.3 }}
@@ -158,11 +136,8 @@ const LessonView: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex">
-          {[...Array(5)].map((_, i) => (
-            <Heart key={i} filled={i < hearts} />
-          ))}
-        </div>
+        {/* Empty div to maintain spacing */}
+        <div className="w-4"></div>
       </div>
 
       {/* Exercise content */}
@@ -223,11 +198,16 @@ const LessonView: React.FC = () => {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
-              className={`p-2 mb-3 rounded text-sm ${
-                feedback.correct
-                  ? "bg-[#58CC02]/20 text-[#58CC02]"
-                  : "bg-[#FF4B4B]/20 text-[#FF4B4B]"
-              }`}
+              className={`p-2 mb-3 rounded text-sm border`}
+              style={{
+                backgroundColor: feedback.correct
+                  ? "rgba(76, 79, 105, 0.2)"
+                  : "rgba(204, 204, 204, 0.2)",
+                color: feedback.correct
+                  ? getColor("latte")
+                  : getColor("Graphite"),
+                borderColor: getColor("Brd"),
+              }}
             >
               {feedback.message}
             </motion.div>
@@ -236,10 +216,12 @@ const LessonView: React.FC = () => {
 
         {/* Action button */}
         <motion.button
-          className="w-full py-3 rounded-xl font-bold text-sm"
+          className="w-full py-3 rounded-xl font-bold text-sm border"
           style={{
-            backgroundColor: answer || feedback.show ? "#58CC02" : "#E5E5E5",
-            color: answer || feedback.show ? "white" : "#AFAFAF",
+            backgroundColor:
+              answer || feedback.show ? getColor("latte") : "#191919",
+            color: answer || feedback.show ? "white" : "#333333",
+            borderColor: getColor("Brd"),
           }}
           whileHover={answer || feedback.show ? { scale: 1.02 } : {}}
           whileTap={answer || feedback.show ? { scale: 0.98 } : {}}

@@ -5,8 +5,8 @@ import {
   MatchPairsExercise as MPExerciseType,
   MatchPairItem,
 } from "../../types/DuolingoTypes";
-import { zenith } from "../../styles/zenithStyles";
 import { playAudio } from "../../utils/audioUtils";
+import { useStyles } from "@/app/hooks/useStyles";
 
 interface Props {
   exercise: MPExerciseType;
@@ -23,6 +23,8 @@ const MatchPairsExercise: React.FC<Props> = ({
   isChecking,
   showFeedback,
 }) => {
+  const { getColor } = useStyles();
+
   // Local state
   const [items, setItems] = useState<MatchPairItem[]>([]);
   const [selectedItem, setSelectedItem] = useState<MatchPairItem | null>(null);
@@ -139,8 +141,23 @@ const MatchPairsExercise: React.FC<Props> = ({
 
   return (
     <div className="flex flex-col h-full">
+      <motion.div
+        className="inline-block px-3 py-1 rounded-full text-xs font-bold border self-start mb-4"
+        style={{
+          backgroundColor: "rgba(76, 79, 105, 0.2)",
+          borderColor: getColor("Brd"),
+          color: getColor("latte"),
+        }}
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+      >
+        MATCH PAIRS
+      </motion.div>
+
       <motion.h2
-        className="text-lg font-bold text-white mb-4"
+        className="text-lg font-bold mb-4"
+        style={{ color: getColor("Graphite") }}
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
       >
@@ -160,16 +177,6 @@ const MatchPairsExercise: React.FC<Props> = ({
                 animate={{
                   scale: 1,
                   opacity: matchedPairs.has(item.id) && !showFeedback ? 0.5 : 1,
-                  backgroundColor:
-                    status === "matched"
-                      ? zenith.colors.correct
-                      : status === "correct-animation"
-                        ? zenith.colors.correct
-                        : status === "incorrect-animation"
-                          ? zenith.colors.incorrect
-                          : status === "selected"
-                            ? zenith.colors.latte
-                            : "#2E3856",
                 }}
                 exit={{ scale: 0, opacity: 0 }}
                 transition={{
@@ -179,14 +186,21 @@ const MatchPairsExercise: React.FC<Props> = ({
                   stiffness: 500,
                   damping: 30,
                 }}
-                className={`
-                  p-3 rounded-lg text-center cursor-pointer 
-                  ${status === "matched" ? "text-white" : ""}
-                  ${status === "selected" ? "text-white" : ""}
-                  ${status === "correct-animation" ? "text-white" : ""}
-                  ${status === "incorrect-animation" ? "text-white" : ""}
-                  ${status === "default" ? "text-white hover:bg-[#364063]" : ""}
-                `}
+                className="p-3 rounded-lg text-center cursor-pointer border"
+                style={{
+                  backgroundColor:
+                    status === "matched"
+                      ? getColor("latte")
+                      : status === "correct-animation"
+                        ? getColor("latte")
+                        : status === "incorrect-animation"
+                          ? "#333333"
+                          : status === "selected"
+                            ? getColor("latte")
+                            : "#191919",
+                  color: status === "default" ? "white" : "white",
+                  borderColor: getColor("Brd"),
+                }}
                 whileHover={matchedPairs.has(item.id) ? {} : { scale: 1.05 }}
                 whileTap={matchedPairs.has(item.id) ? {} : { scale: 0.95 }}
                 onClick={() => handleItemClick(item)}
@@ -203,9 +217,14 @@ const MatchPairsExercise: React.FC<Props> = ({
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mt-4 text-center text-white bg-[#58CC02]/20 p-2 rounded-lg"
+          className="mt-4 text-center p-2 rounded-lg border"
+          style={{
+            backgroundColor: "rgba(76, 79, 105, 0.1)",
+            color: getColor("latte"),
+            borderColor: getColor("Brd"),
+          }}
         >
-          Great job matching all pairs!
+          All pairs matched successfully!
         </motion.div>
       )}
 
@@ -214,7 +233,8 @@ const MatchPairsExercise: React.FC<Props> = ({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
-          className="mt-4 text-center text-white/60 text-sm"
+          className="mt-4 text-center text-sm"
+          style={{ color: getColor("Graphite") }}
         >
           Tap matching pairs to connect them
         </motion.div>

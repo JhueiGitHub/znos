@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { TranslateExercise as TranslateExerciseType } from "../../types/DuolingoTypes";
 import { VolumeIcon } from "lucide-react";
 import { playAudio } from "../../utils/audioUtils";
+import { useStyles } from "@/app/hooks/useStyles";
 
 interface Props {
   exercise: TranslateExerciseType;
@@ -20,6 +21,8 @@ const TranslateExercise: React.FC<Props> = ({
   isChecking,
   showFeedback,
 }) => {
+  const { getColor } = useStyles();
+
   // Local state for word banks
   const [selectedTiles, setSelectedTiles] = useState<string[]>([]);
   const [availableTiles, setAvailableTiles] = useState<string[]>([]);
@@ -109,7 +112,12 @@ const TranslateExercise: React.FC<Props> = ({
       {/* Text to translate */}
       <div className="mb-4">
         <motion.div
-          className="inline-block px-3 py-1 rounded-full bg-[#A560FF]/20 text-[#A560FF] text-xs font-bold mb-3"
+          className="inline-block px-3 py-1 rounded-full text-xs font-bold border mb-3"
+          style={{
+            backgroundColor: "rgba(76, 79, 105, 0.2)",
+            borderColor: getColor("Brd"),
+            color: getColor("latte"),
+          }}
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
@@ -123,10 +131,11 @@ const TranslateExercise: React.FC<Props> = ({
             whileTap={{ scale: 0.9 }}
             onClick={handleAudioClick}
           >
-            <VolumeIcon size={18} className="text-[#A560FF]" />
+            <VolumeIcon size={18} style={{ color: getColor("latte") }} />
           </motion.button>
           <motion.div
-            className="text-lg font-bold text-white"
+            className="text-lg font-bold"
+            style={{ color: getColor("Graphite") }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
@@ -136,7 +145,8 @@ const TranslateExercise: React.FC<Props> = ({
         </div>
 
         <motion.p
-          className="text-white/60 mt-2 mb-4 text-sm"
+          className="mt-2 mb-4 text-sm"
+          style={{ color: getColor("Graphite") }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4 }}
@@ -149,16 +159,19 @@ const TranslateExercise: React.FC<Props> = ({
 
       {/* Selected word area */}
       <motion.div
-        className={`
-          min-h-[80px] p-3 mb-4 rounded-lg border flex flex-wrap gap-2 items-start content-start
-          ${
-            showFeedback
-              ? isCorrect()
-                ? "border-[#58CC02] bg-[#58CC02]/10"
-                : "border-[#FF4B4B] bg-[#FF4B4B]/10"
-              : "border-white/10 bg-[#1A1D2B]"
-          }
-        `}
+        className="min-h-[80px] p-3 mb-4 rounded-lg border flex flex-wrap gap-2 items-start content-start"
+        style={{
+          backgroundColor: showFeedback
+            ? isCorrect()
+              ? "rgba(76, 79, 105, 0.1)"
+              : "rgba(204, 204, 204, 0.1)"
+            : "rgba(0, 0, 0, 0.3)",
+          borderColor: showFeedback
+            ? isCorrect()
+              ? getColor("latte")
+              : getColor("Graphite")
+            : getColor("Brd"),
+        }}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
@@ -171,16 +184,15 @@ const TranslateExercise: React.FC<Props> = ({
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0, opacity: 0 }}
               transition={{ type: "spring", stiffness: 500, damping: 30 }}
-              className={`
-                px-3 py-1.5 rounded-lg text-white text-sm cursor-pointer
-                ${
-                  showFeedback
-                    ? isCorrect()
-                      ? "bg-[#58CC02]"
-                      : "bg-[#FF4B4B]"
-                    : "bg-[#2E3856]"
-                }
-              `}
+              className="px-3 py-1.5 rounded-lg text-white text-sm cursor-pointer border"
+              style={{
+                backgroundColor: showFeedback
+                  ? isCorrect()
+                    ? getColor("latte")
+                    : "#333333"
+                  : "#191919",
+                borderColor: getColor("Brd"),
+              }}
               onClick={() => !isChecking && handleTileRemove(tile, index)}
               whileHover={{ scale: isChecking ? 1 : 1.05 }}
               whileTap={{ scale: isChecking ? 1 : 0.95 }}
@@ -206,7 +218,11 @@ const TranslateExercise: React.FC<Props> = ({
                 damping: 30,
                 delay: 0.1 * index,
               }}
-              className="px-3 py-1.5 rounded-lg bg-[#2E3856] text-white text-sm cursor-pointer hover:bg-[#364063]"
+              className="px-3 py-1.5 rounded-lg text-white text-sm cursor-pointer border hover:bg-black"
+              style={{
+                backgroundColor: "#191919",
+                borderColor: getColor("Brd"),
+              }}
               onClick={() => handleTileSelect(tile, index)}
               whileHover={{ scale: isChecking ? 1 : 1.05 }}
               whileTap={{ scale: isChecking ? 1 : 0.95 }}
