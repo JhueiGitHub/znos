@@ -17,7 +17,7 @@ import LessonView from "./LessonView"; // Renders the active lesson screen
 import { zenith } from "../styles/zenithStyles";
 import { LessonNodeData } from "../types/DuolingoTypes";
 
-const CONTAINER_WIDTH_PX = 178;
+const CONTAINER_WIDTH_PX = 210;
 
 // --- SnakePath Component ---
 const SnakePath = ({ nodes }: { nodes: LessonNodeData[] }) => {
@@ -93,11 +93,10 @@ const DuolingoMainView = () => {
   };
 
   return (
-    <div className="flex items-center justify-center h-full w-full overflow-hidden">
+    <div className="flex items-center justify-center h-[480px] w-full overflow-hidden">
       <div
         ref={containerRef}
-        className="relative h-full overflow-hidden rounded-lg border border-white/10" // Added subtle border
-        style={{ width: `${CONTAINER_WIDTH_PX}px` }}
+        className="relative h-full w-[210px] overflow-hidden rounded-lg border border-white/10" // Added subtle border
       >
         <AnimatePresence mode="wait">
           {!isLessonActive ? (
@@ -108,7 +107,7 @@ const DuolingoMainView = () => {
               initial="hidden"
               animate="visible"
               exit="exit"
-              className="h-full w-full overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-latte/50 scrollbar-track-transparent"
+              className="h-full w-[195px] ml-[18px]  overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-latte/50 scrollbar-track-transparent"
             >
               <div className="relative" style={{ height: `${snakeHeight}px` }}>
                 <SnakePath nodes={italianLessonNodes} />

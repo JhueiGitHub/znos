@@ -1,147 +1,253 @@
 // /root/app/apps/duolingo/components/LessonView.tsx
-"use client";
-import React from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   useDuolingoState,
   useDuolingoActions,
 } from "../contexts/DuolingoContext";
-import ProgressBar from "./ProgressBar";
-import FeedbackBanner from "./FeedbackBanner";
-import LessonComplete from "./LessonComplete";
-import { Exercise } from "../types/DuolingoTypes";
 import { zenith } from "../styles/zenithStyles";
-import TranslateExercise from "./exercises/TranslateExercise";
-import MultipleChoiceExercise from "./exercises/MultipleChoiceExercise";
-import MatchPairsExercise from "./exercises/MatchPairsExercise";
+import { X, VolumeIcon } from "lucide-react";
+import Image from "next/image";
+import {
+  Exercise,
+  TranslateExercise as TranslateExerciseType,
+  MultipleChoiceExercise as MCExerciseType,
+  MatchPairsExercise as MatchPairsExerciseType,
+} from "../types/DuolingoTypes";
+import {
+  playAudio,
+  playCorrectSound,
+  playIncorrectSound,
+} from "../utils/audioUtils";
 
-// Compact Back Arrow Icon
-const BackArrowIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    fill="none"
-    viewBox="0 0 24 24"
-    strokeWidth={2}
-    stroke="currentColor"
-    className="size-5"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M15.75 19.5 8.25 12l7.5-7.5"
-    />
-  </svg>
+// Import exercise components
+import MultipleChoiceExercise from "./exercises/MultipleChoiceExercise";
+import TranslateExercise from "./exercises/TranslateExercise";
+import MatchPairsExercise from "./exercises/MatchPairsExercise";
+import LessonComplete from "./LessonComplete";
+
+// Hearts UI Component
+const Heart = ({ filled }: { filled: boolean }) => (
+  <div className="w-4 h-4 mx-0.5">
+    <svg
+      viewBox="0 0 24 24"
+      fill={filled ? "#FF4B4B" : "none"}
+      stroke={filled ? "none" : "#FF4B4B"}
+      strokeWidth="2"
+    >
+      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+    </svg>
+  </div>
 );
 
-const LessonView = () => {
-  const { currentLesson, currentExerciseIndex, feedback, isLessonComplete } =
+// Main LessonView Component
+const LessonView: React.FC = () => {
+  const { currentLesson, currentExerciseIndex, isLessonComplete, feedback } =
     useDuolingoState();
-  const { exitLesson } = useDuolingoActions();
 
-  // Early exit if no lesson is active (shouldn't happen with current logic, but safe)
-  if (!currentLesson)
-    return (
-      <div
-        className={`flex items-center justify-center h-full ${zenith.tailwind.textGraphite} text-sm`}
-      >
-        No active lesson.
-      </div>
-    );
+  const { exitLesson, nextExercise, submitAnswer, retryLesson } =
+    useDuolingoActions();
 
-  // Render Completion Screen if lesson is complete
+  // Local state
+  const [hearts, setHearts] = useState(5);
+  const [answer, setAnswer] = useState<any>(null);
+  const [isChecking, setIsChecking] = useState(false);
+  const [audioPlayed, setAudioPlayed] = useState(false);
+
+  // Reset answer when exercise changes
+  useEffect(() => {
+    setAnswer(null);
+    setIsChecking(false);
+    setAudioPlayed(false);
+  }, [currentExerciseIndex]);
+
+  // Handle heart loss on incorrect answer
+  useEffect(() => {
+    if (feedback.show && !feedback.correct) {
+      setHearts((prev) => Math.max(0, prev - 1));
+      playIncorrectSound();
+    } else if (feedback.show && feedback.correct) {
+      playCorrectSound();
+    }
+  }, [feedback]);
+
+  // Audio play on mount
+  useEffect(() => {
+    const playExerciseAudio = async () => {
+      if (
+        !audioPlayed &&
+        currentLesson?.exercises[currentExerciseIndex]?.audioSrc
+      ) {
+        setAudioPlayed(true);
+        try {
+          await playAudio(
+            currentLesson.exercises[currentExerciseIndex].audioSrc
+          );
+        } catch (error) {
+          console.error("Audio play error:", error);
+        }
+      }
+    };
+
+    playExerciseAudio();
+  }, [currentExerciseIndex, currentLesson, audioPlayed]);
+
+  // Exit early if no lesson
+  if (!currentLesson) return null;
+
+  // Show lesson complete screen
   if (isLessonComplete) {
-    return <LessonComplete />; // Ensure this is also styled for narrow view
+    return (
+      <LessonComplete
+        success={hearts > 0}
+        heartsRemaining={hearts}
+        onContinue={exitLesson}
+        onRetry={retryLesson}
+      />
+    );
   }
 
-  const exercise: Exercise | undefined =
-    currentLesson.exercises[currentExerciseIndex];
+  // Get current exercise
+  const exercise = currentLesson.exercises[currentExerciseIndex];
+  if (!exercise) return null;
+
+  // Calculate progress percentage
   const progress =
-    currentLesson.exercises.length > 0
-      ? ((currentExerciseIndex + 1) / currentLesson.exercises.length) * 100
-      : 0; // Show progress based on completed steps
+    ((currentExerciseIndex + 1) / currentLesson.exercises.length) * 100;
 
-  const renderExercise = () => {
-    if (!exercise)
-      return (
-        <div
-          className={`${zenith.tailwind.textGraphite} text-center p-4 text-sm`}
-        >
-          End of lesson?
-        </div>
-      );
+  // Handle checking answer
+  const handleCheck = () => {
+    if (!answer) return;
+    setIsChecking(true);
+    submitAnswer(answer);
+  };
 
-    switch (exercise.type) {
-      case "TRANSLATE_TO_ITALIAN":
-      case "TRANSLATE_TO_ENGLISH":
-        return <TranslateExercise key={exercise.id} exercise={exercise} />;
-      case "MULTIPLE_CHOICE_TRANSLATE":
-        return <MultipleChoiceExercise key={exercise.id} exercise={exercise} />;
-      case "MATCH_PAIRS":
-        // Needs careful styling for narrow view
-        return <MatchPairsExercise key={exercise.id} exercise={exercise} />;
-      default:
-        // Assert exhaustiveness check (optional)
-        // const _exhaustiveCheck: never = exercise;
-        return (
-          <div className="text-red-500 text-xs p-2">
-            Error: Unknown exercise type: {(exercise as any).type}
-          </div>
-        );
+  // Handle continuing to next exercise
+  const handleContinue = () => {
+    if (hearts <= 0) {
+      retryLesson();
+    } else {
+      nextExercise();
     }
   };
 
+  // Handle answer selection
+  const handleAnswer = (selectedAnswer: any) => {
+    setAnswer(selectedAnswer);
+  };
+
   return (
-    <div className="flex flex-col h-full w-full relative text-xs sm:text-sm">
-      {/* Header */}
-      <div
-        className={`flex items-center p-2 border-b ${zenith.tailwind.borderWhiteBrd} gap-2 flex-shrink-0`}
-      >
+    <div className="flex flex-col h-full">
+      {/* Top bar with progress, exit, hearts */}
+      <div className="flex items-center justify-between p-3 border-b border-white/5">
         <button
           onClick={exitLesson}
-          className={`p-1 ${zenith.tailwind.textGraphite} hover:text-[${zenith.colors.white}] rounded-md hover:bg-white/10 transition-colors`}
-          aria-label="Back"
-          title="Back to Lessons"
+          className="text-white/60 hover:text-white transition-colors"
         >
-          <BackArrowIcon />
+          <X size={16} />
         </button>
-        <div className="flex-grow">
-          <ProgressBar progress={progress} />
+
+        <div className="flex-1 mx-2">
+          <div className="w-full bg-white/10 h-2 rounded-full overflow-hidden">
+            <motion.div
+              className="h-full bg-[#58CC02] rounded-full"
+              initial={{ width: 0 }}
+              animate={{ width: `${progress}%` }}
+              transition={{ duration: 0.3 }}
+            />
+          </div>
+        </div>
+
+        <div className="flex">
+          {[...Array(5)].map((_, i) => (
+            <Heart key={i} filled={i < hearts} />
+          ))}
         </div>
       </div>
 
-      {/* Exercise Content Area (Scrolls if needed, though exercises should be compact) */}
-      <div className="flex-grow flex flex-col justify-center p-3 overflow-y-auto scrollbar-thin scrollbar-thumb-latte/30 scrollbar-track-transparent">
+      {/* Exercise content */}
+      <div className="flex-1 p-3 overflow-hidden">
         <AnimatePresence mode="wait">
           <motion.div
-            key={currentExerciseIndex} // Animate based on index change
+            key={`exercise-${currentExerciseIndex}`}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="w-full"
+            transition={{ duration: 0.3 }}
+            className="h-full flex flex-col"
           >
-            {renderExercise()}
+            {exercise.type === "MULTIPLE_CHOICE_TRANSLATE" && (
+              <MultipleChoiceExercise
+                exercise={exercise as MCExerciseType}
+                onAnswer={handleAnswer}
+                userAnswer={answer}
+                isChecking={isChecking}
+                correctAnswer={
+                  feedback.show
+                    ? (exercise as MCExerciseType).correctAnswer
+                    : null
+                }
+                showFeedback={feedback.show}
+              />
+            )}
+
+            {(exercise.type === "TRANSLATE_TO_ITALIAN" ||
+              exercise.type === "TRANSLATE_TO_ENGLISH") && (
+              <TranslateExercise
+                exercise={exercise as TranslateExerciseType}
+                onAnswer={handleAnswer}
+                userAnswer={answer || []}
+                isChecking={isChecking}
+                showFeedback={feedback.show}
+              />
+            )}
+
+            {exercise.type === "MATCH_PAIRS" && (
+              <MatchPairsExercise
+                exercise={exercise as MatchPairsExerciseType}
+                onAnswer={(answer) => handleAnswer(answer)}
+                userAnswer={answer}
+                isChecking={isChecking}
+                showFeedback={feedback.show}
+              />
+            )}
           </motion.div>
         </AnimatePresence>
       </div>
 
-      {/* Footer / Feedback Area */}
-      <div className="flex-shrink-0 h-[65px]">
-        {" "}
-        {/* Reserve consistent space */}
+      {/* Feedback area */}
+      <div className="p-3">
         <AnimatePresence>
           {feedback.show && (
             <motion.div
-              className="absolute bottom-0 left-0 right-0 z-10" // Ensure feedback is on top
-              initial={{ y: "100%" }}
-              animate={{ y: 0 }}
-              exit={{ y: "100%" }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className={`p-2 mb-3 rounded text-sm ${
+                feedback.correct
+                  ? "bg-[#58CC02]/20 text-[#58CC02]"
+                  : "bg-[#FF4B4B]/20 text-[#FF4B4B]"
+              }`}
             >
-              <FeedbackBanner />
+              {feedback.message}
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Action button */}
+        <motion.button
+          className="w-full py-3 rounded-xl font-bold text-sm"
+          style={{
+            backgroundColor: answer || feedback.show ? "#58CC02" : "#E5E5E5",
+            color: answer || feedback.show ? "white" : "#AFAFAF",
+          }}
+          whileHover={answer || feedback.show ? { scale: 1.02 } : {}}
+          whileTap={answer || feedback.show ? { scale: 0.98 } : {}}
+          disabled={!answer && !feedback.show}
+          onClick={feedback.show ? handleContinue : handleCheck}
+        >
+          {feedback.show ? "CONTINUE" : "CHECK"}
+        </motion.button>
       </div>
     </div>
   );
