@@ -206,7 +206,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       {
         id: "pnth-1",
         title: "i was never there",
-        artist: "PNTH",
+        artist: "PNTHFM",
         path: "/audio/pnth/iwasneverthere.mp4",
         thumbnail: "/media/playlists/pnth/iwasneverthere.png",
         videoUrl: "https://www.youtube.com/watch?v=NbqZRrb4_Lc",
@@ -214,7 +214,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       {
         id: "pnth-2",
         title: "valerie",
-        artist: "PNTH",
+        artist: "PNTHFM",
         path: "/audio/pnth/valerie.mp4",
         thumbnail: "/media/songs/pnth/valerie.png",
         videoUrl: "https://www.youtube.com/watch?v=v60yXCH3IDw",
@@ -222,7 +222,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       {
         id: "pnth-3",
         title: "in your eyes",
-        artist: "PNTH",
+        artist: "PNTHFM",
         path: "/audio/pnth/inyoureyes.mp4",
         thumbnail: "/media/songs/pnth/inyoureyes.png",
         videoUrl: "https://www.youtube.com/watch?v=QLNyHl4nwEo",
@@ -230,7 +230,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       {
         id: "pnth-4",
         title: "starry eyes",
-        artist: "PNTH",
+        artist: "PNTHFM",
         path: "/audio/pnth/starryeyes.mp4",
         thumbnail: "/media/songs/pnth/starryeyes.png",
         videoUrl: "https://www.youtube.com/watch?v=SDyf6f7qhcY",
@@ -238,7 +238,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       {
         id: "pnth-5",
         title: "i can't feel my face",
-        artist: "PNTH",
+        artist: "PNTHFM",
         path: "/audio/pnth/icantfeelmyface.mp4",
         thumbnail: "/media/songs/pnth/icantfeelmyface.png",
         videoUrl: "https://www.youtube.com/watch?v=533ct1vFHmM",
@@ -246,7 +246,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       {
         id: "pnth-6",
         title: "call out my name",
-        artist: "PNTH",
+        artist: "PNTHFM",
         path: "/audio/pnth/calloutmyname.mp4",
         thumbnail: "/media/songs/pnth/calloutmyname.png",
         videoUrl: "https://www.youtube.com/watch?v=ZIBLdNxW5do",
@@ -254,7 +254,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       {
         id: "pnth-7",
         title: "nothing without you",
-        artist: "PNTH",
+        artist: "PNTHFM",
         path: "/audio/pnth/nothingwithoutyou.mp4",
         thumbnail: "/media/songs/pnth/nothingwithoutyou.png",
         videoUrl: "https://www.youtube.com/watch?v=LaeJJ9aB9e8",
@@ -262,7 +262,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       {
         id: "pnth-8",
         title: "pretty",
-        artist: "PNTH",
+        artist: "PNTHFM",
         path: "/audio/pnth/pretty.mp4",
         thumbnail: "/media/songs/pnth/pretty.png",
         videoUrl: "https://www.youtube.com/watch?v=b_SwuIozFdQ",
@@ -270,7 +270,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       {
         id: "pnth-9",
         title: "professional",
-        artist: "PNTH",
+        artist: "PNTHFM",
         path: "/audio/pnth/professional.mp4",
         thumbnail: "/media/songs/pnth/professional.png",
         videoUrl: "https://www.youtube.com/watch?v=XzM3d5dBJns",
@@ -278,7 +278,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       {
         id: "pnth-10",
         title: "in the night",
-        artist: "PNTH",
+        artist: "PNTHFM",
         path: "/audio/pnth/inthenight.mp4",
         thumbnail: "/media/songs/pnth/inthenight.png",
         videoUrl: "https://www.youtube.com/watch?v=AXM10bYqtUc",
@@ -286,7 +286,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       {
         id: "pnth-11",
         title: "adaptation",
-        artist: "PNTH",
+        artist: "PNTHFM",
         path: "/audio/pnth/adaptation.mp4",
         thumbnail: "/media/songs/pnth/adaptation.png",
         videoUrl: "https://www.youtube.com/watch?v=TgKcNj8fKpI",
@@ -294,7 +294,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       {
         id: "pnth-12",
         title: "pray for me",
-        artist: "PNTH",
+        artist: "PNTHFM",
         path: "/audio/pnth/pray.mp4",
         thumbnail: "/media/songs/pnth/pray.png",
         videoUrl: "https://www.youtube.com/watch?v=QRj2JP0Fe1c",
@@ -302,7 +302,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       {
         id: "pnth-13",
         title: "starboy",
-        artist: "PNTH",
+        artist: "PNTHFM",
         path: "/audio/pnth/starboy.mp4",
         thumbnail: "/media/songs/pnth/starboy.png",
         videoUrl: "https://www.youtube.com/watch?v=mFMNIlhIUvs",
@@ -310,7 +310,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       {
         id: "pnth-14",
         title: "power is power",
-        artist: "PNTH",
+        artist: "PNTHFM",
         path: "/audio/pnth/power.mp4",
         thumbnail: "/media/songs/pnth/power.png",
         videoUrl: "https://www.youtube.com/watch?v=x8Wh4GeyMB4",
@@ -318,7 +318,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       {
         id: "pnth-15",
         title: "take my breath",
-        artist: "PNTH",
+        artist: "PNTHFM",
         path: "/audio/pnth/takemybreath.mp4",
         thumbnail: "/media/songs/pnth/takemybreath.png",
         videoUrl: "https://www.youtube.com/watch?v=q266o-KOUMk",
@@ -326,7 +326,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       {
         id: "pnth-16",
         title: "moth to a flame",
-        artist: "PNTH",
+        artist: "PNTHFM",
         path: "/audio/pnth/mothtoaflame.mp4",
         thumbnail: "/media/songs/pnth/mothtoaflame.png",
         videoUrl: "https://www.youtube.com/watch?v=gl1v-nWiGLk",
@@ -334,7 +334,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       {
         id: "pnth-17",
         title: "lowlife",
-        artist: "PNTH",
+        artist: "PNTHFM",
         path: "/audio/pnth/lowlife.mp4",
         thumbnail: "/media/songs/pnth/lowlife.png",
         videoUrl: "https://www.youtube.com/watch?v=nqcjuk0o7YM",
@@ -342,7 +342,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       {
         id: "pnth-18",
         title: "after hours",
-        artist: "PNTH",
+        artist: "PNTHFM",
         path: "/audio/pnth/afterhours.mp4",
         thumbnail: "/media/songs/pnth/afterhours.png",
         videoUrl: "https://www.youtube.com/watch?v=pV0ngdzx7RE",
@@ -350,7 +350,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       {
         id: "pnth-19",
         title: "song19",
-        artist: "PNTH",
+        artist: "PNTHFM",
         path: "/audio/pnth/song19.mp4",
         thumbnail: "/media/songs/pnth/song19.png",
         videoUrl: "https://www.youtube.com/watch?v=KeCOugWi-uQ",
@@ -366,7 +366,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       {
         id: "aftr-1",
         title: "faith",
-        artist: "XX",
+        artist: "XXFM",
         path: "/audio/nxra/regular.mp4",
         thumbnail: "/media/songs/nxra/regular.png",
         videoUrl: "https://www.youtube.com/watch?v=pkX5-wmMaUA",
@@ -374,7 +374,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       {
         id: "aftr-2",
         title: "privilege",
-        artist: "XX",
+        artist: "XXFM",
         path: "/audio/nxra/privilege.mp4",
         thumbnail: "/media/songs/nxra/privilege.png",
         videoUrl: "https://www.youtube.com/watch?v=_mgf7YVKnKg",
@@ -382,7 +382,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       {
         id: "aftr-3",
         title: "after hours",
-        artist: "XX",
+        artist: "XXFM",
         path: "/audio/nxra/afterhours.mp4",
         thumbnail: "/media/songs/nxra/afterhours.png",
         videoUrl: "https://www.youtube.com/watch?v=mj1Y5AWtvmM",
@@ -390,7 +390,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       {
         id: "aftr-4",
         title: "too late",
-        artist: "XX",
+        artist: "XXFM",
         path: "/audio/nxra/toolate.mp4",
         thumbnail: "/media/songs/nxra/toolate.png",
         videoUrl: "https://www.youtube.com/watch?v=qd9N1DoitW0",
@@ -398,7 +398,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       {
         id: "aftr-5",
         title: "open hearts",
-        artist: "XX",
+        artist: "XXFM",
         path: "/audio/nxra/openhearts.mp4",
         thumbnail: "/media/songs/nxra/openhearts.png",
         videoUrl: "https://www.youtube.com/watch?v=f9sj9yEziQY",
@@ -406,7 +406,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       {
         id: "aftr-6",
         title: "try me",
-        artist: "XX",
+        artist: "XXFM",
         path: "/audio/nxra/tryme.mp4",
         thumbnail: "/media/songs/nxra/tryme.png",
         videoUrl: "https://www.youtube.com/watch?v=Qi7bA43x0cg",
@@ -414,7 +414,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       {
         id: "aftr-7",
         title: "often",
-        artist: "XX",
+        artist: "XXFM",
         path: "/audio/nxra/often.mp4",
         thumbnail: "/media/songs/nxra/often.png",
         videoUrl: "https://www.youtube.com/watch?v=9fF491-R2do",
@@ -422,7 +422,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       {
         id: "aftr-8",
         title: "low life",
-        artist: "XX",
+        artist: "XXFM",
         path: "/audio/nxra/lowlife.mp4",
         thumbnail: "/media/songs/nxra/lowlife.png",
         videoUrl: "https://www.youtube.com/watch?v=1ZIm3m92_vQ",
@@ -430,7 +430,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       {
         id: "aftr-9",
         title: "sacrafice",
-        artist: "XX",
+        artist: "XXFM",
         path: "/audio/nxra/sacrafice.mp4",
         thumbnail: "/media/songs/nxra/sacrafice.png",
         videoUrl: "https://www.youtube.com/watch?v=yDFbpYdcK-Q",
@@ -438,7 +438,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       {
         id: "aftr-10",
         title: "song10",
-        artist: "XX",
+        artist: "XXFM",
         path: "/audio/nxra/song10.mp4",
         thumbnail: "/media/songs/nxra/song10.png",
         videoUrl: "https://www.youtube.com/watch?v=JpK2qaejBOk",
@@ -454,7 +454,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       {
         id: "vcnz-1",
         title: "adrenaline",
-        artist: "VCNZ",
+        artist: "VCNZFM",
         path: "/audio/vcnz/adrenaline.mp4",
         thumbnail: "/media/songs/vcnz/adrenaline.png",
         videoUrl: "https://www.youtube.com/watch?v=Vy81T0oG01c",
@@ -462,7 +462,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       {
         id: "vcnz-2",
         title: "mafia",
-        artist: "VCNZ",
+        artist: "VCNZFM",
         path: "/audio/vcnz/mafia.mp4",
         thumbnail: "/media/songs/vcnz/mafia.png",
         videoUrl: "https://www.youtube.com/watch?v=Vy81T0oG01c",
@@ -470,7 +470,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       {
         id: "vcnz-3",
         title: "un diavolo scaccia l'altro",
-        artist: "VCNZ",
+        artist: "VCNZFM",
         path: "/audio/vcnz/diavolo.mp4",
         thumbnail: "/media/songs/vcnz/diavolo.png",
         videoUrl:
@@ -479,7 +479,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       {
         id: "vcnz-4",
         title: "retributor",
-        artist: "VCNZ",
+        artist: "VCNZFM",
         path: "/audio/vcnz/retributor.mp4",
         thumbnail: "/media/songs/vcnz/retributor.png",
         videoUrl:
@@ -488,7 +488,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       {
         id: "vcnz-5",
         title: "your vacancy",
-        artist: "VCNZ",
+        artist: "VCNZFM",
         path: "/audio/vcnz/yourvacancy.mp4",
         thumbnail: "/media/songs/vcnz/yourvacancy.png",
         videoUrl:
@@ -497,7 +497,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       {
         id: "vcnz-6",
         title: "empty mind",
-        artist: "VCNZ",
+        artist: "VCNZFM",
         path: "/audio/vcnz/emptymind.mp4",
         thumbnail: "/media/songs/vcnz/emptymind.png",
         videoUrl:
@@ -506,7 +506,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       {
         id: "vcnz-7",
         title: "song7",
-        artist: "VCNZ",
+        artist: "VCNZFM",
         path: "/audio/vcnz/song7.mp4",
         thumbnail: "/media/songs/vcnz/emptymind.png",
         videoUrl: "https://www.youtube.com/watch?v=mt0iqJ1eULo",
@@ -522,7 +522,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       {
         id: "sn-1",
         title: "lune",
-        artist: "SN",
+        artist: "SNFM",
         path: "/audio/sn/lune.mp4",
         thumbnail: "/media/songs/lune.png",
         videoUrl: "https://www.youtube.com/watch?v=CvFH_6DNRCY",
@@ -530,7 +530,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       {
         id: "sn-2",
         title: "sns",
-        artist: "SN",
+        artist: "SNFM",
         path: "/audio/sn/sns.mp4",
         thumbnail: "/media/songs/sns.png",
         videoUrl: "https://youtube.com/watch?v=MyzfjP_wXBw",
@@ -538,7 +538,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       {
         id: "sn-3",
         title: "ballade",
-        artist: "SN",
+        artist: "SNFM",
         path: "/audio/sn/ballade.mp4",
         thumbnail: "/media/songs/ballade.png",
         videoUrl: "https://www.youtube.com/watch?v=2uvAewYkEFU",
@@ -546,7 +546,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       {
         id: "sn-4",
         title: "nocturne",
-        artist: "SN",
+        artist: "SNFM",
         path: "/audio/sn/nocturne.mp4",
         thumbnail: "/media/songs/nocturne.png",
         videoUrl: "https://www.youtube.com/watch?v=T7k2pmKUXxI",
@@ -554,7 +554,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       {
         id: "sn-5",
         title: "fantasia",
-        artist: "SN",
+        artist: "SNFM",
         path: "/audio/sn/fantasia.mp4",
         thumbnail: "/media/songs/fantasia.png",
         videoUrl: "https://www.youtube.com/watch?v=zlWAdUPUCJw",
@@ -562,7 +562,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       {
         id: "sn-6",
         title: "overuse",
-        artist: "SN",
+        artist: "SNFM",
         path: "/audio/sn/overuse.mp4",
         thumbnail: "/media/songs/overuse.png",
         videoUrl: "https://www.youtube.com/watch?v=rrBsvldbwdQ",
@@ -570,7 +570,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       {
         id: "sn-7",
         title: "lacrimosa",
-        artist: "SN",
+        artist: "SNFM",
         path: "/audio/sn/lacrimosa.mp4",
         thumbnail: "/media/songs/lacrimosa.png",
         videoUrl: "https://www.youtube.com/watch?v=mt6m63ylw-g",
@@ -578,7 +578,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       {
         id: "sn-8",
         title: "lake",
-        artist: "SN",
+        artist: "SNFM",
         path: "/audio/sn/lake.mp4",
         thumbnail: "/media/songs/lake.png",
         videoUrl: "https://www.youtube.com/watch?v=xF_x4oenM1E",
@@ -586,7 +586,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       {
         id: "sn-9",
         title: "song9",
-        artist: "SN",
+        artist: "SNFM",
         path: "/audio/sn/song9.mp4",
         thumbnail: "/media/songs/lake.png",
         videoUrl: "https://www.youtube.com/watch?v=zQebdkLvD00",
@@ -605,7 +605,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "XTRAFM",
         path: "/audio/xtra/saopaulo.mp4",
         thumbnail: "/media/songs/saopaulo.png",
-        videoUrl: "https://www.youtube.com/watch?v=HNvwg_IGbbE",
+        videoUrl: "https://www.youtube.com/watch?v=NYcPwbFTW6Q",
       },
       {
         id: "xtra-2",
@@ -621,7 +621,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "XTRAFM",
         path: "/audio/xtra/howdeepisyourlove.mp4",
         thumbnail: "/media/songs/howdeepisyourlove.png",
-        videoUrl: "https://www.youtube.com/watch?v=u6BYsu_s_q0",
+        videoUrl: "https://www.youtube.com/watch?v=NYcPwbFTW6Q",
       },
       {
         id: "xtra-4",
@@ -635,21 +635,28 @@ const ALL_PLAYLISTS: Playlist[] = [
         id: "xtra-5",
         title: "xtra",
         artist: "XTRAFM",
-        path: "/audio/xtra/baptized.mp4",
-        thumbnail: "/media/songs/baptized.png",
-        videoUrl:
-          "https://www.youtube.com/watch?v=1DBgZjW9ZNg&list=PLAmw49p0-BAC8MG4yxLd5zOjglwH5I3P5&index=8&pp=gAQBiAQB8AUB",
+        path: "/audio/xtra/cursed.mp4",
+        thumbnail: "/media/songs/cursed.png",
+        videoUrl: "https://www.youtube.com/watch?v=NYcPwbFTW6Q",
       },
       {
         id: "xtra-6",
         title: "xtra",
         artist: "XTRAFM",
-        path: "/audio/xtra/starboy.mp4",
-        thumbnail: "/media/songs/song4.png",
-        videoUrl: "https://www.youtube.com/watch?v=PIVqz6e5j7s",
+        path: "/audio/xtra/baptized.mp4",
+        thumbnail: "/media/songs/baptized.png",
+        videoUrl: "https://www.youtube.com/watch?v=1DBgZjW9ZNg",
       },
       {
         id: "xtra-7",
+        title: "xtra",
+        artist: "XTRAFM",
+        path: "/audio/xtra/starboy.mp4",
+        thumbnail: "/media/songs/starboy.png",
+        videoUrl: "https://www.youtube.com/watch?v=NYcPwbFTW6Q",
+      },
+      {
+        id: "xtra-8",
         title: "xtra",
         artist: "XTRAFM",
         path: "/audio/xtra/thehills.mp4",
@@ -657,66 +664,44 @@ const ALL_PLAYLISTS: Playlist[] = [
         videoUrl: "https://www.youtube.com/watch?v=ikCjEngTeio",
       },
       {
-        id: "xtra-8",
-        title: "xtra",
-        artist: "XTRAFM",
-        path: "/audio/xtra/abyss.mp4",
-        thumbnail: "/media/songs/song4.png",
-        videoUrl:
-          "https://www.youtube.com/watch?v=1YrGhjy_xY0&pp=ygUKYWJ5c3MgYWZybw%3D%3D",
-      },
-      {
         id: "xtra-9",
         title: "xtra",
         artist: "XTRAFM",
-        path: "/audio/xtra/nothingislost.mp4",
-        thumbnail: "/media/songs/song4.png",
-        videoUrl:
-          "https://www.youtube.com/watch?v=NSZxiH7OtTA&list=PLAmw49p0-BAC8MG4yxLd5zOjglwH5I3P5&index=11&pp=gAQBiAQB8AUB",
+        path: "/audio/xtra/popular.mp4",
+        thumbnail: "/media/songs/popular.png",
+        videoUrl: "https://www.youtube.com/watch?v=NYcPwbFTW6Q",
       },
       {
         id: "xtra-10",
         title: "xtra",
         artist: "XTRAFM",
         path: "/audio/xtra/takemybreath.mp4",
-        thumbnail: "/media/songs/song4.png",
-        videoUrl:
-          "https://www.youtube.com/watch?v=Y7RZfs_dhk4&list=PLAmw49p0-BAC8MG4yxLd5zOjglwH5I3P5&index=9&pp=gAQBiAQB8AUB",
+        thumbnail: "/media/songs/takemybreath.png",
+        videoUrl: "https://www.youtube.com/watch?v=NYcPwbFTW6Q",
       },
       {
         id: "xtra-11",
         title: "xtra",
         artist: "XTRAFM",
-        path: "/audio/xtra/next.mp4",
-        thumbnail: "/media/songs/next.png",
-        videoUrl: "https://www.youtube.com/watch?v=vzt88jQznJI",
+        path: "/audio/xtra/oneofthegirls.mp4",
+        thumbnail: "/media/songs/oneofthegirls.png",
+        videoUrl: "https://www.youtube.com/watch?v=NYcPwbFTW6Q",
       },
       {
         id: "xtra-12",
         title: "xtra",
         artist: "XTRAFM",
-        path: "/audio/xtra/likeamoth.mp4",
-        thumbnail: "/media/songs/song4.png",
-        videoUrl:
-          "https://www.youtube.com/watch?v=0XWSezFXIzo&list=PLAmw49p0-BAC8MG4yxLd5zOjglwH5I3P5&index=7&pp=gAQBiAQB8AUB",
+        path: "/audio/xtra/often.mp4",
+        thumbnail: "/media/songs/often.png",
+        videoUrl: "https://www.youtube.com/watch?v=NYcPwbFTW6Q",
       },
       {
         id: "xtra-13",
         title: "xtra",
         artist: "XTRAFM",
-        path: "/audio/xtra/often.mp4",
-        thumbnail: "/media/songs/song4.png",
-        videoUrl:
-          "https://www.youtube.com/watch?v=cjcS2Xwlpvo&list=PLAmw49p0-BAC8MG4yxLd5zOjglwH5I3P5&index=2&pp=gAQBiAQB8AUB",
-      },
-      {
-        id: "xtra-14",
-        title: "xtra",
-        artist: "XTRAFM",
-        path: "/audio/xtra/saopaolo.mp4",
-        thumbnail: "/media/songs/song4.png",
-        videoUrl:
-          "https://www.youtube.com/watch?v=HNvwg_IGbbE&list=PLAmw49p0-BAC8MG4yxLd5zOjglwH5I3P5&index=1&pp=gAQBiAQB8AUB",
+        path: "/audio/xtra/nothingislost.mp4",
+        thumbnail: "/media/songs/nothingislost.png",
+        videoUrl: "https://www.youtube.com/watch?v=NYcPwbFTW6Q",
       },
     ],
   },
