@@ -645,7 +645,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "XTRAFM",
         path: "/audio/xtra/baptized.mp4",
         thumbnail: "/media/songs/baptized.png",
-        videoUrl: "https://www.youtube.com/watch?v=1DBgZjW9ZNg",
+        videoUrl: "https://www.youtube.com/watch?v=NYcPwbFTW6Q",
       },
       {
         id: "xtra-7",
@@ -661,7 +661,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "XTRAFM",
         path: "/audio/xtra/thehills.mp4",
         thumbnail: "/media/songs/thehills.png",
-        videoUrl: "https://www.youtube.com/watch?v=ikCjEngTeio",
+        videoUrl: "https://www.youtube.com/watch?v=NYcPwbFTW6Q",
       },
       {
         id: "xtra-9",
