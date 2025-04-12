@@ -605,7 +605,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "XTRAFM",
         path: "/audio/xtra/saopaulo.mp4",
         thumbnail: "/media/songs/saopaulo.png",
-        videoUrl: "https://www.youtube.com/watch?v=NYcPwbFTW6Q",
+        videoUrl: "https://www.youtube.com/watch?v=bXOJ8E0FGt8",
       },
       {
         id: "xtra-2",
@@ -613,7 +613,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "XTRAFM",
         path: "/audio/xtra/timeless.mp4",
         thumbnail: "/media/songs/timeless.png",
-        videoUrl: "https://www.youtube.com/watch?v=_jIer4gsw4U",
+        videoUrl: "https://www.youtube.com/watch?v=3upvj6tDHoI",
       },
       {
         id: "xtra-3",
@@ -621,7 +621,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "XTRAFM",
         path: "/audio/xtra/howdeepisyourlove.mp4",
         thumbnail: "/media/songs/howdeepisyourlove.png",
-        videoUrl: "https://www.youtube.com/watch?v=NYcPwbFTW6Q",
+        videoUrl: "https://www.youtube.com/watch?v=bXOJ8E0FGt8",
       },
       {
         id: "xtra-4",
@@ -637,7 +637,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "XTRAFM",
         path: "/audio/xtra/cursed.mp4",
         thumbnail: "/media/songs/cursed.png",
-        videoUrl: "https://www.youtube.com/watch?v=NYcPwbFTW6Q",
+        videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
       },
       {
         id: "xtra-6",
@@ -645,7 +645,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "XTRAFM",
         path: "/audio/xtra/thehills.mp4",
         thumbnail: "/media/songs/thehills.png",
-        videoUrl: "https://www.youtube.com/watch?v=NYcPwbFTW6Q",
+        videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
       },
       {
         id: "xtra-7",
@@ -653,7 +653,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "XTRAFM",
         path: "/audio/xtra/baptized.mp4",
         thumbnail: "/media/songs/baptized.png",
-        videoUrl: "https://www.youtube.com/watch?v=NYcPwbFTW6Q",
+        videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
       },
       {
         id: "xtra-8",
@@ -661,7 +661,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "XTRAFM",
         path: "/audio/xtra/starboy.mp4",
         thumbnail: "/media/songs/starboy.png",
-        videoUrl: "https://www.youtube.com/watch?v=NYcPwbFTW6Q",
+        videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
       },
       {
         id: "xtra-9",
@@ -669,7 +669,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "XTRAFM",
         path: "/audio/xtra/popular.mp4",
         thumbnail: "/media/songs/popular.png",
-        videoUrl: "https://www.youtube.com/watch?v=NYcPwbFTW6Q",
+        videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
       },
       {
         id: "xtra-10",
@@ -677,7 +677,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "XTRAFM",
         path: "/audio/xtra/takemybreath.mp4",
         thumbnail: "/media/songs/takemybreath.png",
-        videoUrl: "https://www.youtube.com/watch?v=NYcPwbFTW6Q",
+        videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
       },
       {
         id: "xtra-11",
@@ -685,7 +685,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "XTRAFM",
         path: "/audio/xtra/oneofthegirls.mp4",
         thumbnail: "/media/songs/oneofthegirls.png",
-        videoUrl: "https://www.youtube.com/watch?v=NYcPwbFTW6Q",
+        videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
       },
       {
         id: "xtra-12",
@@ -693,7 +693,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "XTRAFM",
         path: "/audio/xtra/often.mp4",
         thumbnail: "/media/songs/often.png",
-        videoUrl: "https://www.youtube.com/watch?v=NYcPwbFTW6Q",
+        videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
       },
       {
         id: "xtra-13",
@@ -701,7 +701,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "XTRAFM",
         path: "/audio/xtra/thehillsxp.mp4",
         thumbnail: "/media/songs/thehillsxp.png",
-        videoUrl: "https://www.youtube.com/watch?v=NYcPwbFTW6Q",
+        videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
       },
     ],
   },
