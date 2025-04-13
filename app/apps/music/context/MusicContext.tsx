@@ -605,7 +605,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "XTRAFM",
         path: "/audio/xtra/saopaulo.mp4",
         thumbnail: "/media/songs/saopaulo.png",
-        videoUrl: "https://www.youtube.com/watch?v=bXOJ8E0FGt8",
+        videoUrl: "https://www.youtube.com/watch?v=NYcPwbFTW6Q",
       },
       {
         id: "xtra-2",
@@ -621,7 +621,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         artist: "XTRAFM",
         path: "/audio/xtra/howdeepisyourlove.mp4",
         thumbnail: "/media/songs/howdeepisyourlove.png",
-        videoUrl: "https://www.youtube.com/watch?v=bXOJ8E0FGt8",
+        videoUrl: "https://www.youtube.com/watch?v=mYHJii-zIvU",
       },
       {
         id: "xtra-4",
