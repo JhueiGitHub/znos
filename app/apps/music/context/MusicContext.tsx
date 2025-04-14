@@ -667,8 +667,8 @@ const ALL_PLAYLISTS: Playlist[] = [
         id: "xtra-9",
         title: "xtra",
         artist: "XTRAFM",
-        path: "/audio/xtra/popular.mp4",
-        thumbnail: "/media/songs/popular.png",
+        path: "/audio/xtra/wherehaveyoubeen.mp4",
+        thumbnail: "/media/songs/wherehaveyoubeen.png",
         videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
       },
       {
@@ -683,8 +683,8 @@ const ALL_PLAYLISTS: Playlist[] = [
         id: "xtra-11",
         title: "xtra",
         artist: "XTRAFM",
-        path: "/audio/xtra/oneofthegirls.mp4",
-        thumbnail: "/media/songs/oneofthegirls.png",
+        path: "/audio/xtra/popular.mp4",
+        thumbnail: "/media/songs/popular.png",
         videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
       },
       {
@@ -697,6 +697,14 @@ const ALL_PLAYLISTS: Playlist[] = [
       },
       {
         id: "xtra-13",
+        title: "xtra",
+        artist: "XTRAFM",
+        path: "/audio/xtra/oneofthegirls.mp4",
+        thumbnail: "/media/songs/oneofthegirls.png",
+        videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
+      },
+      {
+        id: "xtra-14",
         title: "xtra",
         artist: "XTRAFM",
         path: "/audio/xtra/thehillsxp.mp4",
