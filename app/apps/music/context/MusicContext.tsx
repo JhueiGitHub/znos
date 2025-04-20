@@ -640,11 +640,11 @@ const ALL_PLAYLISTS: Playlist[] = [
         videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
       },
       {
-        id: "xtra-8",
+        id: "xtra-6",
         title: "xtra",
         artist: "XTRAFM",
-        path: "/audio/xtra/thehills.mp4",
-        thumbnail: "/media/songs/thehills.png",
+        path: "/audio/xtra/baptized.mp4",
+        thumbnail: "/media/songs/baptized.png",
         videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
       },
       {
@@ -656,15 +656,15 @@ const ALL_PLAYLISTS: Playlist[] = [
         videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
       },
       {
-        id: "xtra-6",
+        id: "xtra-8",
         title: "xtra",
         artist: "XTRAFM",
-        path: "/audio/xtra/baptized.mp4",
-        thumbnail: "/media/songs/baptized.png",
+        path: "/audio/xtra/thehills.mp4",
+        thumbnail: "/media/songs/thehills.png",
         videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
       },
       {
-        id: "xtra-15",
+        id: "xtra-9",
         title: "xtra",
         artist: "XTRAFM",
         path: "/audio/xtra/secrets.mp4",
@@ -687,9 +687,8 @@ const ALL_PLAYLISTS: Playlist[] = [
         thumbnail: "/media/songs/youright.png",
         videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
       },
-
       {
-        id: "xtra-14",
+        id: "xtra-12",
         title: "xtra",
         artist: "XTRAFM",
         path: "/audio/xtra/often.mp4",
@@ -705,7 +704,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
       },
       {
-        id: "xtra-12",
+        id: "xtra-14",
         title: "xtra",
         artist: "XTRAFM",
         path: "/audio/xtra/takemybreath.mp4",
@@ -713,7 +712,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
       },
       {
-        id: "xtra-9",
+        id: "xtra-15",
         title: "xtra",
         artist: "XTRAFM",
         path: "/audio/xtra/popular.mp4",
