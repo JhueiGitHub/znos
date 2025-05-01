@@ -2,7 +2,6 @@
   "compilerOptions": {
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
-    "typeRoots": ["./node_modules/@types", "./app/apps/krok/types"],
     "skipLibCheck": true,
     "strict": true,
     "noEmit": true,
@@ -46,8 +45,7 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     ".next/types/**/*.tsx",
-    "apps/figma/types/**/*.d.ts",
-    "app/apps/streetfighter/game/index.js"
-  ],
+    "apps/figma/types/**/*.d.ts"
+, "app/apps/streetfighter/game/index.js"  ],
   "exclude": ["node_modules"]
 }

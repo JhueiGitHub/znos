@@ -54,7 +54,7 @@ export const appDefinitions: AppDefinition[] = [
   {
     id: "monopoly",
     name: "Monopoly",
-    icon: "/media/racing.png", // Make sure to add this icon to your public/media folder
+    icon: "/media/desktop.png",
     dockPosition: 6,
     animationType: "magnify",
   },
