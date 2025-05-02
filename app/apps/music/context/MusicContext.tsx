@@ -635,8 +635,8 @@ const ALL_PLAYLISTS: Playlist[] = [
         id: "xtra-5",
         title: "xtra",
         artist: "XTRAFM",
-        path: "/audio/xtra/cursed.mp4",
-        thumbnail: "/media/songs/cursed.png",
+        path: "/audio/xtra/malamente.mp4",
+        thumbnail: "/media/songs/malamente.png",
         videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
       },
       {
