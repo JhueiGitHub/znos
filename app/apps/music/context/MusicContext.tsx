@@ -635,28 +635,12 @@ const ALL_PLAYLISTS: Playlist[] = [
         id: "xtra-5",
         title: "xtra",
         artist: "XTRAFM",
-        path: "/audio/xtra/cursed.mp4",
-        thumbnail: "/media/songs/cursed.png",
-        videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
-      },
-      {
-        id: "xtra-6",
-        title: "xtra",
-        artist: "XTRAFM",
-        path: "/audio/xtra/baptized.mp4",
-        thumbnail: "/media/songs/baptized.png",
-        videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
-      },
-      {
-        id: "xtra-7",
-        title: "xtra",
-        artist: "XTRAFM",
         path: "/audio/xtra/malamente.mp4",
         thumbnail: "/media/songs/malamente.png",
         videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
       },
       {
-        id: "xtra-8",
+        id: "xtra-6",
         title: "xtra",
         artist: "XTRAFM",
         path: "/audio/xtra/thehills.mp4",
@@ -664,7 +648,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
       },
       {
-        id: "xtra-9",
+        id: "xtra-7",
         title: "xtra",
         artist: "XTRAFM",
         path: "/audio/xtra/alldayandnight.mp4",
@@ -672,7 +656,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
       },
       {
-        id: "xtra-10",
+        id: "xtra-8",
         title: "xtra",
         artist: "XTRAFM",
         path: "/audio/xtra/notearslefttocry.mp4",
@@ -680,7 +664,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
       },
       {
-        id: "xtra-11",
+        id: "xtra-9",
         title: "xtra",
         artist: "XTRAFM",
         path: "/audio/xtra/lifeline.mp4",
@@ -688,7 +672,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
       },
       {
-        id: "xtra-12",
+        id: "xtra-10",
         title: "xtra",
         artist: "XTRAFM",
         path: "/audio/xtra/starboy.mp4",
@@ -696,7 +680,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
       },
       {
-        id: "xtra-13",
+        id: "xtra-11",
         title: "xtra",
         artist: "XTRAFM",
         path: "/audio/xtra/youright.mp4",
@@ -704,7 +688,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
       },
       {
-        id: "xtra-14",
+        id: "xtra-12",
         title: "xtra",
         artist: "XTRAFM",
         path: "/audio/xtra/popular.mp4",
@@ -712,7 +696,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
       },
       {
-        id: "xtra-15",
+        id: "xtra-13",
         title: "xtra",
         artist: "XTRAFM",
         path: "/audio/xtra/breakmyheart.mp4",
@@ -720,7 +704,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
       },
       {
-        id: "xtra-16",
+        id: "xtra-14",
         title: "xtra",
         artist: "XTRAFM",
         path: "/audio/xtra/often.mp4",
