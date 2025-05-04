@@ -666,11 +666,11 @@ export const useLessonStore = create<LessonState>((set, get) => ({
 
       if (canvasIndex === -1) return state;
 
-      const currentCanvasItems = lesson.canvases[canvasIndex].items;
-
       // Find the lowest z-index
       const lowestZ =
-        Math.min(...currentCanvasItems.map((item) => item.zIndex)) - 1;
+        Math.min(
+          ...updatedCanvases[canvasIndex].items.map((item) => item.zIndex)
+        ) - 1;
 
       const updatedCanvases = [...lesson.canvases];
       updatedCanvases[canvasIndex] = {

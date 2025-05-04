@@ -221,7 +221,7 @@ const MusicDropdown: React.FC<MusicDropdownProps> = ({
         {/* Current Song Info */}
         <div className="flex items-center gap-3">
           <img
-            src={currentSong?.thumbnail || "/media/system/_empty_image.png"}
+            src={currentPlaylist?.thumbnail || "/media/system/_empty_image.png"}
             alt={currentSong.title}
             className="w-12 h-12 rounded"
             style={exemplarPro.style}
