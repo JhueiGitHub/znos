@@ -8,6 +8,7 @@ interface Episode {
   description: string;
   duration: string;
   thumbnail?: string;
+  platform?: string;
 }
 
 // Base interface for common properties
@@ -1068,6 +1069,62 @@ const CATEGORIES_DATA: Category[] = [
             videoId: "x6ci872",
             description: "Episode 2 of Taxi Driver series",
             duration: "59:00",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "chiron",
+    name: "Chiron",
+    content: [
+      {
+        type: "movie",
+        id: "pininfarina",
+        title: "Pininfarina",
+        rating: "98% Google User Review",
+        thumbnail: "/apps/glory/chiron_thumbnail.png",
+        description:
+          "Experience the breathtaking Pininfarina Battista, a stunning hypercar that redefines automotive excellence with its extraordinary power and elegant design.",
+        maturityRating: "All",
+        videoId: "ZfnFL-wp-dg",
+        duration: "1:26",
+        platform: "youtube",
+      },
+      {
+        type: "series",
+        id: "chiron-series",
+        title: "Chiron",
+        rating: "99% Google User Review",
+        thumbnail: "/apps/glory/chiron_series_thumbnail.png",
+        description:
+          "An exclusive look at the engineering marvel that is the Bugatti Chiron, from its breathtaking design to its unparalleled performance.",
+        maturityRating: "All",
+        episodeCount: 3,
+        episodes: [
+          {
+            title: "C",
+            videoId: "NMThdHhrLoM",
+            description:
+              "The Bugatti Chiron showcases its elegant design and powerful engineering.",
+            duration: "1:03",
+            platform: "youtube",
+          },
+          {
+            title: "Noire",
+            videoId: "lVvK1OI3Cu4",
+            description:
+              "The stunning Bugatti Chiron Noire edition, a masterpiece of automotive design.",
+            duration: "0:43",
+            platform: "youtube",
+          },
+          {
+            title: "King",
+            videoId: "5BBTghKXjDE",
+            description:
+              "The Bugatti Chiron - the king of hypercars, demonstrating its exceptional power and speed.",
+            duration: "0:36",
+            platform: "youtube",
           },
         ],
       },

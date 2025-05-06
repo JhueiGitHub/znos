@@ -35,6 +35,12 @@ export function MainContent() {
               ? currentContent.title
               : currentEpisode?.title || ""
           }
+          platform={
+            (currentContent.type === "movie" && currentContent.platform === "youtube") ||
+            (currentContent.type === "series" && currentEpisode?.platform === "youtube")
+              ? "youtube"
+              : undefined
+          }
         />
       </div>
     </>
