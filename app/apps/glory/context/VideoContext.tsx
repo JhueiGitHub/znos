@@ -1087,7 +1087,7 @@ const CATEGORIES_DATA: Category[] = [
         description:
           "An exclusive look at the engineering marvel that is the Bugatti Chiron, from its breathtaking design to its unparalleled performance.",
         maturityRating: "All",
-        episodeCount: 3,
+        episodeCount: 6,
         episodes: [
           {
             title: "C",
@@ -1135,6 +1135,43 @@ const CATEGORIES_DATA: Category[] = [
             description:
               "The Bugatti Chiron - the king of hypercars, demonstrating its exceptional power and speed.",
             duration: "10:23",
+            platform: "youtube",
+          },
+        ],
+      },
+      {
+        type: "series",
+        id: "veneno",
+        title: "Veneno",
+        rating: "98% Google User Review",
+        thumbnail: "/apps/glory/veneno_thumbnail.png",
+        description:
+          "An exclusive look at the engineering marvel that is the Bugatti Chiron, from its breathtaking design to its unparalleled performance.",
+        maturityRating: "All",
+        episodeCount: 3,
+        episodes: [
+          {
+            title: "Fighter",
+            videoId: "ufwZQ3-b1DY",
+            description:
+              "The Bugatti Chiron showcases its elegant design and powerful engineering.",
+            duration: "6:27",
+            platform: "youtube",
+          },
+          {
+            title: "Blondie",
+            videoId: "t29aR_IID00",
+            description:
+              "The stunning Bugatti Chiron Noire edition, a masterpiece of automotive design.",
+            duration: "16:23",
+            platform: "youtube",
+          },
+          {
+            title: "London",
+            videoId: "CMY-4mas-_0",
+            description:
+              "The Bugatti Chiron - the king of hypercars, demonstrating its exceptional power and speed.",
+            duration: "3:34",
             platform: "youtube",
           },
         ],
