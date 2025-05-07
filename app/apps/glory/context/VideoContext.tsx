@@ -1183,9 +1183,99 @@ const CATEGORIES_DATA: Category[] = [
       },
       {
         type: "series",
+        id: "codered",
+        title: "Code Red",
+        rating: "97% Google User Review",
+        thumbnail: "/apps/glory/codered_thumbnail.png",
+        description:
+          "An exclusive look at the engineering marvel that is the Bugatti Chiron, from its breathtaking design to its unparalleled performance.",
+        maturityRating: "All",
+        episodeCount: 2,
+        episodes: [
+          {
+            title: "Kratos",
+            videoId: "ajsZ3rrLxjs",
+            description:
+              "The Bugatti Chiron showcases its elegant design and powerful engineering.",
+            duration: "1:29",
+            platform: "youtube",
+          },
+          {
+            title: "Dyno",
+            videoId: "GghZCyc_fnU",
+            description:
+              "The stunning Bugatti Chiron Noire edition, a masterpiece of automotive design.",
+            duration: "0:58",
+            platform: "youtube",
+          },
+          {
+            title: "Interview with Shelby and Fathouse",
+            videoId: "MfozPyjIUps",
+            description:
+              "The stunning Bugatti Chiron Noire edition, a masterpiece of automotive design.",
+            duration: "18:13",
+            platform: "youtube",
+          },
+          {
+            title: "VENOM 1200",
+            videoId: "lmFOvSgZqqs",
+            description:
+              "The stunning Bugatti Chiron Noire edition, a masterpiece of automotive design.",
+            duration: "7:11",
+            platform: "youtube",
+          },
+          {
+            title: "VENOM vs Z06",
+            videoId: "kzDK2UCCqS0",
+            description:
+              "The stunning Bugatti Chiron Noire edition, a masterpiece of automotive design.",
+            duration: "4:34",
+            platform: "youtube",
+          },
+          {
+            title: "Hennessey H850 vs M8 Comp",
+            videoId: "EiXe7Z_Y-2s",
+            description:
+              "The stunning Bugatti Chiron Noire edition, a masterpiece of automotive design.",
+            duration: "3:50",
+            platform: "youtube",
+          },
+        ],
+      },
+      {
+        type: "series",
+        id: "stingray",
+        title: "Stingray",
+        rating: "96% Google User Review",
+        thumbnail: "/apps/glory/stingray_thumbnail.png",
+        description:
+          "An exclusive look at the engineering marvel that is the Bugatti Chiron, from its breathtaking design to its unparalleled performance.",
+        maturityRating: "All",
+        episodeCount: 2,
+        episodes: [
+          {
+            title: "WILD",
+            videoId: "SuVNuExbGlk",
+            description:
+              "The Bugatti Chiron showcases its elegant design and powerful engineering.",
+            duration: "5:48",
+            platform: "youtube",
+          },
+          {
+            title: "ZR1",
+            videoId: "9c6cTsxvv1c",
+            description:
+              "The stunning Bugatti Chiron Noire edition, a masterpiece of automotive design.",
+            duration: "18:02",
+            platform: "youtube",
+          },
+        ],
+      },
+      {
+        type: "series",
         id: "rs6",
         title: "RS6",
-        rating: "94% Google User Review",
+        rating: "96% Google User Review",
         thumbnail: "/apps/glory/rs6_thumbnail.png",
         description:
           "An exclusive look at the engineering marvel that is the Bugatti Chiron, from its breathtaking design to its unparalleled performance.",
