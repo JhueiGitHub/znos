@@ -1140,6 +1140,19 @@ const CATEGORIES_DATA: Category[] = [
         ],
       },
       {
+        type: "movie",
+        id: "pininfarina",
+        title: "Pininfarina",
+        rating: "98% Google User Review",
+        thumbnail: "/apps/glory/pininfarina_thumbnail.png",
+        description:
+          "Experience the breathtaking Pininfarina Battista, a stunning hypercar that redefines automotive excellence with its extraordinary power and elegant design.",
+        maturityRating: "All",
+        videoId: "ZfnFL-wp-dg",
+        duration: "1:26",
+        platform: "youtube",
+      },
+      {
         type: "series",
         id: "spierling",
         title: "Spierling",
@@ -1167,19 +1180,6 @@ const CATEGORIES_DATA: Category[] = [
             platform: "youtube",
           },
         ],
-      },
-      {
-        type: "movie",
-        id: "pininfarina",
-        title: "Pininfarina",
-        rating: "98% Google User Review",
-        thumbnail: "/apps/glory/pininfarina_thumbnail.png",
-        description:
-          "Experience the breathtaking Pininfarina Battista, a stunning hypercar that redefines automotive excellence with its extraordinary power and elegant design.",
-        maturityRating: "All",
-        videoId: "ZfnFL-wp-dg",
-        duration: "1:26",
-        platform: "youtube",
       },
       {
         type: "series",
@@ -1215,7 +1215,7 @@ const CATEGORIES_DATA: Category[] = [
         id: "m3touring",
         title: "M3 Touring",
         rating: "93% Google User Review",
-        thumbnail: "/apps/glory/rs6_thumbnail.png",
+        thumbnail: "/apps/glory/m3_thumbnail.png",
         description:
           "An exclusive look at the engineering marvel that is the Bugatti Chiron, from its breathtaking design to its unparalleled performance.",
         maturityRating: "All",
