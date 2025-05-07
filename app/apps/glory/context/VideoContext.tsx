@@ -879,10 +879,55 @@ const CATEGORIES_DATA: Category[] = [
     name: "Magna",
     content: [
       {
+        type: "series",
+        id: "macdonald",
+        title: "Norm Macdonald Has A Show",
+        rating: "99% Google User Review",
+        thumbnail: "/apps/glory/macdonald_thumbnail.png",
+        description:
+          "A young man becomes involved in a dramatic series of events at an ice factory which turns out to be front for a drug trafficking ring.",
+        maturityRating: "18+",
+        episodeCount: 3,
+        episodes: [
+          {
+            title: "The Norm Macdonald Show Ep. 1 Supercut - Superdave",
+            videoId: "cKdbntTZXdY",
+            description:
+              "The Bugatti Chiron showcases its elegant design and powerful engineering.",
+            duration: "16:48",
+            platform: "youtube",
+          },
+          {
+            title: "The Norm Macdonald Show Ep. 2 - Tom Green",
+            videoId: "OStQ4Ohzync",
+            description:
+              "The Bugatti Chiron showcases its elegant design and powerful engineering.",
+            duration: "59:32",
+            platform: "youtube",
+          },
+          {
+            title: "The Norm Macdonald Show Ep. 3 - Fred Stroller",
+            videoId: "ei2xxPddPyo",
+            description:
+              "The Bugatti Chiron showcases its elegant design and powerful engineering.",
+            duration: "1:25:09",
+            platform: "youtube",
+          },
+          {
+            title: "The Norm Macdonald Show Ep. 4 Supercut - Russel Brand",
+            videoId: "gkqmX_lrpkM",
+            description:
+              "The Bugatti Chiron showcases its elegant design and powerful engineering.",
+            duration: "42:37",
+            platform: "youtube",
+          },
+        ],
+      },
+      {
         type: "movie",
         id: "philly",
         title: "Bill Burr Philly Rant",
-        rating: "94% Google User Review",
+        rating: "96% Google User Review",
         thumbnail: "/apps/glory/philly_thumbnail.png",
         description:
           "A martial artist agrees to spy on a reclusive crime lord using his invitation to a tournament there as cover.",
@@ -1396,6 +1441,237 @@ const CATEGORIES_DATA: Category[] = [
             description:
               "The Bugatti Chiron showcases its elegant design and powerful engineering.",
             duration: "1:29",
+            platform: "youtube",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "dunamisfc",
+    name: "DunamisFC",
+    content: [
+      {
+        type: "series",
+        id: "tyson",
+        title: "Tyson",
+        rating: "100% Google User Review",
+        thumbnail: "/apps/glory/tyson_thumbnail.png",
+        description:
+          "An exclusive look at the engineering marvel that is the Bugatti Chiron, from its breathtaking design to its unparalleled performance.",
+        maturityRating: "All",
+        episodeCount: 1,
+        episodes: [
+          {
+            title: "Tyson vs Ruddock Full Showtime Programme",
+            videoId: "h4yCAxkaeOA",
+            description:
+              "The Bugatti Chiron showcases its elegant design and powerful engineering.",
+            duration: "1:20:56",
+            platform: "youtube",
+          },
+        ],
+      },
+      {
+        type: "series",
+        id: "ali",
+        title: "Ali",
+        rating: "98% Google User Review",
+        thumbnail: "/apps/glory/ali_thumbnail.png",
+        description:
+          "An exclusive look at the engineering marvel that is the Bugatti Chiron, from its breathtaking design to its unparalleled performance.",
+        maturityRating: "All",
+        episodeCount: 3,
+        episodes: [
+          {
+            title: "Ali vs Liston I",
+            videoId: "Bj8nFl-u_MY",
+            description:
+              "The Bugatti Chiron showcases its elegant design and powerful engineering.",
+            duration: "30:27",
+            platform: "youtube",
+          },
+          {
+            title: "Ali vs Liston II",
+            videoId: "jZ-7SIpdgfI",
+            description:
+              "The Bugatti Chiron showcases its elegant design and powerful engineering.",
+            duration: "47:08",
+            platform: "youtube",
+          },
+          {
+            title: "The Fight Of The Century",
+            videoId: "eIm2eK5uuVA",
+            description:
+              "The Bugatti Chiron showcases its elegant design and powerful engineering.",
+            duration: "1:24:22",
+            platform: "youtube",
+          },
+          {
+            title: "The Fight Of The Century Breakdown",
+            videoId: "1lE8JAY0rp4",
+            description:
+              "The Bugatti Chiron showcases its elegant design and powerful engineering.",
+            duration: "21:44",
+            platform: "youtube",
+          },
+          {
+            title: "Super Fight II",
+            videoId: "UILUX3-TrGw",
+            description:
+              "The Bugatti Chiron showcases its elegant design and powerful engineering.",
+            duration: "1:15:02",
+            platform: "youtube",
+          },
+          {
+            title: "Super Fight II Breakdown",
+            videoId: "gwEJifesITI",
+            description:
+              "The Bugatti Chiron showcases its elegant design and powerful engineering.",
+            duration: "19:48",
+            platform: "youtube",
+          },
+          {
+            title: "The Thrilla In Manilla",
+            videoId: "IM4rN_JvADM",
+            description:
+              "The Bugatti Chiron showcases its elegant design and powerful engineering.",
+            duration: "1:17:43",
+            platform: "youtube",
+          },
+          {
+            title: "The Thrilla In Manilla Breakdown",
+            videoId: "40kggXa-ZQQ",
+            description:
+              "The Bugatti Chiron showcases its elegant design and powerful engineering.",
+            duration: "29:48",
+            platform: "youtube",
+          },
+          {
+            title: "The Rumble In The Jungle",
+            videoId: "IM4rN_JvADM",
+            description:
+              "The Bugatti Chiron showcases its elegant design and powerful engineering.",
+            duration: "1:17:43",
+            platform: "youtube",
+          },
+          {
+            title: "The Rumble In The Jungle Breakdown",
+            videoId: "40kggXa-ZQQ",
+            description:
+              "The Bugatti Chiron showcases its elegant design and powerful engineering.",
+            duration: "29:48",
+            platform: "youtube",
+          },
+        ],
+      },
+      {
+        type: "series",
+        id: "goldenage",
+        title: "The Golden Age",
+        rating: "98% Google User Review",
+        thumbnail: "/apps/glory/goldenage_thumbnail.png",
+        description:
+          "An exclusive look at the engineering marvel that is the Bugatti Chiron, from its breathtaking design to its unparalleled performance.",
+        maturityRating: "All",
+        episodeCount: 1,
+        episodes: [
+          {
+            title: "The War",
+            videoId: "gaOTSMB6hLQ",
+            description:
+              "The Bugatti Chiron showcases its elegant design and powerful engineering.",
+            duration: "19:12",
+            platform: "youtube",
+          },
+          {
+            title: "Hearns vs Leonard",
+            videoId: "jZ-7SIpdgfI",
+            description:
+              "The Bugatti Chiron showcases its elegant design and powerful engineering.",
+            duration: "47:08",
+            platform: "youtube",
+          },
+          {
+            title: "Hearns vs Leonard 2",
+            videoId: "PY1aIAEpUUg",
+            description:
+              "The Bugatti Chiron showcases its elegant design and powerful engineering.",
+            duration: "48:11",
+            platform: "youtube",
+          },
+          {
+            title: "Leonard vs Hagler",
+            videoId: "8XEHR8XoFXs",
+            description:
+              "The Bugatti Chiron showcases its elegant design and powerful engineering.",
+            duration: "46:34",
+            platform: "youtube",
+          },
+        ],
+      },
+      {
+        type: "series",
+        id: "mma",
+        title: "MMA",
+        rating: "98% Google User Review",
+        thumbnail: "/apps/glory/mcgregor_thumbnail.png",
+        description:
+          "An exclusive look at the engineering marvel that is the Bugatti Chiron, from its breathtaking design to its unparalleled performance.",
+        maturityRating: "All",
+        episodeCount: 4,
+        episodes: [
+          {
+            title: "Mcgregor vs Nurmagomedov",
+            videoId: "JuBBIJ7adjM",
+            description:
+              "The Bugatti Chiron showcases its elegant design and powerful engineering.",
+            duration: "11:51",
+            platform: "youtube",
+          },
+          {
+            title: "Mcgregor vs Holloway",
+            videoId: "BCOy-PG8EIw",
+            description:
+              "The Bugatti Chiron showcases its elegant design and powerful engineering.",
+            duration: "15:59",
+            platform: "youtube",
+          },
+          {
+            title: "Mcgregor vs Mendes",
+            videoId: "KTDO39CkFGU",
+            description:
+              "The Bugatti Chiron showcases its elegant design and powerful engineering.",
+            duration: "12:24",
+            platform: "youtube",
+          },
+          {
+            title: "Mcgregor vs Alvarez",
+            videoId: "DLpTx00PSgo",
+            description:
+              "The Bugatti Chiron showcases its elegant design and powerful engineering.",
+            duration: "11:51",
+            platform: "youtube",
+          },
+        ],
+      },
+      {
+        type: "series",
+        id: "k1",
+        title: "K1",
+        rating: "99% Google User Review",
+        thumbnail: "/apps/glory/k1_thumbnail.png",
+        description:
+          "An exclusive look at the engineering marvel that is the Bugatti Chiron, from its breathtaking design to its unparalleled performance.",
+        maturityRating: "All",
+        episodeCount: 1,
+        episodes: [
+          {
+            title: "Rico vs Ben Saddik",
+            videoId: "TbaSBzRktfw",
+            description:
+              "The Bugatti Chiron showcases its elegant design and powerful engineering.",
+            duration: "30:36",
             platform: "youtube",
           },
         ],
