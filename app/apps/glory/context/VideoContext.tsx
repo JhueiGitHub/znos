@@ -1694,16 +1694,16 @@ const CATEGORIES_DATA: Category[] = [
         episodeCount: 1,
         episodes: [
           {
-            title: "Salt & Pepper Wings - QuangTran",
-            videoId: "bhFFjj_KSJU",
+            title: "Steak Au Poivre - Certified Angus Beef",
+            videoId: "qX3-5I2G8kI",
             description:
               "The Bugatti Chiron showcases its elegant design and powerful engineering.",
-            duration: "10:30",
+            duration: "6:12",
             platform: "youtube",
           },
           {
-            title: "Marry Me Wings - ThatDudeCanCook",
-            videoId: "Pyf-EbTnIBo",
+            title: "Steak Au Poivre - Sip and Feast",
+            videoId: "FBQWi9IY7WM",
             description:
               "The Bugatti Chiron showcases its elegant design and powerful engineering.",
             duration: "4:04",
@@ -1807,6 +1807,162 @@ const CATEGORIES_DATA: Category[] = [
             description:
               "The Bugatti Chiron showcases its elegant design and powerful engineering.",
             duration: "22:43",
+            platform: "youtube",
+          },
+        ],
+      },
+      {
+        type: "series",
+        id: "sides",
+        title: "Sides",
+        rating: "100% Google User Review",
+        thumbnail: "/apps/glory/sides_thumbnail.png",
+        description:
+          "An exclusive look at the engineering marvel that is the Bugatti Chiron, from its breathtaking design to its unparalleled performance.",
+        maturityRating: "All",
+        episodeCount: 1,
+        episodes: [
+          {
+            title: "Beer Battered Onion Rings",
+            videoId: "1SGqwMGkCxI",
+            description:
+              "The Bugatti Chiron showcases its elegant design and powerful engineering.",
+            duration: "8:05",
+            platform: "youtube",
+          },
+          {
+            title: "Creamy Scalloped Potatoes",
+            videoId: "mNYfBiFi4pg",
+            description:
+              "The Bugatti Chiron showcases its elegant design and powerful engineering.",
+            duration: "5:09",
+            platform: "youtube",
+          },
+          {
+            title: "Parmesan Potato Wedges",
+            videoId: "uxQHtOyy7hU",
+            description:
+              "The Bugatti Chiron showcases its elegant design and powerful engineering.",
+            duration: "5:09",
+            platform: "youtube",
+          },
+          {
+            title: "Sundried Tomatoes",
+            videoId: "S_HOg89Unno",
+            description:
+              "The Bugatti Chiron showcases its elegant design and powerful engineering.",
+            duration: "2:04",
+            platform: "youtube",
+          },
+          {
+            title: "Roasted Potatoes",
+            videoId: "IKcZa9-leJU",
+            description:
+              "The Bugatti Chiron showcases its elegant design and powerful engineering.",
+            duration: "5:09",
+            platform: "youtube",
+          },
+          {
+            title: "Sweet Potatoes",
+            videoId: "IKcZa9-leJU",
+            description:
+              "The Bugatti Chiron showcases its elegant design and powerful engineering.",
+            duration: "2:41",
+            platform: "youtube",
+          },
+        ],
+      },
+      {
+        type: "series",
+        id: "salmon",
+        title: "Salmon",
+        rating: "100% Google User Review",
+        thumbnail: "/apps/glory/salmon_thumbnail.png",
+        description:
+          "An exclusive look at the engineering marvel that is the Bugatti Chiron, from its breathtaking design to its unparalleled performance.",
+        maturityRating: "All",
+        episodeCount: 1,
+        episodes: [
+          {
+            title: "Creamy Garlic Butter Salmon",
+            videoId: "WmPgO-YeRw8",
+            description:
+              "The Bugatti Chiron showcases its elegant design and powerful engineering.",
+            duration: "4:22",
+            platform: "youtube",
+          },
+          {
+            title: "Honey Garlic Garlic",
+            videoId: "mNYfBiFi4pg",
+            description:
+              "The Bugatti Chiron showcases its elegant design and powerful engineering.",
+            duration: "4:49",
+            platform: "youtube",
+          },
+        ],
+      },
+      {
+        type: "series",
+        id: "penne",
+        title: "Penne",
+        rating: "100% Google User Review",
+        thumbnail: "/apps/glory/penne_thumbnail.png",
+        description:
+          "An exclusive look at the engineering marvel that is the Bugatti Chiron, from its breathtaking design to its unparalleled performance.",
+        maturityRating: "All",
+        episodeCount: 1,
+        episodes: [
+          {
+            title: "Penne Alla Vodka - NOTANOTHERCOOKINGSHOW",
+            videoId: "VeOAyL4QvnA",
+            description:
+              "The Bugatti Chiron showcases its elegant design and powerful engineering.",
+            duration: "4:22",
+            platform: "youtube",
+          },
+        ],
+      },
+      {
+        type: "series",
+        id: "chickenparm",
+        title: "Chicken Parm",
+        rating: "100% Google User Review",
+        thumbnail: "/apps/glory/chickenparm_thumbnail.png",
+        description:
+          "An exclusive look at the engineering marvel that is the Bugatti Chiron, from its breathtaking design to its unparalleled performance.",
+        maturityRating: "All",
+        episodeCount: 1,
+        episodes: [
+          {
+            title: "Chicken Parmesan - ThatDudeCanCook",
+            videoId: "Q_jun6Frpv0",
+            description:
+              "The Bugatti Chiron showcases its elegant design and powerful engineering.",
+            duration: "3:23",
+            platform: "youtube",
+          },
+          {
+            title: "Chicken Parmesan - NOT ANOTHER COOKING SHOW",
+            videoId: "59AUUu_bKOY",
+            description:
+              "The Bugatti Chiron showcases its elegant design and powerful engineering.",
+            duration: "4:59",
+            platform: "youtube",
+          },
+          {
+            title: "Chicken Parmesan - Babish Culinary Universe",
+            videoId: "ZrR0VbqNdW8",
+            description:
+              "The Bugatti Chiron showcases its elegant design and powerful engineering.",
+            duration: "6:42",
+            platform: "youtube",
+          },
+          {
+            title: "Chicken Parmesan - Joshua Weissman",
+            videoId: "uywOqrvxsUo",
+            description:
+              "The Bugatti Chiron showcases its elegant design and powerful engineering.",
+            duration: "10:05",
             platform: "youtube",
           },
         ],
