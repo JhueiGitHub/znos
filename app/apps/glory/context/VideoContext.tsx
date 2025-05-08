@@ -1678,6 +1678,168 @@ const CATEGORIES_DATA: Category[] = [
       },
     ],
   },
+  {
+    id: "mignon",
+    name: "Mignon",
+    content: [
+      {
+        type: "series",
+        id: "steak",
+        title: "Steak",
+        rating: "100% Google User Review",
+        thumbnail: "/apps/glory/steak_thumbnail.png",
+        description:
+          "An exclusive look at the engineering marvel that is the Bugatti Chiron, from its breathtaking design to its unparalleled performance.",
+        maturityRating: "All",
+        episodeCount: 1,
+        episodes: [
+          {
+            title: "Salt & Pepper Wings - QuangTran",
+            videoId: "bhFFjj_KSJU",
+            description:
+              "The Bugatti Chiron showcases its elegant design and powerful engineering.",
+            duration: "10:30",
+            platform: "youtube",
+          },
+          {
+            title: "Marry Me Wings - ThatDudeCanCook",
+            videoId: "Pyf-EbTnIBo",
+            description:
+              "The Bugatti Chiron showcases its elegant design and powerful engineering.",
+            duration: "4:04",
+            platform: "youtube",
+          },
+          {
+            title: "Authentic Chinese Restaraunt Style Chicken Wings",
+            videoId: "61HbJTBl4Vc",
+            description:
+              "The Bugatti Chiron showcases its elegant design and powerful engineering.",
+            duration: "18:18",
+            platform: "youtube",
+          },
+        ],
+      },
+      {
+        type: "series",
+        id: "wings",
+        title: "Wings",
+        rating: "100% Google User Review",
+        thumbnail: "/apps/glory/wings_thumbnail.png",
+        description:
+          "An exclusive look at the engineering marvel that is the Bugatti Chiron, from its breathtaking design to its unparalleled performance.",
+        maturityRating: "All",
+        episodeCount: 1,
+        episodes: [
+          {
+            title: "Classic Steak Au Poivre - Certified Angus Beef",
+            videoId: "qX3-5I2G8kI",
+            description:
+              "The Bugatti Chiron showcases its elegant design and powerful engineering.",
+            duration: "6:12",
+            platform: "youtube",
+          },
+          {
+            title: "Classic Steak Au Poivre - Sip and Feast",
+            videoId: "FBQWi9IY7WM",
+            description:
+              "The Bugatti Chiron showcases its elegant design and powerful engineering.",
+            duration: "15:31",
+            platform: "youtube",
+          },
+        ],
+      },
+      {
+        type: "series",
+        id: "tonkatu",
+        title: "Tonkatsu",
+        rating: "100% Google User Review",
+        thumbnail: "/apps/glory/tonkatsu_thumbnail.png",
+        description:
+          "An exclusive look at the engineering marvel that is the Bugatti Chiron, from its breathtaking design to its unparalleled performance.",
+        maturityRating: "All",
+        episodeCount: 1,
+        episodes: [
+          {
+            title: "Perfect Homemade Katsu Curry",
+            videoId: "O9kFFtURmSo",
+            description:
+              "The Bugatti Chiron showcases its elegant design and powerful engineering.",
+            duration: "10:39",
+            platform: "youtube",
+          },
+        ],
+      },
+      {
+        type: "series",
+        id: "burgers",
+        title: "Burgers",
+        rating: "100% Google User Review",
+        thumbnail: "/apps/glory/burgers_thumbnail.png",
+        description:
+          "An exclusive look at the engineering marvel that is the Bugatti Chiron, from its breathtaking design to its unparalleled performance.",
+        maturityRating: "All",
+        episodeCount: 1,
+        episodes: [
+          {
+            title: "Tokyo Cheese Burger - SAMTHECOOKINGGUY",
+            videoId: "rzlgpQUXAiQ",
+            description:
+              "The Bugatti Chiron showcases its elegant design and powerful engineering.",
+            duration: "8:49",
+            platform: "youtube",
+          },
+        ],
+      },
+      {
+        type: "series",
+        id: "cheesesteak",
+        title: "Philly Cheesesteak",
+        rating: "100% Google User Review",
+        thumbnail: "/apps/glory/phillycheesesteak_thumbnail.png",
+        description:
+          "An exclusive look at the engineering marvel that is the Bugatti Chiron, from its breathtaking design to its unparalleled performance.",
+        maturityRating: "All",
+        episodeCount: 1,
+        episodes: [
+          {
+            title: "The Perfect Wagyu Philly Cheesesteak",
+            videoId: "QUzfhq28krI",
+            description:
+              "The Bugatti Chiron showcases its elegant design and powerful engineering.",
+            duration: "22:43",
+            platform: "youtube",
+          },
+        ],
+      },
+    ],
+  },
+  // {
+  //   id: "bulk",
+  //   name: "Bulk",
+  //   content: [
+  //     {
+  //       type: "series",
+  //       id: "tyson",
+  //       title: "Tyson",
+  //       rating: "100% Google User Review",
+  //       thumbnail: "/apps/glory/tyson_thumbnail.png",
+  //       description:
+  //         "An exclusive look at the engineering marvel that is the Bugatti Chiron, from its breathtaking design to its unparalleled performance.",
+  //       maturityRating: "All",
+  //       episodeCount: 1,
+  //       episodes: [
+  //         {
+  //           title: "Mike Tyson Circuit Workout",
+  //           videoId: "4NPfxEkg-Jg",
+  //           description:
+  //             "The Bugatti Chiron showcases its elegant design and powerful engineering.",
+  //           duration: "25:13",
+  //           platform: "youtube",
+  //         },
+  //       ],
+  //     },
+  //   ],
+  // },
 ];
 
 export function VideoProvider({ children }: { children: React.ReactNode }) {
