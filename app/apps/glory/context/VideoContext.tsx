@@ -1265,6 +1265,60 @@ const CATEGORIES_DATA: Category[] = [
       },
       {
         type: "series",
+        id: "bolide",
+        title: "Bolide",
+        rating: "98% Google User Review",
+        thumbnail: "/apps/glory/bolide_thumbnail.png",
+        description:
+          "An exclusive look at the engineering marvel that is the Bugatti Chiron, from its breathtaking design to its unparalleled performance.",
+        maturityRating: "All",
+        episodeCount: 4,
+        episodes: [
+          {
+            title: "Flat-Out In The £3.5m Bugatti Bolide!",
+            videoId: "IFre_PN4h4U",
+            description:
+              "The Bugatti Chiron showcases its elegant design and powerful engineering.",
+            duration: "19:51",
+            platform: "youtube",
+          },
+          {
+            title: "THE BUGATTI BOLIDE IS FINALLY HOME!",
+            videoId: "TephzFnZCpA",
+            description:
+              "The stunning Bugatti Chiron Noire edition, a masterpiece of automotive design.",
+            duration: "12:26",
+            platform: "youtube",
+          },
+          {
+            title: "FIRST DRIVE: Bugatti Bolide – £4m, 1600hp Track Test!",
+            videoId: "VlbJHZnK5gE",
+            description:
+              "The stunning Bugatti Chiron Noire edition, a masterpiece of automotive design.",
+            duration: "20:56",
+            platform: "youtube",
+          },
+          {
+            title: "Bugatti Bolide vs Nürburgring. 1825 HorsePower Insanity.",
+            videoId: "G91KyP21VfE",
+            description:
+              "The stunning Bugatti Chiron Noire edition, a masterpiece of automotive design.",
+            duration: "8:46",
+            platform: "youtube",
+          },
+          {
+            title:
+              "BUGATTI BOLIDE FULL SEND! Flat Out in the BONKERS Track Hypercar",
+            videoId: "T1hOjyqmKas",
+            description:
+              "The stunning Bugatti Chiron Noire edition, a masterpiece of automotive design.",
+            duration: "22:50",
+            platform: "youtube",
+          },
+        ],
+      },
+      {
+        type: "series",
         id: "codered",
         title: "Code Red",
         rating: "97% Google User Review",
