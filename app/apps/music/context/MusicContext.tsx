@@ -64,7 +64,7 @@ const ALL_PLAYLISTS: Playlist[] = [
   {
     id: "xp",
     name: "XP",
-    songCount: 15,
+    songCount: 16,
     thumbnail: "/media/system/_empty_image.png",
     songs: [
       {
@@ -200,7 +200,7 @@ const ALL_PLAYLISTS: Playlist[] = [
   {
     id: "pnth",
     name: "PNTH",
-    songCount: 18,
+    songCount: 19,
     thumbnail: "/media/playlists/pnth.png",
     songs: [
       {
@@ -360,7 +360,7 @@ const ALL_PLAYLISTS: Playlist[] = [
   {
     id: "XX",
     name: "XX",
-    songCount: 9,
+    songCount: 10,
     thumbnail: "/media/playlists/xx.png",
     songs: [
       {
@@ -448,7 +448,7 @@ const ALL_PLAYLISTS: Playlist[] = [
   {
     id: "vcnz",
     name: "VCNZ",
-    songCount: 6,
+    songCount: 7,
     thumbnail: "/media/playlists/vcnz.png",
     songs: [
       {
@@ -516,7 +516,7 @@ const ALL_PLAYLISTS: Playlist[] = [
   {
     id: "sn",
     name: "SN",
-    songCount: 8,
+    songCount: 9,
     thumbnail: "/media/playlists/sn.png",
     songs: [
       {
@@ -595,8 +595,8 @@ const ALL_PLAYLISTS: Playlist[] = [
   },
   {
     id: "xtc",
-    name: "xtc",
-    songCount: 3,
+    name: "XTC",
+    songCount: 20,
     thumbnail: "/media/playlists/xtc.png",
     songs: [
       {
@@ -764,7 +764,7 @@ const ALL_PLAYLISTS: Playlist[] = [
   {
     id: "xo",
     name: "XO",
-    songCount: 12,
+    songCount: 13,
     thumbnail: "/media/playlists/xo.png",
     songs: [
       {
