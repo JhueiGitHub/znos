@@ -751,6 +751,14 @@ const ALL_PLAYLISTS: Playlist[] = [
         thumbnail: "/media/songs/provenza.png",
         videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
       },
+      {
+        id: "xtra-20",
+        title: "xtra",
+        artist: "XTRAFM",
+        path: "/audio/xtra/enchantedwaterfall.mp4",
+        thumbnail: "/media/songs/enchantedwaterfall.png",
+        videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
+      },
     ],
   },
   {
