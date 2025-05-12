@@ -1236,35 +1236,6 @@ const CATEGORIES_DATA: Category[] = [
       },
       {
         type: "series",
-        id: "spierling",
-        title: "Spierling",
-        rating: "98% Google User Review",
-        thumbnail: "/apps/glory/spierling_thumbnail.png",
-        description:
-          "An exclusive look at the engineering marvel that is the Bugatti Chiron, from its breathtaking design to its unparalleled performance.",
-        maturityRating: "All",
-        episodeCount: 2,
-        episodes: [
-          {
-            title: "LandJet",
-            videoId: "NDfKhBcGh9w",
-            description:
-              "The Bugatti Chiron showcases its elegant design and powerful engineering.",
-            duration: "9:25",
-            platform: "youtube",
-          },
-          {
-            title: "Spierling vs Nevera vs F1",
-            videoId: "PCzCqqVGQYE",
-            description:
-              "The stunning Bugatti Chiron Noire edition, a masterpiece of automotive design.",
-            duration: "14:41",
-            platform: "youtube",
-          },
-        ],
-      },
-      {
-        type: "series",
         id: "bolide",
         title: "Bolide",
         rating: "98% Google User Review",
@@ -1316,6 +1287,48 @@ const CATEGORIES_DATA: Category[] = [
             platform: "youtube",
           },
         ],
+      },
+      {
+        type: "series",
+        id: "spierling",
+        title: "Spierling",
+        rating: "98% Google User Review",
+        thumbnail: "/apps/glory/spierling_thumbnail.png",
+        description:
+          "An exclusive look at the engineering marvel that is the Bugatti Chiron, from its breathtaking design to its unparalleled performance.",
+        maturityRating: "All",
+        episodeCount: 2,
+        episodes: [
+          {
+            title: "LandJet",
+            videoId: "NDfKhBcGh9w",
+            description:
+              "The Bugatti Chiron showcases its elegant design and powerful engineering.",
+            duration: "9:25",
+            platform: "youtube",
+          },
+          {
+            title: "Spierling vs Nevera vs F1",
+            videoId: "PCzCqqVGQYE",
+            description:
+              "The stunning Bugatti Chiron Noire edition, a masterpiece of automotive design.",
+            duration: "14:41",
+            platform: "youtube",
+          },
+        ],
+      },
+      {
+        type: "movie",
+        id: "r8",
+        title: "LandRocket",
+        rating: "98% Google User Review",
+        thumbnail: "/apps/glory/r8_thumbnail.png",
+        description:
+          "Experience the breathtaking Pininfarina Battista, a stunning hypercar that redefines automotive excellence with its extraordinary power and elegant design.",
+        maturityRating: "All",
+        videoId: "G-cA0D8Zjv0",
+        duration: "0:45",
+        platform: "youtube",
       },
       {
         type: "series",
@@ -1380,29 +1393,21 @@ const CATEGORIES_DATA: Category[] = [
       },
       {
         type: "series",
-        id: "stingray",
-        title: "Stingray",
-        rating: "96% Google User Review",
-        thumbnail: "/apps/glory/stingray_thumbnail.png",
+        id: "m3touring",
+        title: "M3 Touring",
+        rating: "93% Google User Review",
+        thumbnail: "/apps/glory/m3_thumbnail.png",
         description:
           "An exclusive look at the engineering marvel that is the Bugatti Chiron, from its breathtaking design to its unparalleled performance.",
         maturityRating: "All",
-        episodeCount: 2,
+        episodeCount: 1,
         episodes: [
           {
-            title: "WILD",
-            videoId: "SuVNuExbGlk",
+            title: "Landship Prince",
+            videoId: "wc0wmgIMLjA",
             description:
               "The Bugatti Chiron showcases its elegant design and powerful engineering.",
-            duration: "5:48",
-            platform: "youtube",
-          },
-          {
-            title: "ZR1",
-            videoId: "9c6cTsxvv1c",
-            description:
-              "The stunning Bugatti Chiron Noire edition, a masterpiece of automotive design.",
-            duration: "18:02",
+            duration: "25:50",
             platform: "youtube",
           },
         ],
@@ -1438,42 +1443,29 @@ const CATEGORIES_DATA: Category[] = [
       },
       {
         type: "series",
-        id: "m3touring",
-        title: "M3 Touring",
-        rating: "93% Google User Review",
-        thumbnail: "/apps/glory/m3_thumbnail.png",
+        id: "stingray",
+        title: "Stingray",
+        rating: "96% Google User Review",
+        thumbnail: "/apps/glory/stingray_thumbnail.png",
         description:
           "An exclusive look at the engineering marvel that is the Bugatti Chiron, from its breathtaking design to its unparalleled performance.",
         maturityRating: "All",
-        episodeCount: 1,
+        episodeCount: 2,
         episodes: [
           {
-            title: "Landship Prince",
-            videoId: "wc0wmgIMLjA",
+            title: "WILD",
+            videoId: "SuVNuExbGlk",
             description:
               "The Bugatti Chiron showcases its elegant design and powerful engineering.",
-            duration: "25:50",
+            duration: "5:48",
             platform: "youtube",
           },
-        ],
-      },
-      {
-        type: "series",
-        id: "marsien",
-        title: "Marsien",
-        rating: "93% Google User Review",
-        thumbnail: "/apps/glory/marsien_thumbnail.png",
-        description:
-          "An exclusive look at the engineering marvel that is the Bugatti Chiron, from its breathtaking design to its unparalleled performance.",
-        maturityRating: "All",
-        episodeCount: 1,
-        episodes: [
           {
-            title: "Martian",
-            videoId: "VwDFanYsXyM",
+            title: "ZR1",
+            videoId: "9c6cTsxvv1c",
             description:
-              "The Bugatti Chiron showcases its elegant design and powerful engineering.",
-            duration: "19:05",
+              "The stunning Bugatti Chiron Noire edition, a masterpiece of automotive design.",
+            duration: "18:02",
             platform: "youtube",
           },
         ],
@@ -1495,6 +1487,27 @@ const CATEGORIES_DATA: Category[] = [
             description:
               "The Bugatti Chiron showcases its elegant design and powerful engineering.",
             duration: "1:29",
+            platform: "youtube",
+          },
+        ],
+      },
+      {
+        type: "series",
+        id: "marsien",
+        title: "Marsien",
+        rating: "93% Google User Review",
+        thumbnail: "/apps/glory/marsien_thumbnail.png",
+        description:
+          "An exclusive look at the engineering marvel that is the Bugatti Chiron, from its breathtaking design to its unparalleled performance.",
+        maturityRating: "All",
+        episodeCount: 1,
+        episodes: [
+          {
+            title: "Martian",
+            videoId: "VwDFanYsXyM",
+            description:
+              "The Bugatti Chiron showcases its elegant design and powerful engineering.",
+            duration: "19:05",
             platform: "youtube",
           },
         ],
