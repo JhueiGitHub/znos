@@ -1320,7 +1320,7 @@ const CATEGORIES_DATA: Category[] = [
       {
         type: "movie",
         id: "r8",
-        title: "LandRocket",
+        title: "R8",
         rating: "98% Google User Review",
         thumbnail: "/apps/glory/r8_thumbnail.png",
         description:
