@@ -1393,9 +1393,9 @@ const CATEGORIES_DATA: Category[] = [
       },
       {
         type: "series",
-        id: "m3touring",
-        title: "M3 Touring",
-        rating: "93% Google User Review",
+        id: "m3",
+        title: "M3",
+        rating: "96% Google User Review",
         thumbnail: "/apps/glory/m3_thumbnail.png",
         description:
           "An exclusive look at the engineering marvel that is the Bugatti Chiron, from its breathtaking design to its unparalleled performance.",
