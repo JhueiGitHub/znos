@@ -735,6 +735,22 @@ const ALL_PLAYLISTS: Playlist[] = [
         thumbnail: "/media/songs/breakmyheart.png",
         videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
       },
+      {
+        id: "xtra-18",
+        title: "xtra",
+        artist: "XTRAFM",
+        path: "/audio/xtra/nothingislost.mp4",
+        thumbnail: "/media/songs/nothingislost.png",
+        videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
+      },
+      {
+        id: "xtra-19",
+        title: "xtra",
+        artist: "XTRAFM",
+        path: "/audio/xtra/provenza.mp4",
+        thumbnail: "/media/songs/provenza.png",
+        videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
+      },
     ],
   },
   {
