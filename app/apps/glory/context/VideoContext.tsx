@@ -1750,6 +1750,19 @@ const CATEGORIES_DATA: Category[] = [
     name: "Mignon",
     content: [
       {
+        type: "movie",
+        id: "wings",
+        title: "Wings",
+        rating: "100% Google User Review",
+        thumbnail: "/apps/glory/wings_thumbnail.png",
+        description:
+          "An exclusive look at the engineering marvel that is the Bugatti Chiron, from its breathtaking design to its unparalleled performance.",
+        maturityRating: "All",
+        videoId: "bhFFjj_KSJU",
+        duration: "10:30",
+        platform: "youtube",
+      },
+      {
         type: "series",
         id: "steak",
         title: "Steak",
@@ -1782,35 +1795,6 @@ const CATEGORIES_DATA: Category[] = [
             description:
               "The Bugatti Chiron showcases its elegant design and powerful engineering.",
             duration: "18:18",
-            platform: "youtube",
-          },
-        ],
-      },
-      {
-        type: "series",
-        id: "wings",
-        title: "Wings",
-        rating: "100% Google User Review",
-        thumbnail: "/apps/glory/wings_thumbnail.png",
-        description:
-          "An exclusive look at the engineering marvel that is the Bugatti Chiron, from its breathtaking design to its unparalleled performance.",
-        maturityRating: "All",
-        episodeCount: 1,
-        episodes: [
-          {
-            title: "Classic Steak Au Poivre - Certified Angus Beef",
-            videoId: "qX3-5I2G8kI",
-            description:
-              "The Bugatti Chiron showcases its elegant design and powerful engineering.",
-            duration: "6:12",
-            platform: "youtube",
-          },
-          {
-            title: "Classic Steak Au Poivre - Sip and Feast",
-            videoId: "FBQWi9IY7WM",
-            description:
-              "The Bugatti Chiron showcases its elegant design and powerful engineering.",
-            duration: "15:31",
             platform: "youtube",
           },
         ],
