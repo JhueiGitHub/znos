@@ -64,7 +64,7 @@ const ALL_PLAYLISTS: Playlist[] = [
   {
     id: "xp",
     name: "XP",
-    songCount: 16,
+    songCount: 15,
     thumbnail: "/media/system/_empty_image.png",
     songs: [
       {
@@ -200,7 +200,7 @@ const ALL_PLAYLISTS: Playlist[] = [
   {
     id: "pnth",
     name: "PNTH",
-    songCount: 19,
+    songCount: 18,
     thumbnail: "/media/playlists/pnth.png",
     songs: [
       {
@@ -360,7 +360,7 @@ const ALL_PLAYLISTS: Playlist[] = [
   {
     id: "XX",
     name: "XX",
-    songCount: 10,
+    songCount: 9,
     thumbnail: "/media/playlists/xx.png",
     songs: [
       {
@@ -448,7 +448,7 @@ const ALL_PLAYLISTS: Playlist[] = [
   {
     id: "vcnz",
     name: "VCNZ",
-    songCount: 7,
+    songCount: 6,
     thumbnail: "/media/playlists/vcnz.png",
     songs: [
       {
@@ -516,7 +516,7 @@ const ALL_PLAYLISTS: Playlist[] = [
   {
     id: "sn",
     name: "SN",
-    songCount: 9,
+    songCount: 8,
     thumbnail: "/media/playlists/sn.png",
     songs: [
       {
@@ -596,13 +596,13 @@ const ALL_PLAYLISTS: Playlist[] = [
   {
     id: "xtc",
     name: "XTC",
-    songCount: 20,
+    songCount: 15,
     thumbnail: "/media/playlists/xtc.png",
     songs: [
       {
         id: "xtc-1",
         title: "song1",
-        artist: "xtcFM",
+        artist: "XTCFM",
         path: "/audio/xtc/saopaulo.mp4",
         thumbnail: "/media/songs/saopaulo.png",
         videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
@@ -610,7 +610,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       {
         id: "xtc-2",
         title: "song2",
-        artist: "xtcFM",
+        artist: "XTCFM",
         path: "/audio/xtc/timeless.mp4",
         thumbnail: "/media/songs/timeless.png",
         videoUrl: "https://www.youtube.com/watch?v=3upvj6tDHoI",
@@ -618,7 +618,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       {
         id: "xtc-3",
         title: "song3",
-        artist: "xtcFM",
+        artist: "XTCFM",
         path: "/audio/xtc/howdeepisyourlove.mp4",
         thumbnail: "/media/songs/howdeepisyourlove.png",
         videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
@@ -626,7 +626,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       {
         id: "xtc-4",
         title: "song4",
-        artist: "xtcFM",
+        artist: "XTCFM",
         path: "/audio/xtc/song4.mp4",
         thumbnail: "/media/songs/song4.png",
         videoUrl: "https://www.youtube.com/watch?v=h9NSpC2xE-0",
@@ -634,79 +634,63 @@ const ALL_PLAYLISTS: Playlist[] = [
       {
         id: "xtc-5",
         title: "xtra",
-        artist: "xtcFM",
-        path: "/audio/xtc/cursed.mp4",
-        thumbnail: "/media/songs/cursed.png",
-        videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
-      },
-      {
-        id: "xtc-6",
-        title: "xtra",
-        artist: "xtcFM",
-        path: "/audio/xtc/thehills.mp4",
-        thumbnail: "/media/songs/thehills.png",
-        videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
-      },
-      {
-        id: "xtc-7",
-        title: "xtra",
-        artist: "xtcFM",
-        path: "/audio/xtc/alldayandnight.mp4",
-        thumbnail: "/media/songs/alldayandnight.png",
-        videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
-      },
-      {
-        id: "xtc-8",
-        title: "xtra",
-        artist: "xtcFM",
-        path: "/audio/xtc/notearslefttocry.mp4",
-        thumbnail: "/media/songs/notearslefttocry.png",
-        videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
-      },
-      {
-        id: "xtc-9",
-        title: "xtra",
-        artist: "xtcFM",
-        path: "/audio/xtc/lifeline.mp4",
-        thumbnail: "/media/songs/lifeline.png",
-        videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
-      },
-      {
-        id: "xtc-10",
-        title: "xtra",
-        artist: "xtcFM",
-        path: "/audio/xtc/often.mp4",
-        thumbnail: "/media/songs/often.png",
-        videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
-      },
-      {
-        id: "xtc-11",
-        title: "xtra",
-        artist: "xtcFM",
+        artist: "XTCFM",
         path: "/audio/xtc/siai.mp4",
         thumbnail: "/media/songs/siai.png",
         videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
       },
       {
-        id: "xtc-12",
+        id: "xtc-6",
         title: "xtra",
-        artist: "xtcFM",
+        artist: "XTCFM",
         path: "/audio/xtc/malamente.mp4",
         thumbnail: "/media/songs/malamente.png",
         videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
       },
       {
-        id: "xtc-13",
+        id: "xtc-7",
         title: "xtra",
-        artist: "xtcFM",
+        artist: "XTCFM",
         path: "/audio/xtc/yekeyeke.mp4",
         thumbnail: "/media/songs/yekeyeke.png",
         videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
       },
       {
+        id: "xtc-8",
+        title: "xtra",
+        artist: "XTCFM",
+        path: "/audio/xtc/thehills.mp4",
+        thumbnail: "/media/songs/thehills.png",
+        videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
+      },
+      {
+        id: "xtc-9",
+        title: "xtra",
+        artist: "XTCFM",
+        path: "/audio/xtc/alldayandnight.mp4",
+        thumbnail: "/media/songs/alldayandnight.png",
+        videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
+      },
+      {
+        id: "xtc-10",
+        title: "xtra",
+        artist: "XTCFM",
+        path: "/audio/xtc/notearslefttocry.mp4",
+        thumbnail: "/media/songs/notearslefttocry.png",
+        videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
+      },
+      {
+        id: "xtc-11",
+        title: "xtra",
+        artist: "XTCFM",
+        path: "/audio/xtc/lifeline.mp4",
+        thumbnail: "/media/songs/lifeline.png",
+        videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
+      },
+      {
         id: "xtc-14",
         title: "xtra",
-        artist: "xtcFM",
+        artist: "XTCFM",
         path: "/audio/xtc/starboy.mp4",
         thumbnail: "/media/songs/starboy.png",
         videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
@@ -714,7 +698,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       {
         id: "xtc-15",
         title: "xtra",
-        artist: "xtcFM",
+        artist: "XTCFM",
         path: "/audio/xtc/youright.mp4",
         thumbnail: "/media/songs/youright.png",
         videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
@@ -722,7 +706,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       {
         id: "xtc-16",
         title: "xtra",
-        artist: "xtcFM",
+        artist: "XTCFM",
         path: "/audio/xtc/popular.mp4",
         thumbnail: "/media/songs/popular.png",
         videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
@@ -730,23 +714,23 @@ const ALL_PLAYLISTS: Playlist[] = [
       {
         id: "xtc-17",
         title: "xtra",
-        artist: "xtcFM",
+        artist: "XTCFM",
         path: "/audio/xtc/breakmyheart.mp4",
         thumbnail: "/media/songs/breakmyheart.png",
         videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
       },
       {
-        id: "xtc-18",
+        id: "xtc-12",
         title: "xtra",
-        artist: "xtcFM",
-        path: "/audio/xtc/nothingislost.mp4",
-        thumbnail: "/media/songs/nothingislost.png",
+        artist: "XTCFM",
+        path: "/audio/xtc/often.mp4",
+        thumbnail: "/media/songs/often.png",
         videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
       },
       {
         id: "xtc-19",
         title: "xtra",
-        artist: "xtcFM",
+        artist: "XTCFM",
         path: "/audio/xtc/provenza.mp4",
         thumbnail: "/media/songs/provenza.png",
         videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
@@ -754,7 +738,7 @@ const ALL_PLAYLISTS: Playlist[] = [
       {
         id: "xtc-20",
         title: "xtra",
-        artist: "xtcFM",
+        artist: "XTCFM",
         path: "/audio/xtc/enchantedwaterfall.mp4",
         thumbnail: "/media/songs/enchantedwaterfall.png",
         videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
@@ -764,7 +748,7 @@ const ALL_PLAYLISTS: Playlist[] = [
   {
     id: "xo",
     name: "XO",
-    songCount: 13,
+    songCount: 12,
     thumbnail: "/media/playlists/xo.png",
     songs: [
       {
