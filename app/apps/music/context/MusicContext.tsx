@@ -588,7 +588,7 @@ const ALL_PLAYLISTS: Playlist[] = [
         title: "song9",
         artist: "SNFM",
         path: "/audio/sn/song9.mp4",
-        thumbnail: "/media/songs/lake.png",
+        thumbnail: "/media/songs/song9.png",
         videoUrl: "https://www.youtube.com/watch?v=zQebdkLvD00",
       },
     ],
