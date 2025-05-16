@@ -28,11 +28,12 @@ const App = () => {
   }, []);
 
   return (
-    <div className="h-full w-full relative bg-black">
+    <div className="h-full w-full flex flex-col overflow-hidden bg-black">
       <div
         ref={containerRef}
-        className="absolute inset-0 w-full h-full"
+        className="flex-1 w-full h-full overflow-hidden"
         tabIndex={0} // Make it focusable for keyboard input
+        style={{ position: 'relative' }}
       />
       <div
         id="speed-display"

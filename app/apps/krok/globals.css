@@ -1,0 +1,35 @@
+/* globals.css */
+:root {
+  --app-height: 100%;
+}
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+  height: 100%;
+  width: 100%;
+}
+
+#krok-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.game-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}

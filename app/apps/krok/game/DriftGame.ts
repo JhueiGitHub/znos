@@ -21,16 +21,27 @@ export class DriftGame {
   }
 
   public async init(): Promise<void> {
+    // Check if container is properly size-calculated
+    if (this.container.clientWidth === 0 || this.container.clientHeight === 0) {
+      console.error('Container has zero dimensions, this may cause rendering issues');
+    }
     // Load assets first
     this.assets = await loadAssets();
 
     // Create renderer
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
     this.renderer.setPixelRatio(window.devicePixelRatio);
+    // Ensure renderer uses the correct container size
     this.renderer.setSize(
       this.container.clientWidth,
       this.container.clientHeight
     );
+    // Force the canvas to fill its container exactly
+    const canvas = this.renderer.domElement;
+    canvas.style.width = '100%';
+    canvas.style.height = '100%';
+    canvas.style.display = 'block';
+    canvas.style.position = 'absolute';
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.container.appendChild(this.renderer.domElement);
@@ -197,6 +208,11 @@ export class DriftGame {
   }
 
   private handleResize(): void {
+    // Log dimensions for debugging
+    console.log('Container dimensions:', {
+      width: this.container.clientWidth,
+      height: this.container.clientHeight
+    });
     if (!this.renderer || !this.camera) return;
 
     const width = this.container.clientWidth;

@@ -70,7 +70,7 @@ const Window: React.FC<WindowProps> = ({ app, isActive }) => {
           style={{ color: getColor("Text Primary (Hd)") }}
         ></h2>
       </div>
-      <div className="flex-grow overflow-auto">
+      <div className="flex-grow overflow-hidden">
         <AppComponent />
       </div>
     </motion.div>
