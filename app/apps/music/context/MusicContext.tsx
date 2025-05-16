@@ -743,6 +743,22 @@ const ALL_PLAYLISTS: Playlist[] = [
         thumbnail: "/media/songs/enchantedwaterfall.png",
         videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
       },
+      {
+        id: "xtra-21",
+        title: "xtra",
+        artist: "XTRAFM",
+        path: "/audio/xtra/pinkdolphinsunset.mp4",
+        thumbnail: "/media/songs/pinkdolphinsunset.png",
+        videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
+      },
+      {
+        id: "xtra-22",
+        title: "xtra",
+        artist: "XTRAFM",
+        path: "/audio/xtra/thecolorviolet.mp4",
+        thumbnail: "/media/songs/thecolorviolet.png",
+        videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
+      },
     ],
   },
   {
