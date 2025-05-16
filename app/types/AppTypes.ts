@@ -52,8 +52,8 @@ export const appDefinitions: AppDefinition[] = [
     animationType: "magnify",
   },
   {
-    id: "krok",
-    name: "Krok",
+    id: "monopoly",
+    name: "Monopoly",
     icon: "/media/desktop.png",
     dockPosition: 6,
     animationType: "magnify",
