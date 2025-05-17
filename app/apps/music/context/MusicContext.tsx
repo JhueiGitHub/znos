@@ -751,6 +751,14 @@ const ALL_PLAYLISTS: Playlist[] = [
         thumbnail: "/media/songs/thecolorviolet.png",
         videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
       },
+      {
+        id: "xtra-22",
+        title: "xtra",
+        artist: "XTRAFM",
+        path: "/audio/xtra/hurtsme.mp4",
+        thumbnail: "/media/songs/hurtsme.png",
+        videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
+      },
     ],
   },
   {
