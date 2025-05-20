@@ -1,7 +1,0 @@
-/* app/apps/pacman/globals.css */
-/* Minimal styling - most styles handled inline or with Tailwind */
-
-canvas {
-  display: block;
-  outline: none;
-}

@@ -53,7 +53,7 @@ export const appDefinitions: AppDefinition[] = [
   },
   {
     id: "krok",
-    name: "Krok",
+    name: "Arcade",
     icon: "/media/desktop.png",
     dockPosition: 6,
     animationType: "magnify",
