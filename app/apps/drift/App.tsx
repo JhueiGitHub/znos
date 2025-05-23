@@ -83,6 +83,11 @@ export default function DriftGameApp() {
         <div className="bg-black/70 px-3 py-1 rounded text-xs">
           Status: {isInitialized ? '✅ Ready' : '⏳ Loading'}
         </div>
+        {game && (
+          <div className="bg-black/70 px-3 py-1 rounded text-xs">
+            Trees: {game.getTreeCount()} 🌳 {game.getTreesInfo().hasTextures ? '✅ Textured' : '⚠️ Fallback'}
+          </div>
+        )}
       </div>
 
       {/* 🎮 CONTROLS INSTRUCTIONS */}

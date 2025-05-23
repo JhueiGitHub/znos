@@ -3,7 +3,7 @@
 
 import * as THREE from 'three';
 import { UniversalGameEngine, UniversalAssetManager, GameConfiguration } from '@/app/components/arcade';
-import { CAR_CONFIGS, TRACK_CONFIGS } from '../config/assets';
+import { CAR_CONFIGS, TRACK_CONFIGS, TREE_CONFIGS } from '../config/assets';
 
 export class DriftGameEngine extends UniversalGameEngine {
   // Game-specific components
@@ -11,6 +11,8 @@ export class DriftGameEngine extends UniversalGameEngine {
   private track: THREE.Group | null = null;
   private collisionTrack: THREE.Group | null = null;
   private wheels: THREE.Object3D[] = [];
+  private trees: THREE.Group[] = [];
+  private treeMaterials: Map<string, THREE.Material> = new Map();
   
   // Game state
   private carPosition = new THREE.Vector3(0, 0, 0);
@@ -59,6 +61,9 @@ export class DriftGameEngine extends UniversalGameEngine {
     // Load and setup car
     await this.setupCar();
 
+    // Load and setup trees (Unity assets)
+    await this.setupTrees();
+
     console.log('✅ Drift Game Scene Ready!');
   }
 
@@ -103,6 +108,18 @@ export class DriftGameEngine extends UniversalGameEngine {
       this.scene?.remove(this.collisionTrack);
       this.collisionTrack = null;
     }
+    
+    // Clean up trees
+    this.trees.forEach(tree => {
+      this.scene?.remove(tree);
+    });
+    this.trees = [];
+    
+    // Dispose tree materials
+    this.treeMaterials.forEach(material => {
+      material.dispose();
+    });
+    this.treeMaterials.clear();
     
     this.wheels = [];
   }
@@ -312,6 +329,179 @@ export class DriftGameEngine extends UniversalGameEngine {
     console.log('🚗 Fallback car created');
   }
 
+  private async setupTrees(): Promise<void> {
+    if (!this.scene) return;
+
+    const assetManager = UniversalAssetManager.getInstance();
+    
+    try {
+      console.log('🌳 Loading Unity tree assets...');
+      
+      // Create tree materials with Unity textures
+      await this.createTreeMaterials(assetManager);
+      
+      // Load tree models and place them according to configuration
+      for (const placement of TREE_CONFIGS.placements) {
+        await this.placeSingleTree(placement, assetManager);
+      }
+      
+      console.log(`🌳 Loaded ${this.trees.length} trees successfully`);
+      
+    } catch (error) {
+      console.warn('Failed to load Unity trees:', error);
+      // Create simple fallback trees
+      this.createFallbackTrees();
+    }
+  }
+
+  private async createTreeMaterials(assetManager: UniversalAssetManager): Promise<void> {
+    // Load Unity textures
+    const treeAlbedo = assetManager.getAsset('tree-albedo');
+    const billboardDiffuse = assetManager.getAsset('tree-billboard-diffuse');
+    const billboardNormal = assetManager.getAsset('tree-billboard-normal');
+    
+    // Create main tree material (for trunk and branches)
+    if (treeAlbedo) {
+      const treeMaterial = new THREE.MeshStandardMaterial({
+        map: treeAlbedo,
+        roughness: 0.8,
+        metalness: 0.1,
+        side: THREE.DoubleSide,
+        alphaTest: 0.5,
+        transparent: true
+      });
+      
+      // Configure texture properties for better quality
+      if (treeAlbedo.anisotropy !== undefined) {
+        treeAlbedo.anisotropy = 4;
+      }
+      
+      this.treeMaterials.set('tree-main', treeMaterial);
+      console.log('🌳 Created tree main material');
+    }
+    
+    // Create billboard material (for leaves)
+    if (billboardDiffuse) {
+      const billboardMaterial = new THREE.MeshStandardMaterial({
+        map: billboardDiffuse,
+        normalMap: billboardNormal || undefined,
+        roughness: 0.6,
+        metalness: 0.0,
+        side: THREE.DoubleSide,
+        alphaTest: 0.3,
+        transparent: true
+      });
+      
+      // Configure texture properties
+      if (billboardDiffuse.anisotropy !== undefined) {
+        billboardDiffuse.anisotropy = 4;
+      }
+      
+      this.treeMaterials.set('tree-leaves', billboardMaterial);
+      console.log('🍃 Created tree leaves material');
+    }
+  }
+
+  private async placeSingleTree(placement: any, assetManager: UniversalAssetManager): Promise<void> {
+    // Find the tree configuration
+    const treeConfig = TREE_CONFIGS.models.find(model => model.id === placement.type);
+    if (!treeConfig) {
+      console.warn(`Tree type ${placement.type} not found in config`);
+      return;
+    }
+    
+    // Load the tree model
+    const treeModel = assetManager.getAsset(treeConfig.assetId);
+    if (!treeModel) {
+      console.warn(`Tree model ${treeConfig.assetId} not loaded`);
+      return;
+    }
+    
+    // Clone the model
+    const tree = treeModel.scene.clone();
+    
+    // Apply tree materials and configure mesh properties
+    tree.traverse((child) => {
+      if (child instanceof THREE.Mesh) {
+        // Determine material based on mesh name/purpose
+        if (child.name.toLowerCase().includes('leaf') || 
+            child.name.toLowerCase().includes('billboard') ||
+            child.material?.name?.toLowerCase().includes('leaves')) {
+          
+          // Use leaves material for foliage
+          const leavesMaterial = this.treeMaterials.get('tree-leaves');
+          if (leavesMaterial) {
+            child.material = leavesMaterial;
+          }
+        } else {
+          // Use main material for trunk/branches
+          const mainMaterial = this.treeMaterials.get('tree-main');
+          if (mainMaterial) {
+            child.material = mainMaterial;
+          }
+        }
+        
+        // Enable shadows
+        child.castShadow = true;
+        child.receiveShadow = true;
+        
+        // Ensure proper culling
+        if (child.material) {
+          child.material.side = THREE.DoubleSide;
+        }
+      }
+    });
+    
+    // Apply scaling
+    tree.scale.set(treeConfig.scale.x, treeConfig.scale.y, treeConfig.scale.z);
+    
+    // Position the tree
+    tree.position.set(placement.position.x, placement.position.y, placement.position.z);
+    tree.rotation.y = (placement.rotation * Math.PI) / 180; // Convert degrees to radians
+    
+    // Add to scene and track
+    this.scene?.add(tree);
+    this.trees.push(tree);
+  }
+
+  private createFallbackTrees(): void {
+    if (!this.scene) return;
+    
+    console.log('🌳 Creating fallback trees...');
+    
+    // Create simple geometric trees as fallback
+    TREE_CONFIGS.placements.forEach((placement, index) => {
+      const tree = new THREE.Group();
+      
+      // Tree trunk
+      const trunk = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.2, 0.3, 4),
+        new THREE.MeshStandardMaterial({ color: 0x8B4513 })
+      );
+      trunk.position.y = 2;
+      trunk.castShadow = true;
+      tree.add(trunk);
+      
+      // Tree crown
+      const crown = new THREE.Mesh(
+        new THREE.SphereGeometry(2.5, 8, 6),
+        new THREE.MeshStandardMaterial({ color: 0x228B22 })
+      );
+      crown.position.y = 5;
+      crown.castShadow = true;
+      tree.add(crown);
+      
+      // Position
+      tree.position.set(placement.position.x, placement.position.y, placement.position.z);
+      tree.rotation.y = (placement.rotation * Math.PI) / 180;
+      
+      this.scene.add(tree);
+      this.trees.push(tree);
+    });
+    
+    console.log(`🌳 Created ${this.trees.length} fallback trees`);
+  }
+
   private setupControls(): void {
     this.onKeyDown = this.onKeyDown.bind(this);
     this.onKeyUp = this.onKeyUp.bind(this);
@@ -435,5 +625,16 @@ export class DriftGameEngine extends UniversalGameEngine {
 
   public getCarPosition(): THREE.Vector3 {
     return this.carPosition.clone();
+  }
+
+  public getTreeCount(): number {
+    return this.trees.length;
+  }
+
+  public getTreesInfo(): { total: number; hasTextures: boolean } {
+    return {
+      total: this.trees.length,
+      hasTextures: this.treeMaterials.size > 0
+    };
   }
 }

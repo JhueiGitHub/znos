@@ -110,13 +110,66 @@ export const DRIFT_ASSET_PACK: AssetPack = {
       path: '/assets/drift/textures/effects/smoke.webp',
       format: 'webp',
       preload: true
+    },
+
+    // 🌳 UNITY TREES - Phase 2 Integration
+    {
+      id: 'tree-model-1',
+      type: 'model',
+      path: '/assets/krok/models/trees/Tree_3_1.fbx',
+      format: 'fbx',
+      preload: true
+    },
+    {
+      id: 'tree-model-2',
+      type: 'model', 
+      path: '/assets/krok/models/trees/Tree_3_2.fbx',
+      format: 'fbx',
+      preload: true
+    },
+    {
+      id: 'tree-model-3',
+      type: 'model',
+      path: '/assets/krok/models/trees/Tree_3_3.fbx',
+      format: 'fbx',
+      preload: true
+    },
+    {
+      id: 'tree-model-4',
+      type: 'model',
+      path: '/assets/krok/models/trees/Tree_3_4.fbx',
+      format: 'fbx',
+      preload: true
+    },
+
+    // 🍃 TREE TEXTURES - Unity Materials (Existing in krok)
+    {
+      id: 'tree-albedo',
+      type: 'texture',
+      path: '/assets/krok/textures/trees/4_Trees_Albedo_.png',
+      format: 'png',
+      preload: true
+    },
+    {
+      id: 'tree-billboard-diffuse',
+      type: 'texture',
+      path: '/assets/krok/textures/trees/billboards_Difuse.png', 
+      format: 'png',
+      preload: true
+    },
+    {
+      id: 'tree-billboard-normal',
+      type: 'texture',
+      path: '/assets/krok/textures/trees/billboards_Normal.png',
+      format: 'png', 
+      preload: true
     }
   ]
 };
 
 // 🔄 ASSET STRATEGY PHASES
-// Phase 1: Use Krok's proven assets (CURRENT)
-// Phase 2: Add Unity asset pack trees/environment (NEXT)
+// Phase 1: Use Krok's proven assets (COMPLETE)
+// Phase 2: Add Unity asset pack trees/environment (CURRENT) 
 // Phase 3: Add external FBX models with wheel extraction (FUTURE)
 
 export const ASSET_STRATEGY = {
@@ -175,5 +228,56 @@ export const TRACK_CONFIGS = {
       { id: 'checkpoint-3', position: { x: 50, y: 0, z: 100 } },
       { id: 'checkpoint-4', position: { x: 0, y: 0, z: 50 } }
     ]
+  }
+};
+
+// 🌳 TREE CONFIGURATIONS - Unity Assets Integration
+export const TREE_CONFIGS = {
+  models: [
+    {
+      id: 'tree-type-1',
+      assetId: 'tree-model-1',
+      scale: { x: 0.15, y: 0.15, z: 0.15 }, // Much smaller for reasonable size
+      variants: 3 // Number of LOD levels
+    },
+    {
+      id: 'tree-type-2', 
+      assetId: 'tree-model-2',
+      scale: { x: 0.18, y: 0.18, z: 0.18 }, // Slightly varied sizes
+      variants: 3
+    },
+    {
+      id: 'tree-type-3',
+      assetId: 'tree-model-3', 
+      scale: { x: 0.12, y: 0.12, z: 0.12 }, // Smaller variant
+      variants: 3
+    },
+    {
+      id: 'tree-type-4',
+      assetId: 'tree-model-4',
+      scale: { x: 0.20, y: 0.20, z: 0.20 }, // Largest but still reasonable
+      variants: 3
+    }
+  ],
+  placements: [
+    // Scattered trees around the track
+    { type: 'tree-type-1', position: { x: 15, y: 0, z: 20 }, rotation: 0 },
+    { type: 'tree-type-2', position: { x: -12, y: 0, z: 25 }, rotation: 45 },
+    { type: 'tree-type-3', position: { x: 30, y: 0, z: -15 }, rotation: 90 },
+    { type: 'tree-type-4', position: { x: -25, y: 0, z: -10 }, rotation: 135 },
+    { type: 'tree-type-1', position: { x: 40, y: 0, z: 35 }, rotation: 180 },
+    { type: 'tree-type-2', position: { x: -35, y: 0, z: 40 }, rotation: 225 },
+    { type: 'tree-type-3', position: { x: 20, y: 0, z: -30 }, rotation: 270 },
+    { type: 'tree-type-4', position: { x: -20, y: 0, z: -35 }, rotation: 315 },
+    // More trees for density
+    { type: 'tree-type-1', position: { x: 45, y: 0, z: 15 }, rotation: 60 },
+    { type: 'tree-type-2', position: { x: -40, y: 0, z: 20 }, rotation: 120 },
+    { type: 'tree-type-3', position: { x: 35, y: 0, z: -25 }, rotation: 240 },
+    { type: 'tree-type-4', position: { x: -30, y: 0, z: -20 }, rotation: 300 }
+  ],
+  materials: {
+    treeAlbedo: 'tree-albedo',
+    billboardDiffuse: 'tree-billboard-diffuse',
+    billboardNormal: 'tree-billboard-normal'
   }
 };
