@@ -1,5 +1,6 @@
 // assets/config.ts
 import * as THREE from "three";
+import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader";
 
 // Asset path prefix
 const ASSET_PATH = "/assets/krok";
@@ -18,11 +19,20 @@ export enum TextureId {
   CAR_LIGHT_BLUE = "CAR_LIGHT_BLUE",
   CAR_BLUE = "CAR_BLUE",
   CAR_GRAY = "CAR_GRAY",
+  // 🌲 Fristy Tree Textures
+  TREE_ALBEDO = "TREE_ALBEDO",
+  TREE_NORMAL = "TREE_NORMAL",
+  TREE_OCCLUSION = "TREE_OCCLUSION",
 }
 
 // Model IDs
 export enum ModelId {
   CAR = "CAR",
+  // 🌲 Fristy Stylize Trees
+  TREE_3_1 = "TREE_3_1",
+  TREE_3_2 = "TREE_3_2",
+  TREE_3_3 = "TREE_3_3",
+  TREE_3_4 = "TREE_3_4",
 }
 
 // Texture definitions
@@ -60,6 +70,19 @@ const textures = [
     id: TextureId.CAR_GRAY,
     url: `${ASSET_PATH}/textures/arcade-racing-car-tex-gray.png`,
   },
+  // 🌲 Fristy Tree Textures
+  {
+    id: TextureId.TREE_ALBEDO,
+    url: `${ASSET_PATH}/textures/trees/4_Trees_Albedo_.png`,
+  },
+  {
+    id: TextureId.TREE_NORMAL,
+    url: `${ASSET_PATH}/textures/trees/4_tree_normals.png`,
+  },
+  {
+    id: TextureId.TREE_OCCLUSION,
+    url: `${ASSET_PATH}/textures/trees/4_tree_occlusion.png`,
+  },
 ];
 
 // Model definitions
@@ -67,6 +90,23 @@ const models = [
   {
     id: ModelId.CAR,
     url: `${ASSET_PATH}/models/vehicles/arcade-racing-car.fbx`,
+  },
+  // 🌲 Fristy Stylize Trees
+  {
+    id: ModelId.TREE_3_1,
+    url: `${ASSET_PATH}/models/trees/Tree_3_1.fbx`,
+  },
+  {
+    id: ModelId.TREE_3_2,
+    url: `${ASSET_PATH}/models/trees/Tree_3_2.fbx`,
+  },
+  {
+    id: ModelId.TREE_3_3,
+    url: `${ASSET_PATH}/models/trees/Tree_3_3.fbx`,
+  },
+  {
+    id: ModelId.TREE_3_4,
+    url: `${ASSET_PATH}/models/trees/Tree_3_4.fbx`,
   },
 ];
 
@@ -100,6 +140,27 @@ async function loadTextures(): Promise<Record<string, THREE.Texture>> {
     );
   });
 
+  // 🌲 Load tree textures
+  const treeTextureIds = [TextureId.TREE_ALBEDO, TextureId.TREE_NORMAL, TextureId.TREE_OCCLUSION];
+  for (const textureId of treeTextureIds) {
+    try {
+      loadedTextures[textureId] = await new Promise((resolve, reject) => {
+        textureLoader.load(
+          textures.find((t) => t.id === textureId)?.url || "",
+          (tex) => resolve(tex),
+          undefined,
+          (error) => {
+            console.warn(`Failed to load tree texture ${textureId}:`, error);
+            resolve(new THREE.Texture()); // Fallback to empty texture
+          }
+        );
+      });
+    } catch (error) {
+      console.warn(`Error loading tree texture ${textureId}:`, error);
+      loadedTextures[textureId] = new THREE.Texture();
+    }
+  }
+
   return {
     car: {
       yellow: loadedTextures[TextureId.CAR_YELLOW],
@@ -110,12 +171,48 @@ async function loadTextures(): Promise<Record<string, THREE.Texture>> {
     },
     smoke: loadedTextures[TextureId.SMOKE],
     skybox: skyboxTextures,
+    // 🌲 Tree textures
+    trees: {
+      albedo: loadedTextures[TextureId.TREE_ALBEDO],
+      normal: loadedTextures[TextureId.TREE_NORMAL],
+      occlusion: loadedTextures[TextureId.TREE_OCCLUSION],
+    },
   };
+}
+
+// 🌲 Tree model loader
+export async function loadTreeModels(): Promise<Record<string, THREE.Group>> {
+  const { FBXLoader } = await import("three/examples/jsm/loaders/FBXLoader");
+  const loader = new FBXLoader();
+  const treeModels: Record<string, THREE.Group> = {};
+
+  const treeModelIds = [ModelId.TREE_3_1, ModelId.TREE_3_2, ModelId.TREE_3_3, ModelId.TREE_3_4];
+  
+  for (const modelId of treeModelIds) {
+    try {
+      const modelConfig = models.find(m => m.id === modelId);
+      if (modelConfig) {
+        const model = await new Promise<THREE.Group>((resolve, reject) => {
+          loader.load(
+            modelConfig.url,
+            (result) => resolve(result),
+            undefined,
+            (error) => reject(error)
+          );
+        });
+        treeModels[modelId] = model;
+        console.log(`🌲 Loaded tree model: ${modelId}`);
+      }
+    } catch (error) {
+      console.warn(`Failed to load tree model ${modelId}:`, error);
+    }
+  }
+
+  return treeModels;
 }
 
 // Main asset loading function
 export async function loadAssets(): Promise<Record<string, any>> {
-  // For now, just load textures
   const textures = await loadTextures();
 
   return {

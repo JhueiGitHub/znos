@@ -2,6 +2,7 @@
 import * as THREE from "three";
 import { Car } from "./Car";
 import { Controls } from "./Controls";
+import { TreeSystem } from "./TreeSystem";
 import { loadAssets } from "../assets/config";
 
 export class DriftGame {
@@ -15,6 +16,8 @@ export class DriftGame {
   private clock = new THREE.Clock();
   private isDisposed = false;
   private assets: Record<string, any> = {};
+  // 🌲 Fristy Tree System
+  private treeSystem: TreeSystem | null = null;
 
   constructor(container: HTMLElement) {
     this.container = container;
@@ -69,11 +72,18 @@ export class DriftGame {
     // Create simple ground plane for testing
     const ground = new THREE.Mesh(
       new THREE.PlaneGeometry(1000, 1000),
-      new THREE.MeshStandardMaterial({ color: 0x44aa44 })
+      new THREE.MeshStandardMaterial({ 
+        color: 0x44aa44,
+        roughness: 0.8,
+        metalness: 0.1
+      })
     );
     ground.rotation.x = -Math.PI / 2;
     ground.receiveShadow = true;
     this.scene.add(ground);
+
+    // 🌲 Initialize Fristy Tree System
+    await this.initializeTreeSystem();
 
     // Create skybox
     this.createSkybox();
@@ -90,6 +100,8 @@ export class DriftGame {
 
     // Force initial resize
     this.handleResize();
+
+    console.log("🌲 Drift game with Fristy trees initialized!");
   }
 
   private createSkybox(): void {
@@ -106,6 +118,26 @@ export class DriftGame {
 
     const skyboxCubeMap = new THREE.CubeTextureLoader().load(skyboxTextures);
     this.scene.background = skyboxCubeMap;
+  }
+
+  /**
+   * 🌲 Initialize the Fristy Tree System
+   */
+  private async initializeTreeSystem(): Promise<void> {
+    if (!this.scene) return;
+
+    this.treeSystem = new TreeSystem(this.scene, this.assets);
+
+    await this.treeSystem.initialize({
+      treeCount: 120, // Start with moderate count for performance
+      terrainSize: 400, // Cover most of the 1000x1000 ground plane
+      minScale: 0.7,
+      maxScale: 1.5,
+      exclusionRadius: 30, // Keep trees away from spawn point
+      spawnPoint: new THREE.Vector3(0, 0, 0), // Center of your ground plane
+    });
+
+    console.log("🌲 Fristy tree system initialized!");
   }
 
   public start(): void {
@@ -126,6 +158,12 @@ export class DriftGame {
 
     // Remove event listeners
     window.removeEventListener("resize", this.handleResize);
+
+    // 🌲 Dispose tree system
+    if (this.treeSystem) {
+      this.treeSystem.dispose();
+      this.treeSystem = null;
+    }
 
     // Dispose controls
     if (this.controls) {
@@ -192,12 +230,23 @@ export class DriftGame {
 
         // Make camera look at car position
         this.camera.lookAt(carPosition);
+
+        // 🌲 Update tree system with camera position for culling
+        if (this.treeSystem) {
+          this.treeSystem.update(deltaTime, this.camera.position);
+        }
       }
 
       // Update speed display
       const speedDisplay = document.getElementById("speed-display");
       if (speedDisplay) {
         speedDisplay.textContent = `Speed: ${Math.floor(this.car.getSpeed())} km/h`;
+      }
+
+      // 🌲 Update tree count display (if element exists)
+      const treeDisplay = document.getElementById("tree-display");
+      if (treeDisplay && this.treeSystem) {
+        treeDisplay.textContent = `Trees: ${this.treeSystem.getTreeCount()}`;
       }
     }
   }
@@ -222,5 +271,21 @@ export class DriftGame {
     this.camera.updateProjectionMatrix();
 
     this.renderer.setSize(width, height);
+  }
+
+  /**
+   * 🌲 Public method to toggle tree visibility (for debugging)
+   */
+  public toggleTrees(): void {
+    if (this.treeSystem) {
+      this.treeSystem.toggleVisibility();
+    }
+  }
+
+  /**
+   * 🌲 Get tree count for external access
+   */
+  public getTreeCount(): number {
+    return this.treeSystem?.getTreeCount() || 0;
   }
 }
