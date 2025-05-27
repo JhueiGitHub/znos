@@ -1327,14 +1327,40 @@ const ALL_PLAYLISTS: Playlist[] = [
 
         artist: "XTRAFM",
 
-        path: "/audio/xtra/ladyofnamek.mp4",
+        path: "/audio/xtra/ladyofneptune.mp4",
 
-        thumbnail: "/media/songs/ladyofnamek.png",
+        thumbnail: "/media/songs/ladyofneptune.png",
 
         videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
       },
       {
         id: "xtra-25",
+
+        title: "xtra",
+
+        artist: "XTRAFM",
+
+        path: "/audio/xtra/ladyofnamekridd.mp4",
+
+        thumbnail: "/media/songs/ladyofnamekridd.png",
+
+        videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
+      },
+      {
+        id: "xtra-26",
+
+        title: "xtra",
+
+        artist: "XTRAFM",
+
+        path: "/audio/xtra/87stingray.mp4",
+
+        thumbnail: "/media/songs/87stingray.png",
+
+        videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
+      },
+      {
+        id: "xtra-27",
 
         title: "xtra",
 
