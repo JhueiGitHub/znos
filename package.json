@@ -108,6 +108,7 @@
     "react-markdown": "^9.0.1",
     "react-redux": "^9.1.2",
     "react-resizable-panels": "^2.1.4",
+    "react-toastify": "^11.0.5",
     "react-youtube": "^10.1.0",
     "reactronica": "^0.8.1-canary.0",
     "recharts": "^2.12.7",

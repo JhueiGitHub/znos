@@ -1,0 +1,643 @@
+/* PokerIO Styles - Adapted for OrionOS */
+
+.poker-app {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background-color: #115f13;
+  overflow: hidden;
+}
+
+.poker-app div.gameContainer {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  margin: 0;
+  z-index: 1;
+  translate: -50% -50%;
+}
+
+.poker-app div.gui div.player-list {
+  position: absolute;
+  top: 8%;
+  left: 0%;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.poker-app div.gui div.player-list div.player-info {
+  user-select: none;
+  background-color: rgb(10, 10, 10, 90%);
+  display: flex;
+  color: white;
+  font-size: 25px;
+  text-transform: uppercase;
+  font-family: monospace;
+  gap: 0px;
+  margin: 0;
+  opacity: 0.7;
+  padding: 0px;
+  padding-left: 15px;
+  border-top-right-radius: 100px;
+  border-bottom-right-radius: 100px;
+}
+
+.poker-app div.gui div.player-list div.player-info div.outline {
+  display: inline-block;
+  display: flex;
+  gap: 10px;
+  padding: 0px;
+  padding-right: 15px;
+  border-top-right-radius: 100px;
+  border-bottom-right-radius: 100px;
+}
+
+.poker-app div.gui div.player-list div.player-info div.outline.black {
+  background-color: rgb(10, 10, 10, 90%);
+}
+
+.poker-app div.gui div.player-list div.player-info div.outline.gold p.balance {
+  color: white;
+  text-shadow: 0px 0px 5px white;
+}
+
+.poker-app div.gui div.player-list div.player-info div.outline.black p.balance,
+.poker-app div.gui div.player-list div.player-info p.balance {
+  color: gold;
+  text-shadow: 0px 0px 5px gold;
+}
+
+.poker-app div.gui div.player-list div.player-info p {
+  margin: 0;
+  padding: 0;
+}
+
+.poker-app div.gui {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+}
+
+.poker-app div.gui p.code {
+  position: absolute;
+  bottom: 0%;
+  left: 50%;
+  translate: -50%;
+  z-index: 2;
+  color: white;
+  font-family: monospace;
+  font-weight: 900;
+  font-size: 35px;
+  text-shadow: 0px 0px 4px black, 0px 0px 4px black, 0px 0px 4px black, 0px 0px 4px black;
+  width: fit-content;
+}
+
+.poker-app div.gui p.sumMoney {
+  position: absolute;
+  bottom: 3%;
+  right: 4%;
+  background-color: rgb(10, 10, 10, 63%);
+  border-radius: 100px;
+  padding: 0px 60px 0px 60px;
+  box-shadow: 0px 0px 25px rgb(0, 0, 0, 50%), 0px 0px 5px rgb(0, 0, 0, 50%);
+  color: rgb(255, 215, 0, 100%);
+  text-shadow: 0px 0px 5px rgb(255, 215, 0, 50%), 0px 0px 50px rgb(255, 215, 10, 100%);
+  font-family: monospace;
+  font-weight: 900;
+  font-size: 40px;
+  animation: scaleSumMoney 1s infinite ease-in-out;
+  width: fit-content;
+}
+
+@keyframes scaleSumMoney {
+  0%,
+  100% {
+    scale: 1;
+  }
+  50% {
+    scale: 0.95;
+    opacity: 0.5;
+  }
+}
+
+.poker-app div.gui div.actions-bar {
+  position: absolute;
+  bottom: 9%;
+  left: 50%;
+  translate: -50%;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  color: white;
+  font-family: monospace;
+}
+
+.poker-app div.gui div.actions-bar div.top p {
+  font-size: 30px;
+  margin: 0;
+  position: relative;
+  background-color: rgb(10, 10, 10, 70%);
+  width: fit-content;
+  left: 50%;
+  translate: -50% 0%;
+  border-top-right-radius: 100px;
+  border-top-left-radius: 100px;
+  padding-inline: 30px;
+  font-weight: 900;
+  color: whitesmoke;
+  opacity: 0.7;
+}
+
+.poker-app div.gui div.actions-bar div.top[data-has=false] p {
+  border-radius: 100px;
+  opacity: .5;
+}
+
+.poker-app div.gui div.actions button {
+  background-color: rgb(10, 10, 10, 100%);
+  outline: 0;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  color: white;
+  padding-inline: 20px;
+  padding-block: 5px;
+  cursor: pointer;
+  text-transform: uppercase;
+  font-size: 30px;
+  font-weight: 600;
+  text-align: center;
+  opacity: .7;
+  transition: background-color .2s ease-out, opacity .2s ease-out;
+}
+
+.poker-app div.gui div.actions button:nth-child(1) {
+  padding-left: 40px;
+  border-bottom-left-radius: 100px;
+  border-top-left-radius: 100px;
+}
+
+.poker-app div.gui div.actions button:nth-last-child(1) {
+  padding-right: 40px;
+  border-bottom-right-radius: 100px;
+  border-top-right-radius: 100px;
+}
+
+.poker-app div.gui div.actions[data-has=true] button:nth-child(1) {
+  padding-left: 40px;
+  border-bottom-left-radius: 100px;
+  border-top-left-radius: 0px;
+}
+
+.poker-app div.gui div.actions[data-has=true] button:nth-last-child(1) {
+  padding-right: 40px;
+  border-bottom-right-radius: 100px;
+  border-top-right-radius: 0px;
+}
+
+.poker-app div.gui div.actions[data-has=true] button {
+  font-size: 25px;
+}
+
+.poker-app div.gui div.slider {
+  min-height: 33px;
+  background-color: rgb(10, 10, 10, 100%);
+  opacity: 0.7;
+  border-top-right-radius: 100px;
+  border-top-left-radius: 100px;
+  padding-inline: 10px;
+  display: inline-flex;
+  justify-content: center;
+  gap: 10px;
+  padding-inline: 30px;
+}
+
+.poker-app div.gui div.slider input {
+  translate: 0px 16px;
+  height: 3px;
+  width: 100%;
+}
+
+.poker-app div.gui div.slider span {
+  translate: 0px 8px;
+  font-size: 20px;
+  display: inline-block;
+  color: gold;
+  text-shadow: 0px 0px 5px gold;
+}
+
+.poker-app div.gui div.actions button:hover {
+  background-color: rgb(10, 10, 10, 90%);
+  opacity: 1;
+}
+
+.poker-app div.gui div.actions button:disabled {
+  background-color: rgb(10, 10, 10, 50%);
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.poker-app div.gui div.information {
+  position: absolute;
+  bottom: 8%;
+  left: 5%;
+  z-index: 2;
+  user-select: none;
+  padding: 5px 20px;
+  color: white;
+  text-transform: uppercase;
+  font-family: monospace;
+  display: flex;
+  border-radius: 100px;
+  font-size: 30px;
+  gap: 10px;
+}
+
+@media (max-aspect-ratio:1.5) {
+  .poker-app div.gui div.information {
+    bottom: 14%;
+  }
+}
+
+@media (max-aspect-ratio:1) {
+  .poker-app div.gui div.information {
+    bottom: 30%;
+  }
+}
+
+.poker-app div.gui div.information div.inner {
+  background-color: rgba(10, 50, 30, 70%);
+  user-select: none;
+  padding: 5px 20px;
+  color: white;
+  text-transform: uppercase;
+  font-family: monospace;
+  display: flex;
+  border-radius: 100px;
+  font-size: 30px;
+  gap: 10px;
+  translate: 15px;
+}
+
+.poker-app div.gui div.information img {
+  width: 10px;
+  height: 10px;
+  scale: 12;
+  border-radius: 100%;
+}
+
+.poker-app div.gui div.information div.inner p {
+  margin: 0;
+}
+
+.poker-app div.gui div.information div.inner p.balance {
+  color: gold;
+  text-shadow: 0px 0px 5px gold;
+}
+
+.poker-app div.gui div.information div.inner hr {
+  scale: 1 5;
+}
+
+.poker-app div.gui p.winner {
+  position: absolute;
+  top: 5%;
+  left: 50%;
+  translate: -50%;
+  color: white;
+  text-transform: uppercase;
+  font-family: monospace;
+  font-weight: 900;
+  font-size: 60px;
+  z-index: 2;
+  text-shadow: 0px 0px 5px black, 0px 0px 5px black, 0px 0px 5px black, 0px 0px 5px black, 0px 0px 5px black;
+}
+
+.poker-app div.page {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgb(10, 10, 10);
+  font-family: monospace;
+  text-transform: uppercase;
+}
+
+.poker-app div.page div.center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+}
+
+.poker-app div.page.hub div.center {
+  background-color: transparent;
+}
+
+.poker-app div.page.hub div.center.aside {
+  left: 50%;
+  display: flex;
+}
+
+.poker-app div.page.hub div.center div.header div.img-header {
+  font-size: 150px;
+  color: white;
+  margin: 0px;
+  padding: 0px;
+  animation: scaleupStart .3s cubic-bezier(.14, 1.6, .61, 1);
+  filter: drop-shadow(0px 0px 100px rgb(50, 50, 50));
+  display: flex;
+  gap: 10px;
+}
+
+.poker-app div.page.hub div.center div.header div.img-header h3 {
+  margin: 0px;
+}
+
+.poker-app div.page.hub div.center div.header div.img-header img {
+  margin: 0px;
+  padding: 0px;
+  aspect-ratio: 1;
+  height: 150px;
+  margin-block: auto;
+  animation: scalingUp 1s infinite;
+}
+
+@keyframes scalingUp {
+  100%,
+  0% {
+    scale: 1;
+    filter: drop-shadow(0px 0px 25px rgb(255, 0, 0, 2%)) drop-shadow(0px 0px 50px rgb(255, 0, 0, 20%));
+  }
+  50% {
+    scale: 0.95;
+    filter: drop-shadow(0px 0px 25px rgb(255, 0, 0, 5%)) drop-shadow(0px 0px 100px rgb(255, 0, 0, 50%)) blur(2px);
+  }
+}
+
+.poker-app div.page.hub div.center.aside img.hubanimcards {
+  animation: scaleupStart3 .9s cubic-bezier(.14, 1.6, .61, 1);
+  scale: 0.8;
+  filter: drop-shadow(10px 10px 0px rgb(255, 255, 255, 5%)) drop-shadow(0px 0px 25px rgb(255, 255, 255, 25%)) drop-shadow(0px 0px 5px rgb(255, 255, 255, 50%)) drop-shadow(0px 0px 100px rgb(255, 255, 255, 10%));
+}
+
+@keyframes scaleupStart {
+  0% {
+    scale: 0
+  }
+  100% {
+    scale: 1
+  }
+}
+
+@keyframes scaleupStart2 {
+  0% {
+    scale: 0;
+  }
+  50% {
+    scale: 0
+  }
+  100% {
+    scale: 1
+  }
+}
+
+@keyframes scaleupStart3 {
+  0% {
+    scale: 0;
+  }
+  66% {
+    scale: 0;
+    filter: none;
+    opacity: 0;
+  }
+  100% {
+    scale: 0.8;
+    filter: drop-shadow(10px 10px 0px rgb(255, 255, 255, 5%)) drop-shadow(0px 0px 25px rgb(255, 255, 255, 25%)) drop-shadow(0px 0px 5px rgb(255, 255, 255, 50%)) drop-shadow(0px 0px 100px rgb(255, 255, 255, 10%));
+  }
+}
+
+.poker-app div.page.hub div.center div.header h5 {
+  color: white;
+  font-size: 25px;
+  margin: 0px;
+  animation: scaleupStart2 .6s cubic-bezier(.14, 1.6, .61, 1);
+  text-align: center;
+  padding: 0px;
+  translate: 0px -100%;
+  text-transform: lowercase;
+  font-weight: 100;
+  color: rgb(255, 80, 80);
+}
+
+.poker-app div.page.hub div.center div.header h3:hover {
+  cursor: default;
+}
+
+.poker-app div.page.hub div.center div.header h5:hover {
+  cursor: pointer;
+}
+
+.poker-app div.page.hub div.center input {
+  background-color: rgb(25, 25, 25);
+  outline: 0;
+  border: 0;
+  padding-inline: 10px;
+  width: 100%;
+  font-size: 25px;
+  font-family: monospace;
+  margin-bottom: 10px;
+  box-sizing: border-box;
+  color: white;
+}
+
+.poker-app div.page.hub div.center input:focus {
+  color: white;
+}
+
+.poker-app div.page.hub div.center div.buttons {
+  width: 100%;
+  display: flex;
+  gap: 10px;
+}
+
+.poker-app div.page.hub div.center button {
+  flex-grow: 1;
+  outline: 0;
+  border: 0;
+  background-color: rgb(25, 25, 25);
+  color: white;
+  font-family: monospace;
+  font-size: 25px;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+  padding-inline: 10px;
+  cursor: pointer;
+  transition: box-shadow .3s cubic-bezier(.14, 1.6, .61, 1), background-color .3s cubic-bezier(.14, 1.6, .61, 1)
+}
+
+.poker-app div.page.hub div.center input:hover,
+.poker-app div.page.hub div.center button:hover {
+  box-shadow:
+    0px 0px 1.5px white,
+    0px 0px 1.5px white,
+    0px 0px 1.5px white,
+    0px 0px 1.5px white,
+    0px 0px 1.5px white,
+    0px 0px 1.5px white,
+    0px 0px 1.5px white,
+    0px 0px 1.5px white,
+    0px 0px 1.5px white,
+    0px 0px 1.5px white;
+  background-color: rgb(10, 10, 10);
+}
+
+.poker-app div.page.hub div.center div.credits h2 {
+  text-align: center;
+  margin: 0;
+  font-size: 50px;
+  font-weight: 100;
+  color: white;
+}
+
+.poker-app div.page.hub div.center div.credits p {
+  margin: 0;
+  color: white;
+  font-size: 30px;
+  font-style: italic;
+  color: rgb(255, 255, 255, 50%);
+  text-transform: lowercase;
+  font-weight: 100;
+}
+
+.poker-app div.page.hub div.center div.credits p a {
+  font-family: "Roboto";
+  font-weight: 900;
+  font-style: normal;
+  font-size: 35px;
+  color: rgb(255, 255, 255, 100%);
+  text-decoration: none;
+  text-transform: capitalize;
+}
+
+.poker-app div.page.hub div.center div.credits p a:hover {
+  color: rgb(65, 131, 255)
+}
+
+.poker-app div.page.hub div.center div.settings h2 {
+  text-align: center;
+  margin: 0;
+  font-size: 50px;
+  font-weight: 100;
+  color: white;
+}
+
+.poker-app div.page.hub div.center div.settings p {
+  margin: 0;
+  color: white;
+  font-size: 30px;
+  font-style: italic;
+  color: rgb(255, 255, 255, 50%);
+  text-transform: lowercase;
+  font-weight: 100;
+}
+
+.poker-app div.page.hub footer {
+  position: absolute;
+  bottom: 0%;
+  left: 50%;
+  translate: -50% 0%;
+  display: flex;
+  gap: 10px;
+}
+
+.poker-app div.page.hub footer button {
+  outline: 0;
+  border: 0;
+  background-color: rgb(25, 25, 25);
+  color: white;
+  font-family: monospace;
+  font-size: 25px;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+  padding-inline: 10px;
+  cursor: pointer;
+  transition: box-shadow .3s cubic-bezier(.14, 1.6, .61, 1), background-color .3s cubic-bezier(.14, 1.6, .61, 1);
+  min-width: 175px;
+}
+
+.poker-app div.page.hub footer button:hover {
+  box-shadow:
+    0px 0px 1.5px white,
+    0px 0px 1.5px white,
+    0px 0px 1.5px white,
+    0px 0px 1.5px white,
+    0px 0px 1.5px white,
+    0px 0px 1.5px white,
+    0px 0px 1.5px white,
+    0px 0px 1.5px white,
+    0px 0px 1.5px white,
+    0px 0px 1.5px white;
+  background-color: rgb(10, 10, 10);
+}
+
+.poker-app article.progress {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgb(10, 10, 10);
+  color: white;
+  font-family: monospace;
+  text-transform: uppercase;
+  font-size: 20px;
+}
+
+.poker-app article.progress p,
+.poker-app article.progress h3 {
+  text-align: center;
+}
+
+.poker-app article.progress h3 {
+  font-size: 50px;
+  margin: 0;
+}
+
+.poker-app article.progress main {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+  border-radius: 10000px;
+}
+
+.poker-app article.progress main img {
+  animation: scalingUpIMG infinite 1s;
+}
+
+@keyframes scalingUpIMG {
+  0%,
+  100% {
+    scale: 1;
+  }
+  50% {
+    filter: blur(1px) drop-shadow(0px 0px 5px red) drop-shadow(0px 0px 25px rgb(255, 0, 0, 20%)) drop-shadow(0px 0px 100px rgb(255, 0, 0, 10%));
+    scale: 0.9;
+    opacity: 0.7;
+  }
+}
+
+.poker-app article.progress main progress {
+  height: 3px;
+  width: 500px;
+}
