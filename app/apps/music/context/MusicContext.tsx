@@ -1,3166 +1,2507 @@
-
 // /root/app/apps/music/context/MusicContext.tsx
 
 "use client";
 
-  
-
 import React, {
-
-createContext,
-
-useContext,
-
-useState,
-
-useRef,
-
-useEffect,
-
-useCallback,
-
+  createContext,
+  useContext,
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
 } from "react";
 
-  
-
 interface Song {
+  id: string;
 
-id: string;
+  title: string;
 
-title: string;
+  artist: string;
 
-artist: string;
+  path: string;
 
-path: string;
+  thumbnail: string;
 
-thumbnail: string;
-
-videoUrl?: string; // YouTube video URL
-
+  videoUrl?: string; // YouTube video URL
 }
-
-  
 
 interface Playlist {
+  id: string;
 
-id: string;
+  name: string;
 
-name: string;
+  songCount: number;
 
-songCount: number;
+  thumbnail: string;
 
-thumbnail: string;
-
-songs: Song[];
-
+  songs: Song[];
 }
-
-  
 
 interface MusicContextType {
+  seek: (time: number) => void;
 
-seek: (time: number) => void;
+  songs: Song[];
 
-songs: Song[];
+  currentSongIndex: number;
 
-currentSongIndex: number;
+  isPlaying: boolean;
 
-isPlaying: boolean;
+  songProgress: number;
 
-songProgress: number;
+  volume: number;
 
-volume: number;
+  currentTime: number;
 
-currentTime: number;
+  duration: number;
 
-duration: number;
+  playlists: Playlist[];
 
-playlists: Playlist[];
+  currentPlaylist: Playlist | null;
 
-currentPlaylist: Playlist | null;
+  setSongs: (songs: Song[]) => void;
 
-setSongs: (songs: Song[]) => void;
+  setCurrentSongIndex: (index: number) => void;
 
-setCurrentSongIndex: (index: number) => void;
+  setIsPlaying: (playing: boolean) => void;
 
-setIsPlaying: (playing: boolean) => void;
+  setSongProgress: (progress: number) => void;
 
-setSongProgress: (progress: number) => void;
+  setVolume: (volume: number) => void;
 
-setVolume: (volume: number) => void;
+  togglePlay: () => void;
 
-togglePlay: () => void;
+  playNext: () => void;
 
-playNext: () => void;
+  playPrevious: () => void;
 
-playPrevious: () => void;
+  audioRef: React.RefObject<HTMLAudioElement>;
 
-audioRef: React.RefObject<HTMLAudioElement>;
+  playPlaylist: (playlistId: string) => void;
 
-playPlaylist: (playlistId: string) => void;
+  isWallpaperMode: boolean;
 
-isWallpaperMode: boolean;
+  toggleWallpaperMode: () => void;
 
-toggleWallpaperMode: () => void;
+  fmModeEnabled: Record<string, boolean>;
 
-fmModeEnabled: Record<string, boolean>;
+  toggleFmMode: (playlistId: string) => void;
 
-toggleFmMode: (playlistId: string) => void;
+  // New shuffle-related properties
 
-// New shuffle-related properties
+  shuffleModeEnabled: Record<string, boolean>;
 
-shuffleModeEnabled: Record<string, boolean>;
+  toggleShuffleMode: (playlistId: string) => void;
 
-toggleShuffleMode: (playlistId: string) => void;
+  resetShuffleForPlaylist: (playlistId: string) => void;
 
-resetShuffleForPlaylist: (playlistId: string) => void;
-
-shuffledSongIndices: Record<string, number[]>;
-
+  shuffledSongIndices: Record<string, number[]>;
 }
-
-  
 
 // All playlists data combined into one constant
 
 const ALL_PLAYLISTS: Playlist[] = [
+  {
+    id: "xp",
 
-{
+    name: "XP",
 
-id: "xp",
+    songCount: 15,
 
-name: "XP",
+    thumbnail: "/media/system/_empty_image.png",
 
-songCount: 15,
+    songs: [
+      {
+        id: "xpfm-1",
 
-thumbnail: "/media/system/_empty_image.png",
+        title: "song1",
 
-songs: [
+        artist: "XPFM",
 
-{
+        path: "/audio/songs/song1.mp4",
 
-id: "xpfm-1",
+        thumbnail: "/media/songs/song1.png",
 
-title: "song1",
+        videoUrl: "https://www.youtube.com/watch?v=ZfVzCgUwPCI",
+      },
 
-artist: "XPFM",
+      {
+        id: "xpfm-2",
 
-path: "/audio/songs/song1.mp4",
+        title: "song2",
 
-thumbnail: "/media/songs/song1.png",
+        artist: "XPFM",
 
-videoUrl: "https://www.youtube.com/watch?v=ZfVzCgUwPCI",
+        path: "/audio/songs/song2.mp4",
 
-},
+        thumbnail: "/media/songs/song1.png",
 
-{
+        videoUrl: "https://www.youtube.com/watch?v=WxMBIxB9EPI",
+      },
 
-id: "xpfm-2",
+      {
+        id: "xpfm-3",
 
-title: "song2",
+        title: "song3",
 
-artist: "XPFM",
+        artist: "XPFM",
 
-path: "/audio/songs/song2.mp4",
+        path: "/audio/songs/song3.mp4",
 
-thumbnail: "/media/songs/song1.png",
+        thumbnail: "/media/songs/song2.png",
 
-videoUrl: "https://www.youtube.com/watch?v=WxMBIxB9EPI",
+        videoUrl: "https://www.youtube.com/watch?v=oZREDSBcEK0",
+      },
 
-},
+      {
+        id: "xpfm-4",
 
-{
+        title: "song4",
 
-id: "xpfm-3",
+        artist: "XPFM",
 
-title: "song3",
+        path: "/audio/songs/song4.mp4",
 
-artist: "XPFM",
+        thumbnail: "/media/songs/song3.png",
 
-path: "/audio/songs/song3.mp4",
+        videoUrl: "https://www.youtube.com/watch?v=SPBVVzttXIM",
+      },
 
-thumbnail: "/media/songs/song2.png",
+      {
+        id: "xpfm-5",
 
-videoUrl: "https://www.youtube.com/watch?v=oZREDSBcEK0",
+        title: "song5",
 
-},
+        artist: "XPFM",
 
-{
+        path: "/audio/songs/song5.mp4",
 
-id: "xpfm-4",
+        thumbnail: "/media/songs/song4.png",
 
-title: "song4",
+        videoUrl: "https://www.youtube.com/watch?v=zD0M7rVDG6g",
+      },
 
-artist: "XPFM",
+      {
+        id: "xpfm-6",
 
-path: "/audio/songs/song4.mp4",
+        title: "song6",
 
-thumbnail: "/media/songs/song3.png",
+        artist: "XPFM",
 
-videoUrl: "https://www.youtube.com/watch?v=SPBVVzttXIM",
+        path: "/audio/songs/song6.mp4",
 
-},
+        thumbnail: "/media/songs/song5.png",
 
-{
+        videoUrl: "https://www.youtube.com/watch?v=cKKc14qAXr4",
+      },
 
-id: "xpfm-5",
+      {
+        id: "xpfm-7",
 
-title: "song5",
+        title: "song7",
 
-artist: "XPFM",
+        artist: "XPFM",
 
-path: "/audio/songs/song5.mp4",
+        path: "/audio/songs/song7.mp4",
 
-thumbnail: "/media/songs/song4.png",
+        thumbnail: "/media/songs/song6.png",
 
-videoUrl: "https://www.youtube.com/watch?v=zD0M7rVDG6g",
+        videoUrl: "https://www.youtube.com/watch?v=x8Wh4GeyMB4",
+      },
 
-},
+      {
+        id: "xpfm-8",
 
-{
+        title: "song8",
 
-id: "xpfm-6",
+        artist: "XPFM",
 
-title: "song6",
+        path: "/audio/songs/song8.mp4",
 
-artist: "XPFM",
+        thumbnail: "/media/songs/song7.png",
 
-path: "/audio/songs/song6.mp4",
+        videoUrl: "https://www.youtube.com/watch?v=QtnoYpODf7w",
+      },
 
-thumbnail: "/media/songs/song5.png",
+      {
+        id: "xpfm-9",
 
-videoUrl: "https://www.youtube.com/watch?v=cKKc14qAXr4",
+        title: "song9",
 
-},
+        artist: "XPFM",
 
-{
+        path: "/audio/songs/song9.mp4",
 
-id: "xpfm-7",
+        thumbnail: "/media/songs/song9.png",
 
-title: "song7",
+        videoUrl: "https://www.youtube.com/watch?v=oAuBZ1OJfWE",
+      },
 
-artist: "XPFM",
+      {
+        id: "xpfm-10",
 
-path: "/audio/songs/song7.mp4",
+        title: "song10",
 
-thumbnail: "/media/songs/song6.png",
+        artist: "XPFM",
 
-videoUrl: "https://www.youtube.com/watch?v=x8Wh4GeyMB4",
+        path: "/audio/songs/song10.mp4",
 
-},
+        thumbnail: "/media/songs/song10.png",
 
-{
+        videoUrl: "https://www.youtube.com/watch?v=rpCY2ngsxUo",
+      },
 
-id: "xpfm-8",
+      {
+        id: "xpfm-11",
 
-title: "song8",
+        title: "song11",
 
-artist: "XPFM",
+        artist: "XPFM",
 
-path: "/audio/songs/song8.mp4",
+        path: "/audio/songs/song11.mp4",
 
-thumbnail: "/media/songs/song7.png",
+        thumbnail: "/media/songs/song11.png",
 
-videoUrl: "https://www.youtube.com/watch?v=QtnoYpODf7w",
+        videoUrl: "https://www.youtube.com/watch?v=0sgDPaznkjc",
+      },
 
-},
+      {
+        id: "xpfm-12",
 
-{
+        title: "song12",
 
-id: "xpfm-9",
+        artist: "XPFM",
 
-title: "song9",
+        path: "/audio/songs/song12.mp4",
 
-artist: "XPFM",
+        thumbnail: "/media/songs/song12.png",
 
-path: "/audio/songs/song9.mp4",
+        videoUrl: "https://www.youtube.com/watch?v=acYLIALwzlQ",
+      },
 
-thumbnail: "/media/songs/song9.png",
+      {
+        id: "xpfm-13",
 
-videoUrl: "https://www.youtube.com/watch?v=oAuBZ1OJfWE",
+        title: "song13",
 
-},
+        artist: "XPFM",
 
-{
+        path: "/audio/songs/song13.mp4",
 
-id: "xpfm-10",
+        thumbnail: "/media/songs/song13.png",
 
-title: "song10",
+        videoUrl: "https://www.youtube.com/watch?v=H42_eY53dBM",
+      },
 
-artist: "XPFM",
+      {
+        id: "xpfm-14",
 
-path: "/audio/songs/song10.mp4",
+        title: "song14",
 
-thumbnail: "/media/songs/song10.png",
+        artist: "XPFM",
 
-videoUrl: "https://www.youtube.com/watch?v=rpCY2ngsxUo",
+        path: "/audio/songs/song14.mp4",
 
-},
+        thumbnail: "/media/songs/song14.png",
 
-{
+        videoUrl: "https://www.youtube.com/watch?v=GxJCxBZrvfY",
+      },
 
-id: "xpfm-11",
+      {
+        id: "xpfm-15",
 
-title: "song11",
+        title: "song15",
 
-artist: "XPFM",
+        artist: "XPFM",
 
-path: "/audio/songs/song11.mp4",
+        path: "/audio/songs/song15.mp4",
 
-thumbnail: "/media/songs/song11.png",
+        thumbnail: "/media/songs/song15.png",
 
-videoUrl: "https://www.youtube.com/watch?v=0sgDPaznkjc",
+        videoUrl: "https://www.youtube.com/watch?v=QiLCgnPCrFc",
+      },
 
-},
+      {
+        id: "xpfm-16",
 
-{
+        title: "song16",
 
-id: "xpfm-12",
+        artist: "XPFM",
 
-title: "song12",
+        path: "/audio/songs/song16.mp4",
 
-artist: "XPFM",
+        thumbnail: "/media/songs/song16.png",
 
-path: "/audio/songs/song12.mp4",
+        videoUrl: "https://www.youtube.com/watch?v=Y_vsK993ENk",
+      },
+    ],
+  },
 
-thumbnail: "/media/songs/song12.png",
+  {
+    id: "pnth",
 
-videoUrl: "https://www.youtube.com/watch?v=acYLIALwzlQ",
+    name: "PNTH",
 
-},
+    songCount: 18,
 
-{
+    thumbnail: "/media/playlists/pnth.png",
 
-id: "xpfm-13",
+    songs: [
+      {
+        id: "pnth-1",
 
-title: "song13",
+        title: "i was never there",
 
-artist: "XPFM",
+        artist: "PNTHFM",
 
-path: "/audio/songs/song13.mp4",
+        path: "/audio/pnth/iwasneverthere.mp4",
 
-thumbnail: "/media/songs/song13.png",
+        thumbnail: "/media/playlists/pnth/iwasneverthere.png",
 
-videoUrl: "https://www.youtube.com/watch?v=H42_eY53dBM",
+        videoUrl: "https://www.youtube.com/watch?v=NbqZRrb4_Lc",
+      },
 
-},
+      {
+        id: "pnth-2",
 
-{
+        title: "valerie",
 
-id: "xpfm-14",
+        artist: "PNTHFM",
 
-title: "song14",
+        path: "/audio/pnth/valerie.mp4",
 
-artist: "XPFM",
+        thumbnail: "/media/songs/pnth/valerie.png",
 
-path: "/audio/songs/song14.mp4",
+        videoUrl: "https://www.youtube.com/watch?v=v60yXCH3IDw",
+      },
 
-thumbnail: "/media/songs/song14.png",
+      {
+        id: "pnth-3",
 
-videoUrl: "https://www.youtube.com/watch?v=GxJCxBZrvfY",
+        title: "in your eyes",
 
-},
+        artist: "PNTHFM",
 
-{
+        path: "/audio/pnth/inyoureyes.mp4",
 
-id: "xpfm-15",
+        thumbnail: "/media/songs/pnth/inyoureyes.png",
 
-title: "song15",
+        videoUrl: "https://www.youtube.com/watch?v=QLNyHl4nwEo",
+      },
 
-artist: "XPFM",
+      {
+        id: "pnth-4",
 
-path: "/audio/songs/song15.mp4",
+        title: "starry eyes",
 
-thumbnail: "/media/songs/song15.png",
+        artist: "PNTHFM",
 
-videoUrl: "https://www.youtube.com/watch?v=QiLCgnPCrFc",
+        path: "/audio/pnth/starryeyes.mp4",
 
-},
+        thumbnail: "/media/songs/pnth/starryeyes.png",
 
-{
+        videoUrl: "https://www.youtube.com/watch?v=SDyf6f7qhcY",
+      },
 
-id: "xpfm-16",
+      {
+        id: "pnth-5",
 
-title: "song16",
+        title: "i can't feel my face",
 
-artist: "XPFM",
+        artist: "PNTHFM",
 
-path: "/audio/songs/song16.mp4",
+        path: "/audio/pnth/icantfeelmyface.mp4",
 
-thumbnail: "/media/songs/song16.png",
+        thumbnail: "/media/songs/pnth/icantfeelmyface.png",
 
-videoUrl: "https://www.youtube.com/watch?v=Y_vsK993ENk",
+        videoUrl: "https://www.youtube.com/watch?v=533ct1vFHmM",
+      },
 
-},
+      {
+        id: "pnth-6",
 
-],
+        title: "call out my name",
 
-},
+        artist: "PNTHFM",
 
-{
+        path: "/audio/pnth/calloutmyname.mp4",
 
-id: "pnth",
+        thumbnail: "/media/songs/pnth/calloutmyname.png",
 
-name: "PNTH",
+        videoUrl: "https://www.youtube.com/watch?v=ZIBLdNxW5do",
+      },
 
-songCount: 18,
+      {
+        id: "pnth-7",
 
-thumbnail: "/media/playlists/pnth.png",
+        title: "nothing without you",
 
-songs: [
+        artist: "PNTHFM",
 
-{
+        path: "/audio/pnth/nothingwithoutyou.mp4",
 
-id: "pnth-1",
+        thumbnail: "/media/songs/pnth/nothingwithoutyou.png",
 
-title: "i was never there",
+        videoUrl: "https://www.youtube.com/watch?v=LaeJJ9aB9e8",
+      },
 
-artist: "PNTHFM",
+      {
+        id: "pnth-8",
 
-path: "/audio/pnth/iwasneverthere.mp4",
+        title: "professional",
 
-thumbnail: "/media/playlists/pnth/iwasneverthere.png",
+        artist: "PNTHFM",
 
-videoUrl: "https://www.youtube.com/watch?v=NbqZRrb4_Lc",
+        path: "/audio/pnth/professional.mp4",
 
-},
+        thumbnail: "/media/songs/pnth/professional.png",
 
-{
+        videoUrl: "https://www.youtube.com/watch?v=XzM3d5dBJns",
+      },
 
-id: "pnth-2",
+      {
+        id: "pnth-9",
 
-title: "valerie",
+        title: "in the night",
 
-artist: "PNTHFM",
+        artist: "PNTHFM",
 
-path: "/audio/pnth/valerie.mp4",
+        path: "/audio/pnth/inthenight.mp4",
 
-thumbnail: "/media/songs/pnth/valerie.png",
+        thumbnail: "/media/songs/pnth/inthenight.png",
 
-videoUrl: "https://www.youtube.com/watch?v=v60yXCH3IDw",
+        videoUrl: "https://www.youtube.com/watch?v=AXM10bYqtUc",
+      },
 
-},
+      {
+        id: "pnth-10",
 
-{
+        title: "adaptation",
 
-id: "pnth-3",
+        artist: "PNTHFM",
 
-title: "in your eyes",
+        path: "/audio/pnth/adaptation.mp4",
 
-artist: "PNTHFM",
+        thumbnail: "/media/songs/pnth/adaptation.png",
 
-path: "/audio/pnth/inyoureyes.mp4",
+        videoUrl: "https://www.youtube.com/watch?v=TgKcNj8fKpI",
+      },
 
-thumbnail: "/media/songs/pnth/inyoureyes.png",
+      {
+        id: "pnth-11",
 
-videoUrl: "https://www.youtube.com/watch?v=QLNyHl4nwEo",
+        title: "pray for me",
 
-},
+        artist: "PNTHFM",
 
-{
+        path: "/audio/pnth/pray.mp4",
 
-id: "pnth-4",
+        thumbnail: "/media/songs/pnth/pray.png",
 
-title: "starry eyes",
+        videoUrl: "https://www.youtube.com/watch?v=QRj2JP0Fe1c",
+      },
 
-artist: "PNTHFM",
+      {
+        id: "pnth-12",
 
-path: "/audio/pnth/starryeyes.mp4",
+        title: "starboy",
 
-thumbnail: "/media/songs/pnth/starryeyes.png",
+        artist: "PNTHFM",
 
-videoUrl: "https://www.youtube.com/watch?v=SDyf6f7qhcY",
+        path: "/audio/pnth/starboy.mp4",
 
-},
+        thumbnail: "/media/songs/pnth/starboy.png",
 
-{
+        videoUrl: "https://www.youtube.com/watch?v=mFMNIlhIUvs",
+      },
 
-id: "pnth-5",
+      {
+        id: "pnth-13",
 
-title: "i can't feel my face",
+        title: "power is power",
 
-artist: "PNTHFM",
+        artist: "PNTHFM",
 
-path: "/audio/pnth/icantfeelmyface.mp4",
+        path: "/audio/pnth/power.mp4",
 
-thumbnail: "/media/songs/pnth/icantfeelmyface.png",
+        thumbnail: "/media/songs/pnth/power.png",
 
-videoUrl: "https://www.youtube.com/watch?v=533ct1vFHmM",
+        videoUrl: "https://www.youtube.com/watch?v=x8Wh4GeyMB4",
+      },
 
-},
+      {
+        id: "pnth-14",
 
-{
+        title: "take my breath",
 
-id: "pnth-6",
+        artist: "PNTHFM",
 
-title: "call out my name",
+        path: "/audio/pnth/takemybreath.mp4",
 
-artist: "PNTHFM",
+        thumbnail: "/media/songs/pnth/takemybreath.png",
 
-path: "/audio/pnth/calloutmyname.mp4",
+        videoUrl: "https://www.youtube.com/watch?v=q266o-KOUMk",
+      },
 
-thumbnail: "/media/songs/pnth/calloutmyname.png",
+      {
+        id: "pnth-15",
 
-videoUrl: "https://www.youtube.com/watch?v=ZIBLdNxW5do",
+        title: "moth to a flame",
 
-},
+        artist: "PNTHFM",
 
-{
+        path: "/audio/pnth/mothtoaflame.mp4",
 
-id: "pnth-7",
+        thumbnail: "/media/songs/pnth/mothtoaflame.png",
 
-title: "nothing without you",
+        videoUrl: "https://www.youtube.com/watch?v=gl1v-nWiGLk",
+      },
 
-artist: "PNTHFM",
+      {
+        id: "pnth-16",
 
-path: "/audio/pnth/nothingwithoutyou.mp4",
+        title: "lowlife",
 
-thumbnail: "/media/songs/pnth/nothingwithoutyou.png",
+        artist: "PNTHFM",
 
-videoUrl: "https://www.youtube.com/watch?v=LaeJJ9aB9e8",
+        path: "/audio/pnth/lowlife.mp4",
 
-},
+        thumbnail: "/media/songs/pnth/lowlife.png",
 
-{
+        videoUrl: "https://www.youtube.com/watch?v=nqcjuk0o7YM",
+      },
 
-id: "pnth-8",
+      {
+        id: "pnth-17",
 
-title: "professional",
+        title: "after hours",
 
-artist: "PNTHFM",
+        artist: "PNTHFM",
 
-path: "/audio/pnth/professional.mp4",
+        path: "/audio/pnth/afterhours.mp4",
 
-thumbnail: "/media/songs/pnth/professional.png",
+        thumbnail: "/media/songs/pnth/afterhours.png",
 
-videoUrl: "https://www.youtube.com/watch?v=XzM3d5dBJns",
+        videoUrl: "https://www.youtube.com/watch?v=pV0ngdzx7RE",
+      },
 
-},
+      {
+        id: "pnth-18",
 
-{
+        title: "pretty",
 
-id: "pnth-9",
+        artist: "PNTHFM",
 
-title: "in the night",
+        path: "/audio/pnth/pretty.mp4",
 
-artist: "PNTHFM",
+        thumbnail: "/media/songs/pnth/pretty.png",
 
-path: "/audio/pnth/inthenight.mp4",
+        videoUrl: "https://www.youtube.com/watch?v=b_SwuIozFdQ",
+      },
 
-thumbnail: "/media/songs/pnth/inthenight.png",
+      {
+        id: "pnth-19",
 
-videoUrl: "https://www.youtube.com/watch?v=AXM10bYqtUc",
+        title: "song19",
 
-},
+        artist: "PNTHFM",
 
-{
+        path: "/audio/pnth/mania.mp4",
 
-id: "pnth-10",
+        thumbnail: "/media/songs/pnth/mania.png",
 
-title: "adaptation",
+        videoUrl: "https://www.youtube.com/watch?v=kBsycvSU6r8",
+      },
+    ],
+  },
 
-artist: "PNTHFM",
+  {
+    id: "XX",
 
-path: "/audio/pnth/adaptation.mp4",
+    name: "XX",
 
-thumbnail: "/media/songs/pnth/adaptation.png",
+    songCount: 9,
 
-videoUrl: "https://www.youtube.com/watch?v=TgKcNj8fKpI",
+    thumbnail: "/media/playlists/xx.png",
 
-},
+    songs: [
+      {
+        id: "aftr-1",
 
-{
+        title: "faith",
 
-id: "pnth-11",
+        artist: "XXFM",
 
-title: "pray for me",
+        path: "/audio/nxra/regular.mp4",
 
-artist: "PNTHFM",
+        thumbnail: "/media/songs/nxra/regular.png",
 
-path: "/audio/pnth/pray.mp4",
+        videoUrl: "https://www.youtube.com/watch?v=pkX5-wmMaUA",
+      },
 
-thumbnail: "/media/songs/pnth/pray.png",
+      {
+        id: "aftr-2",
 
-videoUrl: "https://www.youtube.com/watch?v=QRj2JP0Fe1c",
+        title: "privilege",
 
-},
+        artist: "XXFM",
 
-{
+        path: "/audio/nxra/privilege.mp4",
 
-id: "pnth-12",
+        thumbnail: "/media/songs/nxra/privilege.png",
 
-title: "starboy",
+        videoUrl: "https://www.youtube.com/watch?v=_mgf7YVKnKg",
+      },
 
-artist: "PNTHFM",
+      {
+        id: "aftr-3",
 
-path: "/audio/pnth/starboy.mp4",
+        title: "after hours",
 
-thumbnail: "/media/songs/pnth/starboy.png",
+        artist: "XXFM",
 
-videoUrl: "https://www.youtube.com/watch?v=mFMNIlhIUvs",
+        path: "/audio/nxra/afterhours.mp4",
 
-},
+        thumbnail: "/media/songs/nxra/afterhours.png",
 
-{
+        videoUrl: "https://www.youtube.com/watch?v=mj1Y5AWtvmM",
+      },
 
-id: "pnth-13",
+      {
+        id: "aftr-4",
 
-title: "power is power",
+        title: "too late",
 
-artist: "PNTHFM",
+        artist: "XXFM",
 
-path: "/audio/pnth/power.mp4",
+        path: "/audio/nxra/toolate.mp4",
 
-thumbnail: "/media/songs/pnth/power.png",
+        thumbnail: "/media/songs/nxra/toolate.png",
 
-videoUrl: "https://www.youtube.com/watch?v=x8Wh4GeyMB4",
+        videoUrl: "https://www.youtube.com/watch?v=qd9N1DoitW0",
+      },
 
-},
+      {
+        id: "aftr-5",
 
-{
+        title: "open hearts",
 
-id: "pnth-14",
+        artist: "XXFM",
 
-title: "take my breath",
+        path: "/audio/nxra/openhearts.mp4",
 
-artist: "PNTHFM",
+        thumbnail: "/media/songs/nxra/openhearts.png",
 
-path: "/audio/pnth/takemybreath.mp4",
+        videoUrl: "https://www.youtube.com/watch?v=f9sj9yEziQY",
+      },
 
-thumbnail: "/media/songs/pnth/takemybreath.png",
+      {
+        id: "aftr-6",
 
-videoUrl: "https://www.youtube.com/watch?v=q266o-KOUMk",
+        title: "try me",
 
-},
+        artist: "XXFM",
 
-{
+        path: "/audio/nxra/tryme.mp4",
 
-id: "pnth-15",
+        thumbnail: "/media/songs/nxra/tryme.png",
 
-title: "moth to a flame",
+        videoUrl: "https://www.youtube.com/watch?v=Qi7bA43x0cg",
+      },
 
-artist: "PNTHFM",
+      {
+        id: "aftr-7",
 
-path: "/audio/pnth/mothtoaflame.mp4",
+        title: "often",
 
-thumbnail: "/media/songs/pnth/mothtoaflame.png",
+        artist: "XXFM",
 
-videoUrl: "https://www.youtube.com/watch?v=gl1v-nWiGLk",
+        path: "/audio/nxra/often.mp4",
 
-},
+        thumbnail: "/media/songs/nxra/often.png",
 
-{
+        videoUrl: "https://www.youtube.com/watch?v=9fF491-R2do",
+      },
 
-id: "pnth-16",
+      {
+        id: "aftr-8",
 
-title: "lowlife",
+        title: "low life",
 
-artist: "PNTHFM",
+        artist: "XXFM",
 
-path: "/audio/pnth/lowlife.mp4",
+        path: "/audio/nxra/lowlife.mp4",
 
-thumbnail: "/media/songs/pnth/lowlife.png",
+        thumbnail: "/media/songs/nxra/lowlife.png",
 
-videoUrl: "https://www.youtube.com/watch?v=nqcjuk0o7YM",
+        videoUrl: "https://www.youtube.com/watch?v=1ZIm3m92_vQ",
+      },
 
-},
+      {
+        id: "aftr-9",
 
-{
+        title: "sacrafice",
 
-id: "pnth-17",
+        artist: "XXFM",
 
-title: "after hours",
+        path: "/audio/nxra/sacrafice.mp4",
 
-artist: "PNTHFM",
+        thumbnail: "/media/songs/nxra/sacrafice.png",
 
-path: "/audio/pnth/afterhours.mp4",
+        videoUrl: "https://www.youtube.com/watch?v=yDFbpYdcK-Q",
+      },
 
-thumbnail: "/media/songs/pnth/afterhours.png",
+      {
+        id: "aftr-10",
 
-videoUrl: "https://www.youtube.com/watch?v=pV0ngdzx7RE",
+        title: "song10",
 
-},
+        artist: "XXFM",
 
-{
+        path: "/audio/nxra/song10.mp4",
 
-id: "pnth-18",
+        thumbnail: "/media/songs/nxra/song10.png",
 
-title: "pretty",
+        videoUrl: "https://www.youtube.com/watch?v=JpK2qaejBOk",
+      },
+    ],
+  },
 
-artist: "PNTHFM",
+  {
+    id: "vcnz",
 
-path: "/audio/pnth/pretty.mp4",
+    name: "VCNZ",
 
-thumbnail: "/media/songs/pnth/pretty.png",
+    songCount: 6,
 
-videoUrl: "https://www.youtube.com/watch?v=b_SwuIozFdQ",
+    thumbnail: "/media/playlists/vcnz.png",
 
-},
+    songs: [
+      {
+        id: "vcnz-1",
 
-{
+        title: "adrenaline",
 
-id: "pnth-19",
+        artist: "VCNZFM",
 
-title: "song19",
+        path: "/audio/vcnz/adrenaline.mp4",
 
-artist: "PNTHFM",
+        thumbnail: "/media/songs/vcnz/adrenaline.png",
 
-path: "/audio/pnth/mania.mp4",
+        videoUrl: "https://www.youtube.com/watch?v=Vy81T0oG01c",
+      },
 
-thumbnail: "/media/songs/pnth/mania.png",
+      {
+        id: "vcnz-2",
 
-videoUrl: "https://www.youtube.com/watch?v=kBsycvSU6r8",
+        title: "mafia",
 
-},
+        artist: "VCNZFM",
 
-],
+        path: "/audio/vcnz/mafia.mp4",
 
-},
+        thumbnail: "/media/songs/vcnz/mafia.png",
 
-{
+        videoUrl: "https://www.youtube.com/watch?v=Vy81T0oG01c",
+      },
 
-id: "XX",
+      {
+        id: "vcnz-3",
 
-name: "XX",
+        title: "un diavolo scaccia l'altro",
 
-songCount: 9,
+        artist: "VCNZFM",
 
-thumbnail: "/media/playlists/xx.png",
+        path: "/audio/vcnz/diavolo.mp4",
 
-songs: [
+        thumbnail: "/media/songs/vcnz/diavolo.png",
 
-{
+        videoUrl:
+          "https://www.youtube.com/watch?v=Rozhhito9Ew&pp=ygUTdmluY2Vuem8gc291bmR0cmFjaw%3D%3D",
+      },
 
-id: "aftr-1",
+      {
+        id: "vcnz-4",
 
-title: "faith",
+        title: "retributor",
 
-artist: "XXFM",
+        artist: "VCNZFM",
 
-path: "/audio/nxra/regular.mp4",
+        path: "/audio/vcnz/retributor.mp4",
 
-thumbnail: "/media/songs/nxra/regular.png",
+        thumbnail: "/media/songs/vcnz/retributor.png",
 
-videoUrl: "https://www.youtube.com/watch?v=pkX5-wmMaUA",
+        videoUrl:
+          "https://www.youtube.com/watch?v=hRoNVhyOCKk&pp=ygUTdmluY2Vuem8gc291bmR0cmFjaw%3D%3D",
+      },
 
-},
+      {
+        id: "vcnz-5",
 
-{
+        title: "your vacancy",
 
-id: "aftr-2",
+        artist: "VCNZFM",
 
-title: "privilege",
+        path: "/audio/vcnz/yourvacancy.mp4",
 
-artist: "XXFM",
+        thumbnail: "/media/songs/vcnz/yourvacancy.png",
 
-path: "/audio/nxra/privilege.mp4",
+        videoUrl:
+          "https://www.youtube.com/watch?v=sUjtNYhTr7M&list=PLP-eBeyXNQLrg6XprN1VTVhRdROfQYZ49&index=33&pp=iAQB8AUB",
+      },
 
-thumbnail: "/media/songs/nxra/privilege.png",
+      {
+        id: "vcnz-6",
 
-videoUrl: "https://www.youtube.com/watch?v=_mgf7YVKnKg",
+        title: "empty mind",
 
-},
+        artist: "VCNZFM",
 
-{
+        path: "/audio/vcnz/emptymind.mp4",
 
-id: "aftr-3",
+        thumbnail: "/media/songs/vcnz/emptymind.png",
 
-title: "after hours",
+        videoUrl:
+          "https://www.youtube.com/watch?v=2609nR2di5Y&list=PLP-eBeyXNQLrg6XprN1VTVhRdROfQYZ49&index=20&pp=iAQB8AUB",
+      },
 
-artist: "XXFM",
+      {
+        id: "vcnz-7",
 
-path: "/audio/nxra/afterhours.mp4",
+        title: "song7",
 
-thumbnail: "/media/songs/nxra/afterhours.png",
+        artist: "VCNZFM",
 
-videoUrl: "https://www.youtube.com/watch?v=mj1Y5AWtvmM",
+        path: "/audio/vcnz/song7.mp4",
 
-},
+        thumbnail: "/media/songs/vcnz/emptymind.png",
 
-{
+        videoUrl: "https://www.youtube.com/watch?v=mt0iqJ1eULo",
+      },
+    ],
+  },
 
-id: "aftr-4",
+  {
+    id: "sn",
 
-title: "too late",
+    name: "SN",
 
-artist: "XXFM",
+    songCount: 8,
 
-path: "/audio/nxra/toolate.mp4",
+    thumbnail: "/media/playlists/sn.png",
 
-thumbnail: "/media/songs/nxra/toolate.png",
+    songs: [
+      {
+        id: "sn-1",
 
-videoUrl: "https://www.youtube.com/watch?v=qd9N1DoitW0",
+        title: "lune",
 
-},
+        artist: "SNFM",
 
-{
+        path: "/audio/sn/lune.mp4",
 
-id: "aftr-5",
+        thumbnail: "/media/songs/lune.png",
 
-title: "open hearts",
+        videoUrl: "https://www.youtube.com/watch?v=CvFH_6DNRCY",
+      },
 
-artist: "XXFM",
+      {
+        id: "sn-2",
 
-path: "/audio/nxra/openhearts.mp4",
+        title: "sns",
 
-thumbnail: "/media/songs/nxra/openhearts.png",
+        artist: "SNFM",
 
-videoUrl: "https://www.youtube.com/watch?v=f9sj9yEziQY",
+        path: "/audio/sn/swans.mp4",
 
-},
+        thumbnail: "/media/songs/sns.png",
 
-{
+        videoUrl: "https://youtube.com/watch?v=MyzfjP_wXBw",
+      },
 
-id: "aftr-6",
+      {
+        id: "sn-3",
 
-title: "try me",
+        title: "ballade",
 
-artist: "XXFM",
+        artist: "SNFM",
 
-path: "/audio/nxra/tryme.mp4",
+        path: "/audio/sn/ballade.mp4",
 
-thumbnail: "/media/songs/nxra/tryme.png",
+        thumbnail: "/media/songs/ballade.png",
 
-videoUrl: "https://www.youtube.com/watch?v=Qi7bA43x0cg",
+        videoUrl: "https://www.youtube.com/watch?v=2uvAewYkEFU",
+      },
 
-},
+      {
+        id: "sn-4",
 
-{
+        title: "nocturne",
 
-id: "aftr-7",
+        artist: "SNFM",
 
-title: "often",
+        path: "/audio/sn/nocturne.mp4",
 
-artist: "XXFM",
+        thumbnail: "/media/songs/nocturne.png",
 
-path: "/audio/nxra/often.mp4",
+        videoUrl: "https://www.youtube.com/watch?v=T7k2pmKUXxI",
+      },
 
-thumbnail: "/media/songs/nxra/often.png",
+      {
+        id: "sn-5",
 
-videoUrl: "https://www.youtube.com/watch?v=9fF491-R2do",
+        title: "fantasia",
 
-},
+        artist: "SNFM",
 
-{
+        path: "/audio/sn/fantasia.mp4",
 
-id: "aftr-8",
+        thumbnail: "/media/songs/fantasia.png",
 
-title: "low life",
+        videoUrl: "https://www.youtube.com/watch?v=zlWAdUPUCJw",
+      },
 
-artist: "XXFM",
+      {
+        id: "sn-6",
 
-path: "/audio/nxra/lowlife.mp4",
+        title: "overuse",
 
-thumbnail: "/media/songs/nxra/lowlife.png",
+        artist: "SNFM",
 
-videoUrl: "https://www.youtube.com/watch?v=1ZIm3m92_vQ",
+        path: "/audio/sn/overuse.mp4",
 
-},
+        thumbnail: "/media/songs/overuse.png",
 
-{
+        videoUrl: "https://www.youtube.com/watch?v=rrBsvldbwdQ",
+      },
 
-id: "aftr-9",
+      {
+        id: "sn-7",
 
-title: "sacrafice",
+        title: "lacrimosa",
 
-artist: "XXFM",
+        artist: "SNFM",
 
-path: "/audio/nxra/sacrafice.mp4",
+        path: "/audio/sn/lacrimosa.mp4",
 
-thumbnail: "/media/songs/nxra/sacrafice.png",
+        thumbnail: "/media/songs/lacrimosa.png",
 
-videoUrl: "https://www.youtube.com/watch?v=yDFbpYdcK-Q",
+        videoUrl: "https://www.youtube.com/watch?v=mt6m63ylw-g",
+      },
 
-},
+      {
+        id: "sn-8",
 
-{
+        title: "lake",
 
-id: "aftr-10",
+        artist: "SNFM",
 
-title: "song10",
+        path: "/audio/sn/lake.mp4",
 
-artist: "XXFM",
+        thumbnail: "/media/songs/lake.png",
 
-path: "/audio/nxra/song10.mp4",
+        videoUrl: "https://www.youtube.com/watch?v=xF_x4oenM1E",
+      },
 
-thumbnail: "/media/songs/nxra/song10.png",
+      {
+        id: "sn-9",
 
-videoUrl: "https://www.youtube.com/watch?v=JpK2qaejBOk",
+        title: "song9",
 
-},
+        artist: "SNFM",
 
-],
+        path: "/audio/sn/song9.mp4",
 
-},
+        thumbnail: "/media/songs/song9.png",
 
-{
+        videoUrl: "https://www.youtube.com/watch?v=zQebdkLvD00",
+      },
+    ],
+  },
 
-id: "vcnz",
+  {
+    id: "xtra",
 
-name: "VCNZ",
+    name: "XTRA",
 
-songCount: 6,
+    songCount: 3,
 
-thumbnail: "/media/playlists/vcnz.png",
+    thumbnail: "/media/playlists/xtra.png",
 
-songs: [
+    songs: [
+      {
+        id: "xtra-1",
 
-{
+        title: "song1",
 
-id: "vcnz-1",
+        artist: "XTRAFM",
 
-title: "adrenaline",
+        path: "/audio/xtra/saopaulo.mp4",
 
-artist: "VCNZFM",
+        thumbnail: "/media/songs/saopaulo.png",
 
-path: "/audio/vcnz/adrenaline.mp4",
+        videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
+      },
 
-thumbnail: "/media/songs/vcnz/adrenaline.png",
+      {
+        id: "xtra-2",
 
-videoUrl: "https://www.youtube.com/watch?v=Vy81T0oG01c",
+        title: "song2",
 
-},
+        artist: "XTRAFM",
 
-{
+        path: "/audio/xtra/timeless.mp4",
 
-id: "vcnz-2",
+        thumbnail: "/media/songs/timeless.png",
 
-title: "mafia",
+        videoUrl: "https://www.youtube.com/watch?v=3upvj6tDHoI",
+      },
 
-artist: "VCNZFM",
+      {
+        id: "xtra-3",
 
-path: "/audio/vcnz/mafia.mp4",
+        title: "song3",
 
-thumbnail: "/media/songs/vcnz/mafia.png",
+        artist: "XTRAFM",
 
-videoUrl: "https://www.youtube.com/watch?v=Vy81T0oG01c",
+        path: "/audio/xtra/howdeepisyourlove.mp4",
 
-},
+        thumbnail: "/media/songs/howdeepisyourlove.png",
 
-{
+        videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
+      },
 
-id: "vcnz-3",
+      {
+        id: "xtra-4",
 
-title: "un diavolo scaccia l'altro",
+        title: "song4",
 
-artist: "VCNZFM",
+        artist: "XTRAFM",
 
-path: "/audio/vcnz/diavolo.mp4",
+        path: "/audio/xtra/song4.mp4",
 
-thumbnail: "/media/songs/vcnz/diavolo.png",
+        thumbnail: "/media/songs/song4.png",
 
-videoUrl:
+        videoUrl: "https://www.youtube.com/watch?v=h9NSpC2xE-0",
+      },
 
-"https://www.youtube.com/watch?v=Rozhhito9Ew&pp=ygUTdmluY2Vuem8gc291bmR0cmFjaw%3D%3D",
+      {
+        id: "xtra-5",
 
-},
+        title: "xtra",
 
-{
+        artist: "XTRAFM",
 
-id: "vcnz-4",
+        path: "/audio/xtra/siai.mp4",
 
-title: "retributor",
+        thumbnail: "/media/songs/siai.png",
 
-artist: "VCNZFM",
+        videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
+      },
 
-path: "/audio/vcnz/retributor.mp4",
+      {
+        id: "xtra-6",
 
-thumbnail: "/media/songs/vcnz/retributor.png",
+        title: "xtra",
 
-videoUrl:
+        artist: "XTRAFM",
 
-"https://www.youtube.com/watch?v=hRoNVhyOCKk&pp=ygUTdmluY2Vuem8gc291bmR0cmFjaw%3D%3D",
+        path: "/audio/xtra/malamente.mp4",
 
-},
+        thumbnail: "/media/songs/malamente.png",
 
-{
+        videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
+      },
 
-id: "vcnz-5",
+      {
+        id: "xtra-7",
 
-title: "your vacancy",
+        title: "xtra",
 
-artist: "VCNZFM",
+        artist: "XTRAFM",
 
-path: "/audio/vcnz/yourvacancy.mp4",
+        path: "/audio/xtra/yekeyeke.mp4",
 
-thumbnail: "/media/songs/vcnz/yourvacancy.png",
+        thumbnail: "/media/songs/yekeyeke.png",
 
-videoUrl:
+        videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
+      },
 
-"https://www.youtube.com/watch?v=sUjtNYhTr7M&list=PLP-eBeyXNQLrg6XprN1VTVhRdROfQYZ49&index=33&pp=iAQB8AUB",
+      {
+        id: "xtra-8",
 
-},
+        title: "xtra",
 
-{
+        artist: "XTRAFM",
 
-id: "vcnz-6",
+        path: "/audio/xtra/thehills.mp4",
 
-title: "empty mind",
+        thumbnail: "/media/songs/thehills.png",
 
-artist: "VCNZFM",
+        videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
+      },
 
-path: "/audio/vcnz/emptymind.mp4",
+      {
+        id: "xtra-9",
 
-thumbnail: "/media/songs/vcnz/emptymind.png",
+        title: "xtra",
 
-videoUrl:
+        artist: "XTRAFM",
 
-"https://www.youtube.com/watch?v=2609nR2di5Y&list=PLP-eBeyXNQLrg6XprN1VTVhRdROfQYZ49&index=20&pp=iAQB8AUB",
+        path: "/audio/xtra/alldayandnight.mp4",
 
-},
+        thumbnail: "/media/songs/alldayandnight.png",
 
-{
+        videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
+      },
 
-id: "vcnz-7",
+      {
+        id: "xtra-10",
 
-title: "song7",
+        title: "xtra",
 
-artist: "VCNZFM",
+        artist: "XTRAFM",
 
-path: "/audio/vcnz/song7.mp4",
+        path: "/audio/xtra/notearslefttocry.mp4",
 
-thumbnail: "/media/songs/vcnz/emptymind.png",
+        thumbnail: "/media/songs/notearslefttocry.png",
 
-videoUrl: "https://www.youtube.com/watch?v=mt0iqJ1eULo",
+        videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
+      },
 
-},
+      {
+        id: "xtra-11",
 
-],
+        title: "xtra",
 
-},
+        artist: "XTRAFM",
 
-{
+        path: "/audio/xtra/lifeline.mp4",
 
-id: "sn",
+        thumbnail: "/media/songs/lifeline.png",
 
-name: "SN",
+        videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
+      },
 
-songCount: 8,
+      {
+        id: "xtra-14",
 
-thumbnail: "/media/playlists/sn.png",
+        title: "xtra",
 
-songs: [
+        artist: "XTRAFM",
 
-{
+        path: "/audio/xtra/starboy.mp4",
 
-id: "sn-1",
+        thumbnail: "/media/songs/starboy.png",
 
-title: "lune",
+        videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
+      },
 
-artist: "SNFM",
+      {
+        id: "xtra-15",
 
-path: "/audio/sn/lune.mp4",
+        title: "xtra",
 
-thumbnail: "/media/songs/lune.png",
+        artist: "XTRAFM",
 
-videoUrl: "https://www.youtube.com/watch?v=CvFH_6DNRCY",
+        path: "/audio/xtra/youright.mp4",
 
-},
+        thumbnail: "/media/songs/youright.png",
 
-{
+        videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
+      },
 
-id: "sn-2",
+      {
+        id: "xtra-16",
 
-title: "sns",
+        title: "xtra",
 
-artist: "SNFM",
+        artist: "XTRAFM",
 
-path: "/audio/sn/swans.mp4",
+        path: "/audio/xtra/popular.mp4",
 
-thumbnail: "/media/songs/sns.png",
+        thumbnail: "/media/songs/popular.png",
 
-videoUrl: "https://youtube.com/watch?v=MyzfjP_wXBw",
+        videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
+      },
 
-},
+      {
+        id: "xtra-17",
 
-{
+        title: "xtra",
 
-id: "sn-3",
+        artist: "XTRAFM",
 
-title: "ballade",
+        path: "/audio/xtra/breakmyheart.mp4",
 
-artist: "SNFM",
+        thumbnail: "/media/songs/breakmyheart.png",
 
-path: "/audio/sn/ballade.mp4",
+        videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
+      },
 
-thumbnail: "/media/songs/ballade.png",
+      {
+        id: "xtra-12",
 
-videoUrl: "https://www.youtube.com/watch?v=2uvAewYkEFU",
+        title: "xtra",
 
-},
+        artist: "XTRAFM",
 
-{
+        path: "/audio/xtra/often.mp4",
 
-id: "sn-4",
+        thumbnail: "/media/songs/often.png",
 
-title: "nocturne",
+        videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
+      },
 
-artist: "SNFM",
+      {
+        id: "xtra-19",
 
-path: "/audio/sn/nocturne.mp4",
+        title: "xtra",
 
-thumbnail: "/media/songs/nocturne.png",
+        artist: "XTRAFM",
 
-videoUrl: "https://www.youtube.com/watch?v=T7k2pmKUXxI",
+        path: "/audio/xtra/provenza.mp4",
 
-},
+        thumbnail: "/media/songs/provenza.png",
 
-{
+        videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
+      },
 
-id: "sn-5",
+      {
+        id: "xtra-20",
 
-title: "fantasia",
+        title: "xtra",
 
-artist: "SNFM",
+        artist: "XTRAFM",
 
-path: "/audio/sn/fantasia.mp4",
+        path: "/audio/xtra/soco.mp4",
 
-thumbnail: "/media/songs/fantasia.png",
+        thumbnail: "/media/songs/soco.png",
 
-videoUrl: "https://www.youtube.com/watch?v=zlWAdUPUCJw",
+        videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
+      },
 
-},
+      {
+        id: "xtra-21",
 
-{
+        title: "xtra",
 
-id: "sn-6",
+        artist: "XTRAFM",
 
-title: "overuse",
+        path: "/audio/xtra/enchantedwaterfall.mp4",
 
-artist: "SNFM",
+        thumbnail: "/media/songs/enchantedwaterfall.png",
 
-path: "/audio/sn/overuse.mp4",
+        videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
+      },
 
-thumbnail: "/media/songs/overuse.png",
+      {
+        id: "xtra-22",
 
-videoUrl: "https://www.youtube.com/watch?v=rrBsvldbwdQ",
+        title: "xtra",
 
-},
+        artist: "XTRAFM",
 
-{
+        path: "/audio/xtra/pinkdolphinsunsetxmidnightsinterlude.mp4",
 
-id: "sn-7",
+        thumbnail: "/media/songs/pinkdolphinsunsetxmidnightsinterlude.png",
 
-title: "lacrimosa",
+        videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
+      },
+      {
+        id: "xtra-23",
 
-artist: "SNFM",
+        title: "xtra",
 
-path: "/audio/sn/lacrimosa.mp4",
+        artist: "XTRAFM",
 
-thumbnail: "/media/songs/lacrimosa.png",
+        path: "/audio/xtra/thecolorviolet.mp4",
 
-videoUrl: "https://www.youtube.com/watch?v=mt6m63ylw-g",
+        thumbnail: "/media/songs/thecolorviolet.png",
 
-},
+        videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
+      },
+      {
+        id: "xtra-24",
 
-{
+        title: "xtra",
 
-id: "sn-8",
+        artist: "XTRAFM",
 
-title: "lake",
+        path: "/audio/xtra/ladyofnamek.mp4",
 
-artist: "SNFM",
+        thumbnail: "/media/songs/ladyofnamek.png",
 
-path: "/audio/sn/lake.mp4",
+        videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
+      },
+      {
+        id: "xtra-25",
 
-thumbnail: "/media/songs/lake.png",
+        title: "xtra",
 
-videoUrl: "https://www.youtube.com/watch?v=xF_x4oenM1E",
+        artist: "XTRAFM",
 
-},
+        path: "/audio/xtra/wishinevermetyou.mp4",
 
-{
+        thumbnail: "/media/songs/wishinevermetyou.png",
 
-id: "sn-9",
+        videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
+      },
+    ],
+  },
 
-title: "song9",
+  {
+    id: "xo",
 
-artist: "SNFM",
+    name: "XO",
 
-path: "/audio/sn/song9.mp4",
+    songCount: 12,
 
-thumbnail: "/media/songs/song9.png",
+    thumbnail: "/media/playlists/xo.png",
 
-videoUrl: "https://www.youtube.com/watch?v=zQebdkLvD00",
+    songs: [
+      {
+        id: "xo-1",
 
-},
+        title: "pretty",
 
-],
+        artist: "XO",
 
-},
+        path: "/audio/xo/pretty.mp4",
 
-{
+        thumbnail: "/media/songs/nxra/pretty.png",
 
-id: "xtra",
+        videoUrl: "https://www.youtube.com/watch?v=-JVv2TuLyMo",
+      },
 
-name: "XTRA",
+      {
+        id: "xo-2",
 
-songCount: 3,
+        title: "wicked games",
 
-thumbnail: "/media/playlists/xtra.png",
+        artist: "XO",
 
-songs: [
+        path: "/audio/xo/wickedgames.mp4",
 
-{
+        thumbnail: "/media/songs/nxra/song13.png",
 
-id: "xtra-1",
+        videoUrl: "https://www.youtube.com/watch?v=OG0AONeJb3w",
+      },
 
-title: "song1",
+      {
+        id: "xo-3",
 
-artist: "XTRAFM",
+        title: "the knowing",
 
-path: "/audio/xtra/saopaulo.mp4",
+        artist: "XO",
 
-thumbnail: "/media/songs/saopaulo.png",
+        path: "/audio/xo/theknowing.mp4",
 
-videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
+        thumbnail: "/media/songs/nxra/theknowing.png",
 
-},
+        videoUrl: "https://www.youtube.com/watch?v=ATKejfb_CEo",
+      },
 
-{
+      {
+        id: "xo-4",
 
-id: "xtra-2",
+        title: "valerie",
 
-title: "song2",
+        artist: "XO",
 
-artist: "XTRAFM",
+        path: "/audio/xo/valerie.mp4",
 
-path: "/audio/xtra/timeless.mp4",
+        thumbnail: "/media/songs/nxra/valerie.png",
 
-thumbnail: "/media/songs/timeless.png",
+        videoUrl: "https://www.youtube.com/watch?v=inDquagdkaY",
+      },
 
-videoUrl: "https://www.youtube.com/watch?v=3upvj6tDHoI",
+      {
+        id: "xo-5",
 
-},
+        title: "professional",
 
-{
+        artist: "XO",
 
-id: "xtra-3",
+        path: "/audio/xo/professional.mp4",
 
-title: "song3",
+        thumbnail: "/media/songs/nxra/professional.png",
 
-artist: "XTRAFM",
+        videoUrl: "https://www.youtube.com/watch?v=dJ411PNfyXQ",
+      },
 
-path: "/audio/xtra/howdeepisyourlove.mp4",
+      {
+        id: "xo-6",
 
-thumbnail: "/media/songs/howdeepisyourlove.png",
+        title: "the town",
 
-videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
+        artist: "XO",
 
-},
+        path: "/audio/xo/thetown.mp4",
 
-{
+        thumbnail: "/media/songs/nxra/thetown.png",
 
-id: "xtra-4",
+        videoUrl: "https://www.youtube.com/watch?v=PAN6mc-3cyI",
+      },
 
-title: "song4",
+      {
+        id: "xo-7",
 
-artist: "XTRAFM",
+        title: "adaptation",
 
-path: "/audio/xtra/song4.mp4",
+        artist: "XO",
 
-thumbnail: "/media/songs/song4.png",
+        path: "/audio/xo/adaptation.mp4",
 
-videoUrl: "https://www.youtube.com/watch?v=h9NSpC2xE-0",
+        thumbnail: "/media/songs/nxra/adaptation.png",
 
-},
+        videoUrl: "https://www.youtube.com/watch?v=dJ411PNfyXQ",
+      },
 
-{
+      {
+        id: "xo-8",
 
-id: "xtra-5",
+        title: "love in the sky",
 
-title: "xtra",
+        artist: "XO",
 
-artist: "XTRAFM",
+        path: "/audio/xo/loveinthesky.mp4",
 
-path: "/audio/xtra/siai.mp4",
+        thumbnail: "/media/songs/nxra/loveinthesky.png",
 
-thumbnail: "/media/songs/siai.png",
+        videoUrl: "https://www.youtube.com/watch?v=sU4UQRxISFU",
+      },
 
-videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
+      {
+        id: "xo-9",
 
-},
+        title: "privilege",
 
-{
+        artist: "XO",
 
-id: "xtra-6",
+        path: "/audio/xo/privilege.mp4",
 
-title: "xtra",
+        thumbnail: "/media/songs/nxra/privilege.png",
 
-artist: "XTRAFM",
+        videoUrl: "https://www.youtube.com/watch?v=cZdCRW4UWkk",
+      },
 
-path: "/audio/xtra/malamente.mp4",
+      {
+        id: "xo-10",
 
-thumbnail: "/media/songs/malamente.png",
+        title: "snowchild",
 
-videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
+        artist: "XO",
 
-},
+        path: "/audio/xo/snowchild.mp4",
 
-{
+        thumbnail: "/media/songs/nxra/snowchild.png",
 
-id: "xtra-7",
+        videoUrl: "https://www.youtube.com/watch?v=pF7N659wVRg",
+      },
 
-title: "xtra",
+      {
+        id: "xo-11",
 
-artist: "XTRAFM",
+        title: "shameless",
 
-path: "/audio/xtra/yekeyeke.mp4",
+        artist: "XO",
 
-thumbnail: "/media/songs/yekeyeke.png",
+        path: "/audio/xo/shameless.mp4",
 
-videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
+        thumbnail: "/media/songs/nxra/shameless.png",
 
-},
+        videoUrl: "https://www.youtube.com/watch?v=5GetQaksxJ0",
+      },
 
-{
+      {
+        id: "xo-12",
 
-id: "xtra-8",
+        title: "song13",
 
-title: "xtra",
+        artist: "XO",
 
-artist: "XTRAFM",
+        path: "/audio/xo/song13.mp4",
 
-path: "/audio/xtra/thehills.mp4",
+        thumbnail: "/media/songs/nxra/song13.png",
 
-thumbnail: "/media/songs/thehills.png",
+        videoUrl: "https://www.youtube.com/watch?v=NovEzbESlL8",
+      },
 
-videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
+      {
+        id: "xo-13",
 
-},
+        title: "i was never there",
 
-{
+        artist: "XO",
 
-id: "xtra-9",
+        path: "/audio/xo/iwasneverthere.mp4",
 
-title: "xtra",
+        thumbnail: "/media/songs/nxra/iwasneverthere.png",
 
-artist: "XTRAFM",
-
-path: "/audio/xtra/alldayandnight.mp4",
-
-thumbnail: "/media/songs/alldayandnight.png",
-
-videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
-
-},
-
-{
-
-id: "xtra-10",
-
-title: "xtra",
-
-artist: "XTRAFM",
-
-path: "/audio/xtra/notearslefttocry.mp4",
-
-thumbnail: "/media/songs/notearslefttocry.png",
-
-videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
-
-},
-
-{
-
-id: "xtra-11",
-
-title: "xtra",
-
-artist: "XTRAFM",
-
-path: "/audio/xtra/lifeline.mp4",
-
-thumbnail: "/media/songs/lifeline.png",
-
-videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
-
-},
-
-{
-
-id: "xtra-14",
-
-title: "xtra",
-
-artist: "XTRAFM",
-
-path: "/audio/xtra/starboy.mp4",
-
-thumbnail: "/media/songs/starboy.png",
-
-videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
-
-},
-
-{
-
-id: "xtra-15",
-
-title: "xtra",
-
-artist: "XTRAFM",
-
-path: "/audio/xtra/youright.mp4",
-
-thumbnail: "/media/songs/youright.png",
-
-videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
-
-},
-
-{
-
-id: "xtra-16",
-
-title: "xtra",
-
-artist: "XTRAFM",
-
-path: "/audio/xtra/popular.mp4",
-
-thumbnail: "/media/songs/popular.png",
-
-videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
-
-},
-
-{
-
-id: "xtra-17",
-
-title: "xtra",
-
-artist: "XTRAFM",
-
-path: "/audio/xtra/breakmyheart.mp4",
-
-thumbnail: "/media/songs/breakmyheart.png",
-
-videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
-
-},
-
-{
-
-id: "xtra-12",
-
-title: "xtra",
-
-artist: "XTRAFM",
-
-path: "/audio/xtra/often.mp4",
-
-thumbnail: "/media/songs/often.png",
-
-videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
-
-},
-
-{
-
-id: "xtra-19",
-
-title: "xtra",
-
-artist: "XTRAFM",
-
-path: "/audio/xtra/provenza.mp4",
-
-thumbnail: "/media/songs/provenza.png",
-
-videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
-
-},
-
-{
-
-id: "xtra-20",
-
-title: "xtra",
-
-artist: "XTRAFM",
-
-path: "/audio/xtra/soco.mp4",
-
-thumbnail: "/media/songs/soco.png",
-
-videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
-
-},
-
-{
-
-id: "xtra-21",
-
-title: "xtra",
-
-artist: "XTRAFM",
-
-path: "/audio/xtra/enchantedwaterfall.mp4",
-
-thumbnail: "/media/songs/enchantedwaterfall.png",
-
-videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
-
-},
-
-{
-
-id: "xtra-22",
-
-title: "xtra",
-
-artist: "XTRAFM",
-
-path: "/audio/xtra/thecolorviolet.mp4",
-
-thumbnail: "/media/songs/thecolorviolet.png",
-
-videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
-
-},
-
-{
-
-id: "xtra-23",
-
-title: "xtra",
-
-artist: "XTRAFM",
-
-path: "/audio/xtra/wishinevermetyou.mp4",
-
-thumbnail: "/media/songs/wishinevermetyou.png",
-
-videoUrl: "https://www.youtube.com/watch?v=FiE1pA_86S4",
-
-},
-
-],
-
-},
-
-{
-
-id: "xo",
-
-name: "XO",
-
-songCount: 12,
-
-thumbnail: "/media/playlists/xo.png",
-
-songs: [
-
-{
-
-id: "xo-1",
-
-title: "pretty",
-
-artist: "XO",
-
-path: "/audio/xo/pretty.mp4",
-
-thumbnail: "/media/songs/nxra/pretty.png",
-
-videoUrl: "https://www.youtube.com/watch?v=-JVv2TuLyMo",
-
-},
-
-{
-
-id: "xo-2",
-
-title: "wicked games",
-
-artist: "XO",
-
-path: "/audio/xo/wickedgames.mp4",
-
-thumbnail: "/media/songs/nxra/song13.png",
-
-videoUrl: "https://www.youtube.com/watch?v=OG0AONeJb3w",
-
-},
-
-{
-
-id: "xo-3",
-
-title: "the knowing",
-
-artist: "XO",
-
-path: "/audio/xo/theknowing.mp4",
-
-thumbnail: "/media/songs/nxra/theknowing.png",
-
-videoUrl: "https://www.youtube.com/watch?v=ATKejfb_CEo",
-
-},
-
-{
-
-id: "xo-4",
-
-title: "valerie",
-
-artist: "XO",
-
-path: "/audio/xo/valerie.mp4",
-
-thumbnail: "/media/songs/nxra/valerie.png",
-
-videoUrl: "https://www.youtube.com/watch?v=inDquagdkaY",
-
-},
-
-{
-
-id: "xo-5",
-
-title: "professional",
-
-artist: "XO",
-
-path: "/audio/xo/professional.mp4",
-
-thumbnail: "/media/songs/nxra/professional.png",
-
-videoUrl: "https://www.youtube.com/watch?v=dJ411PNfyXQ",
-
-},
-
-{
-
-id: "xo-6",
-
-title: "the town",
-
-artist: "XO",
-
-path: "/audio/xo/thetown.mp4",
-
-thumbnail: "/media/songs/nxra/thetown.png",
-
-videoUrl: "https://www.youtube.com/watch?v=PAN6mc-3cyI",
-
-},
-
-{
-
-id: "xo-7",
-
-title: "adaptation",
-
-artist: "XO",
-
-path: "/audio/xo/adaptation.mp4",
-
-thumbnail: "/media/songs/nxra/adaptation.png",
-
-videoUrl: "https://www.youtube.com/watch?v=dJ411PNfyXQ",
-
-},
-
-{
-
-id: "xo-8",
-
-title: "love in the sky",
-
-artist: "XO",
-
-path: "/audio/xo/loveinthesky.mp4",
-
-thumbnail: "/media/songs/nxra/loveinthesky.png",
-
-videoUrl: "https://www.youtube.com/watch?v=sU4UQRxISFU",
-
-},
-
-{
-
-id: "xo-9",
-
-title: "privilege",
-
-artist: "XO",
-
-path: "/audio/xo/privilege.mp4",
-
-thumbnail: "/media/songs/nxra/privilege.png",
-
-videoUrl: "https://www.youtube.com/watch?v=cZdCRW4UWkk",
-
-},
-
-{
-
-id: "xo-10",
-
-title: "snowchild",
-
-artist: "XO",
-
-path: "/audio/xo/snowchild.mp4",
-
-thumbnail: "/media/songs/nxra/snowchild.png",
-
-videoUrl: "https://www.youtube.com/watch?v=pF7N659wVRg",
-
-},
-
-{
-
-id: "xo-11",
-
-title: "shameless",
-
-artist: "XO",
-
-path: "/audio/xo/shameless.mp4",
-
-thumbnail: "/media/songs/nxra/shameless.png",
-
-videoUrl: "https://www.youtube.com/watch?v=5GetQaksxJ0",
-
-},
-
-{
-
-id: "xo-12",
-
-title: "song13",
-
-artist: "XO",
-
-path: "/audio/xo/song13.mp4",
-
-thumbnail: "/media/songs/nxra/song13.png",
-
-videoUrl: "https://www.youtube.com/watch?v=NovEzbESlL8",
-
-},
-
-{
-
-id: "xo-13",
-
-title: "i was never there",
-
-artist: "XO",
-
-path: "/audio/xo/iwasneverthere.mp4",
-
-thumbnail: "/media/songs/nxra/iwasneverthere.png",
-
-videoUrl: "https://www.youtube.com/watch?v=ZIDB9mp0Cn0",
-
-},
-
-],
-
-},
-
+        videoUrl: "https://www.youtube.com/watch?v=ZIDB9mp0Cn0",
+      },
+    ],
+  },
 ];
-
-  
 
 const STORAGE_KEY = "musicState";
 
-  
-
 interface PersistedState {
+  currentSongIndex: number;
 
-currentSongIndex: number;
+  currentTime: number;
 
-currentTime: number;
+  volume: number;
 
-volume: number;
+  currentPlaylistId: string;
 
-currentPlaylistId: string;
+  fmModeEnabled: Record<string, boolean>;
 
-fmModeEnabled: Record<string, boolean>;
+  // New shuffle-related state
 
-// New shuffle-related state
+  shuffleModeEnabled: Record<string, boolean>;
 
-shuffleModeEnabled: Record<string, boolean>;
-
-shuffledSongIndices: Record<string, number[]>;
-
+  shuffledSongIndices: Record<string, number[]>;
 }
-
-  
 
 const MusicContext = createContext<MusicContextType | undefined>(undefined);
 
-  
-
 export function MusicProvider({ children }: { children: React.ReactNode }) {
+  // Load persisted state from localStorage
 
-// Load persisted state from localStorage
+  const loadPersistedState = (): PersistedState => {
+    if (typeof window === "undefined")
+      return {
+        currentSongIndex: 0,
 
-const loadPersistedState = (): PersistedState => {
+        currentTime: 0,
 
-if (typeof window === "undefined")
+        volume: 1,
 
-return {
+        currentPlaylistId: "xpfm",
 
-currentSongIndex: 0,
+        fmModeEnabled: {},
 
-currentTime: 0,
+        shuffleModeEnabled: {},
 
-volume: 1,
+        shuffledSongIndices: {},
+      };
 
-currentPlaylistId: "xpfm",
+    const saved = localStorage.getItem(STORAGE_KEY);
 
-fmModeEnabled: {},
+    if (!saved)
+      return {
+        currentSongIndex: 0,
 
-shuffleModeEnabled: {},
+        currentTime: 0,
 
-shuffledSongIndices: {},
+        volume: 1,
 
-};
+        currentPlaylistId: "xpfm",
 
-  
+        fmModeEnabled: {},
 
-const saved = localStorage.getItem(STORAGE_KEY);
+        shuffleModeEnabled: {},
 
-if (!saved)
+        shuffledSongIndices: {},
+      };
 
-return {
+    try {
+      return JSON.parse(saved);
+    } catch {
+      return {
+        currentSongIndex: 0,
 
-currentSongIndex: 0,
+        currentTime: 0,
 
-currentTime: 0,
+        volume: 1,
 
-volume: 1,
+        currentPlaylistId: "xpfm",
 
-currentPlaylistId: "xpfm",
+        fmModeEnabled: {},
 
-fmModeEnabled: {},
+        shuffleModeEnabled: {},
 
-shuffleModeEnabled: {},
+        shuffledSongIndices: {},
+      };
+    }
+  };
 
-shuffledSongIndices: {},
+  const [isWallpaperMode, setIsWallpaperMode] = useState(() => {
+    if (typeof window === "undefined") return false;
 
-};
+    return localStorage.getItem("musicWallpaperMode") === "true";
+  });
 
-  
+  // Save wallpaper mode to localStorage
 
-try {
+  useEffect(() => {
+    localStorage.setItem("musicWallpaperMode", isWallpaperMode.toString());
+  }, [isWallpaperMode]);
 
-return JSON.parse(saved);
+  const toggleWallpaperMode = () => {
+    setIsWallpaperMode((prev) => !prev);
+  };
 
-} catch {
+  // State management
 
-return {
+  const [currentPlaylist, setCurrentPlaylist] = useState<Playlist | null>(
+    () => {
+      const persisted = loadPersistedState();
 
-currentSongIndex: 0,
+      return (
+        ALL_PLAYLISTS.find((p) => p.id === persisted.currentPlaylistId) ||
+        ALL_PLAYLISTS[0]
+      );
+    }
+  );
 
-currentTime: 0,
+  const [songs, setSongs] = useState<Song[]>(
+    () => currentPlaylist?.songs || []
+  );
 
-volume: 1,
+  const [currentSongIndex, setCurrentSongIndex] = useState(
+    () => loadPersistedState().currentSongIndex
+  );
 
-currentPlaylistId: "xpfm",
+  const [isPlaying, setIsPlaying] = useState(false);
 
-fmModeEnabled: {},
+  const [songProgress, setSongProgress] = useState(0);
 
-shuffleModeEnabled: {},
+  const [volume, setVolume] = useState(() => loadPersistedState().volume);
 
-shuffledSongIndices: {},
+  const [currentTime, setCurrentTime] = useState(
+    () => loadPersistedState().currentTime
+  );
 
-};
+  const [duration, setDuration] = useState(0);
 
+  const [fmModeEnabled, setFmModeEnabled] = useState<Record<string, boolean>>(
+    () => loadPersistedState().fmModeEnabled || {}
+  );
+
+  // New shuffle-related state
+
+  const [shuffleModeEnabled, setShuffleModeEnabled] = useState<
+    Record<string, boolean>
+  >(() => loadPersistedState().shuffleModeEnabled || {});
+
+  const [shuffledSongIndices, setShuffledSongIndices] = useState<
+    Record<string, number[]>
+  >(() => loadPersistedState().shuffledSongIndices || {});
+
+  const audioRef = useRef<HTMLAudioElement>(null);
+
+  // Create a function to shuffle songs for a playlist
+
+  const shufflePlaylist = useCallback(
+    (playlistId: string) => {
+      const playlist = ALL_PLAYLISTS.find((p) => p.id === playlistId);
+
+      if (!playlist) return;
+
+      // Create an array of indices and shuffle it
+
+      const indices = Array.from(
+        { length: playlist.songs.length },
+
+        (_, i) => i
+      );
+
+      // Fisher-Yates shuffle algorithm
+
+      for (let i = indices.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+
+        [indices[i], indices[j]] = [indices[j], indices[i]];
+      }
+
+      setShuffledSongIndices((prev) => ({
+        ...prev,
+
+        [playlistId]: indices,
+      }));
+
+      // Update localStorage
+
+      if (currentPlaylist) {
+        localStorage.setItem(
+          STORAGE_KEY,
+
+          JSON.stringify({
+            currentSongIndex,
+
+            currentTime,
+
+            volume,
+
+            currentPlaylistId: currentPlaylist.id,
+
+            fmModeEnabled,
+
+            shuffleModeEnabled,
+
+            shuffledSongIndices: {
+              ...shuffledSongIndices,
+
+              [playlistId]: indices,
+            },
+          })
+        );
+      }
+    },
+
+    [
+      ALL_PLAYLISTS,
+
+      currentPlaylist,
+
+      currentSongIndex,
+
+      currentTime,
+
+      volume,
+
+      fmModeEnabled,
+
+      shuffleModeEnabled,
+
+      shuffledSongIndices,
+    ]
+  );
+
+  // Toggle shuffle mode for a playlist
+
+  const toggleShuffleMode = useCallback(
+    (playlistId: string) => {
+      setShuffleModeEnabled((prev) => {
+        const newState = { ...prev, [playlistId]: !prev[playlistId] };
+
+        // If enabling shuffle, create shuffled indices
+
+        if (
+          newState[playlistId] &&
+          (!shuffledSongIndices[playlistId] ||
+            shuffledSongIndices[playlistId].length === 0)
+        ) {
+          shufflePlaylist(playlistId);
+        }
+
+        // Save to localStorage
+
+        if (currentPlaylist) {
+          localStorage.setItem(
+            STORAGE_KEY,
+
+            JSON.stringify({
+              currentSongIndex,
+
+              currentTime,
+
+              volume,
+
+              currentPlaylistId: currentPlaylist.id,
+
+              fmModeEnabled,
+
+              shuffleModeEnabled: newState,
+
+              shuffledSongIndices,
+            })
+          );
+        }
+
+        return newState;
+      });
+    },
+
+    [
+      currentPlaylist,
+
+      currentSongIndex,
+
+      currentTime,
+
+      volume,
+
+      fmModeEnabled,
+
+      shuffledSongIndices,
+
+      shufflePlaylist,
+    ]
+  );
+
+  // Corrected resetShuffleForPlaylist function for MusicContext.tsx
+
+  const resetShuffleForPlaylist = useCallback(
+    (playlistId: string) => {
+      // First, clear the shuffled indices for this playlist
+
+      setShuffledSongIndices((prev) => {
+        const newState = { ...prev };
+
+        delete newState[playlistId];
+
+        // If this is the current playlist being reset
+
+        if (currentPlaylist && currentPlaylist.id === playlistId) {
+          // Set the audio to the first track, but paused
+
+          setCurrentSongIndex(0);
+
+          setSongProgress(0);
+
+          setCurrentTime(0);
+
+          setIsPlaying(false);
+
+          // Immediately update the audio element
+
+          if (audioRef.current) {
+            audioRef.current.currentTime = 0;
+
+            audioRef.current.pause();
+          }
+        }
+
+        // Save to localStorage
+
+        if (currentPlaylist) {
+          localStorage.setItem(
+            STORAGE_KEY,
+
+            JSON.stringify({
+              currentSongIndex:
+                currentPlaylist.id === playlistId ? 0 : currentSongIndex,
+
+              currentTime: currentPlaylist.id === playlistId ? 0 : currentTime,
+
+              volume,
+
+              currentPlaylistId: currentPlaylist.id,
+
+              fmModeEnabled,
+
+              shuffleModeEnabled,
+
+              shuffledSongIndices: newState,
+            })
+          );
+        }
+
+        return newState;
+      });
+    },
+
+    [
+      currentPlaylist,
+
+      currentSongIndex,
+
+      currentTime,
+
+      volume,
+
+      fmModeEnabled,
+
+      shuffleModeEnabled,
+    ]
+  );
+
+  const toggleFmMode = (playlistId: string) => {
+    setFmModeEnabled((prev) => {
+      const updated = { ...prev, [playlistId]: !prev[playlistId] };
+
+      if (currentPlaylist) {
+        localStorage.setItem(
+          STORAGE_KEY,
+
+          JSON.stringify({
+            currentSongIndex,
+
+            currentTime,
+
+            volume,
+
+            currentPlaylistId: currentPlaylist.id,
+
+            fmModeEnabled: updated,
+
+            shuffleModeEnabled,
+
+            shuffledSongIndices,
+          })
+        );
+      }
+
+      return updated;
+    });
+  };
+
+  // Persist state changes
+
+  useEffect(() => {
+    if (currentPlaylist) {
+      localStorage.setItem(
+        STORAGE_KEY,
+
+        JSON.stringify({
+          currentSongIndex,
+
+          currentTime,
+
+          volume,
+
+          currentPlaylistId: currentPlaylist.id,
+
+          fmModeEnabled,
+
+          shuffleModeEnabled,
+
+          shuffledSongIndices,
+        })
+      );
+    }
+  }, [
+    currentSongIndex,
+
+    currentTime,
+
+    volume,
+
+    currentPlaylist,
+
+    fmModeEnabled,
+
+    shuffleModeEnabled,
+
+    shuffledSongIndices,
+  ]);
+
+  // Restore playback position on mount
+
+  useEffect(() => {
+    if (audioRef.current) {
+      const savedTime = loadPersistedState().currentTime;
+
+      audioRef.current.currentTime = savedTime;
+    }
+  }, []);
+
+  // Find this useEffect that handles periodic saves in MusicContext
+
+  useEffect(() => {
+    if (audioRef.current) {
+      const audio = audioRef.current;
+
+      const handleTimeUpdate = () => {
+        setSongProgress((audio.currentTime / audio.duration) * 100);
+
+        setCurrentTime(audio.currentTime);
+      };
+
+      const handleDurationChange = () => {
+        setDuration(audio.duration);
+      };
+
+      // Save current time periodically
+
+      const saveTimeInterval = setInterval(() => {
+        if (audio.currentTime > 0 && currentPlaylist) {
+          localStorage.setItem(
+            STORAGE_KEY,
+
+            JSON.stringify({
+              currentSongIndex,
+
+              currentTime: audio.currentTime,
+
+              volume,
+
+              currentPlaylistId: currentPlaylist.id,
+
+              fmModeEnabled,
+
+              shuffleModeEnabled,
+
+              shuffledSongIndices,
+            })
+          );
+        }
+      }, 1000);
+
+      audio.addEventListener("timeupdate", handleTimeUpdate);
+
+      audio.addEventListener("durationchange", handleDurationChange);
+
+      return () => {
+        audio.removeEventListener("timeupdate", handleTimeUpdate);
+
+        audio.removeEventListener("durationchange", handleDurationChange);
+
+        clearInterval(saveTimeInterval);
+      };
+    }
+  }, [
+    currentSongIndex,
+
+    songs.length,
+
+    volume,
+
+    currentPlaylist,
+
+    fmModeEnabled,
+
+    shuffleModeEnabled,
+
+    shuffledSongIndices,
+  ]);
+
+  const togglePlay = () => {
+    if (audioRef.current) {
+      if (isPlaying) {
+        audioRef.current.pause();
+      } else {
+        audioRef.current.play();
+      }
+
+      setIsPlaying(!isPlaying);
+    }
+  };
+
+  // Updated playNext with shuffle support
+
+  const playNext = () => {
+    if (currentSongIndex < songs.length - 1) {
+      setSongProgress(0);
+
+      setCurrentTime(0);
+
+      setDuration(0);
+
+      // Handle shuffle mode if enabled for current playlist
+
+      if (
+        currentPlaylist &&
+        shuffleModeEnabled[currentPlaylist.id] &&
+        shuffledSongIndices[currentPlaylist.id]
+      ) {
+        const shuffledIndices = shuffledSongIndices[currentPlaylist.id];
+
+        const currentShuffleIndex = shuffledIndices.findIndex(
+          (idx) => idx === currentSongIndex
+        );
+
+        if (currentShuffleIndex < shuffledIndices.length - 1) {
+          const nextSongIndex = shuffledIndices[currentShuffleIndex + 1];
+
+          setCurrentSongIndex(nextSongIndex);
+        } else {
+          // Loop back to beginning of shuffle if at the end
+
+          const nextSongIndex = shuffledIndices[0];
+
+          setCurrentSongIndex(nextSongIndex);
+        }
+      } else {
+        // Normal sequential play
+
+        setCurrentSongIndex((prev) => prev + 1);
+      }
+
+      // Ensure we reset the audio properly
+
+      if (audioRef.current) {
+        audioRef.current.currentTime = 0;
+
+        audioRef.current.pause(); // Ensure we pause first
+
+        // Small timeout to ensure state updates have propagated
+
+        setTimeout(() => {
+          if (audioRef.current) {
+            const playPromise = audioRef.current.play();
+
+            if (playPromise !== undefined) {
+              playPromise
+
+                .then(() => {
+                  setIsPlaying(true);
+                })
+
+                .catch((error) => {
+                  console.error("Error playing audio:", error);
+                });
+            }
+          }
+        }, 50);
+      }
+    }
+  };
+
+  // Updated playPrevious with shuffle support
+
+  const playPrevious = () => {
+    if (currentSongIndex > 0) {
+      // Reset all playback-related states
+
+      setSongProgress(0);
+
+      setCurrentTime(0);
+
+      setDuration(0);
+
+      setIsPlaying(false); // Reset playing state first
+
+      // Handle shuffle mode if enabled for current playlist
+
+      if (
+        currentPlaylist &&
+        shuffleModeEnabled[currentPlaylist.id] &&
+        shuffledSongIndices[currentPlaylist.id]
+      ) {
+        const shuffledIndices = shuffledSongIndices[currentPlaylist.id];
+
+        const currentShuffleIndex = shuffledIndices.findIndex(
+          (idx) => idx === currentSongIndex
+        );
+
+        if (currentShuffleIndex > 0) {
+          const prevSongIndex = shuffledIndices[currentShuffleIndex - 1];
+
+          setCurrentSongIndex(prevSongIndex);
+        } else {
+          // Loop to end of shuffle if at beginning
+
+          const prevSongIndex = shuffledIndices[shuffledIndices.length - 1];
+
+          setCurrentSongIndex(prevSongIndex);
+        }
+      } else {
+        // Normal sequential play
+
+        setCurrentSongIndex((prev) => prev - 1);
+      }
+
+      if (audioRef.current) {
+        audioRef.current.currentTime = 0;
+
+        // Small timeout to ensure state updates have propagated
+
+        setTimeout(() => {
+          const playPromise = audioRef.current?.play();
+
+          if (playPromise !== undefined) {
+            playPromise
+
+              .then(() => {
+                setIsPlaying(true);
+              })
+
+              .catch((error) => {
+                console.error("Error playing audio:", error);
+              });
+          }
+        }, 50);
+      }
+    }
+  };
+
+  const playPlaylist = (playlistId: string) => {
+    const playlist = ALL_PLAYLISTS.find((p) => p.id === playlistId);
+
+    if (playlist) {
+      // Reset all playback-related states first
+
+      setSongProgress(0);
+
+      setCurrentTime(0);
+
+      setDuration(0);
+
+      setIsPlaying(false); // Reset playing state first
+
+      // Update playlist and song states
+
+      setCurrentPlaylist(playlist);
+
+      setSongs(playlist.songs);
+
+      // If shuffle mode is enabled for this playlist, start with the first shuffled index
+
+      if (
+        shuffleModeEnabled[playlistId] &&
+        shuffledSongIndices[playlistId]?.length > 0
+      ) {
+        setCurrentSongIndex(shuffledSongIndices[playlistId][0]);
+      } else {
+        // Otherwise start from the beginning
+
+        setCurrentSongIndex(0);
+      }
+
+      if (audioRef.current) {
+        audioRef.current.currentTime = 0;
+
+        // Small timeout to ensure state updates have propagated
+
+        setTimeout(() => {
+          const playPromise = audioRef.current?.play();
+
+          if (playPromise !== undefined) {
+            playPromise
+
+              .then(() => {
+                setIsPlaying(true);
+              })
+
+              .catch((error) => {
+                console.error("Error playing audio:", error);
+              });
+          }
+        }, 50);
+      }
+    }
+  };
+
+  const seek = (time: number) => {
+    if (audioRef.current) {
+      audioRef.current.currentTime = Math.min(time, audioRef.current.duration);
+
+      setCurrentTime(audioRef.current.currentTime);
+
+      setSongProgress(
+        (audioRef.current.currentTime / audioRef.current.duration) * 100
+      );
+    }
+  };
+
+  // Update the handleEnded event handler in the useEffect
+
+  useEffect(() => {
+    if (audioRef.current) {
+      const audio = audioRef.current;
+
+      const handleEnded = async () => {
+        const isFmEnabled = fmModeEnabled[currentPlaylist?.id || ""];
+
+        if (isFmEnabled) {
+          if (currentSongIndex < songs.length - 1) {
+            // Reset states first
+
+            setSongProgress(0);
+
+            setCurrentTime(0);
+
+            setDuration(0);
+
+            // If shuffle is enabled, play next shuffled song
+
+            if (
+              currentPlaylist &&
+              shuffleModeEnabled[currentPlaylist.id] &&
+              shuffledSongIndices[currentPlaylist.id]
+            ) {
+              const shuffledIndices = shuffledSongIndices[currentPlaylist.id];
+
+              const currentShuffleIndex = shuffledIndices.findIndex(
+                (idx) => idx === currentSongIndex
+              );
+
+              if (currentShuffleIndex < shuffledIndices.length - 1) {
+                const nextSongIndex = shuffledIndices[currentShuffleIndex + 1];
+
+                setCurrentSongIndex(nextSongIndex);
+              } else {
+                // Loop back to beginning of shuffle if at the end
+
+                const nextSongIndex = shuffledIndices[0];
+
+                setCurrentSongIndex(nextSongIndex);
+              }
+            } else {
+              // Normal sequential play
+
+              setCurrentSongIndex((prev) => prev + 1);
+            }
+
+            // Reset audio state
+
+            audio.currentTime = 0;
+
+            audio.pause();
+
+            // Small delay to ensure state updates
+
+            setTimeout(() => {
+              const playPromise = audio.play();
+
+              if (playPromise !== undefined) {
+                playPromise
+
+                  .then(() => {
+                    setIsPlaying(true);
+                  })
+
+                  .catch((error) => {
+                    console.error("Error playing next track:", error);
+                  });
+              }
+            }, 50);
+          } else {
+            // Handle playlist end - loop back to start
+
+            setSongProgress(0);
+
+            setCurrentTime(0);
+
+            setDuration(0);
+
+            // If shuffle is enabled, start with the first shuffled index
+
+            if (
+              currentPlaylist &&
+              shuffleModeEnabled[currentPlaylist.id] &&
+              shuffledSongIndices[currentPlaylist.id]?.length > 0
+            ) {
+              setCurrentSongIndex(shuffledSongIndices[currentPlaylist.id][0]);
+            } else {
+              // Otherwise start from the beginning
+
+              setCurrentSongIndex(0);
+            }
+
+            audio.currentTime = 0;
+
+            audio.pause();
+
+            setTimeout(() => {
+              const playPromise = audio.play();
+
+              if (playPromise !== undefined) {
+                playPromise
+
+                  .then(() => {
+                    setIsPlaying(true);
+                  })
+
+                  .catch((error) => {
+                    console.error("Error restarting playlist:", error);
+                  });
+              }
+            }, 50);
+          }
+        } else {
+          // If FM mode is disabled, just stop at the end
+
+          setIsPlaying(false);
+
+          setSongProgress(0);
+
+          setCurrentTime(0);
+        }
+      };
+
+      audio.addEventListener("ended", handleEnded);
+
+      return () => audio.removeEventListener("ended", handleEnded);
+    }
+  }, [
+    currentSongIndex,
+
+    songs.length,
+
+    fmModeEnabled,
+
+    currentPlaylist,
+
+    shuffleModeEnabled,
+
+    shuffledSongIndices,
+  ]);
+
+  return (
+    <MusicContext.Provider
+      value={{
+        seek,
+
+        songs,
+
+        currentSongIndex,
+
+        isPlaying,
+
+        songProgress,
+
+        volume,
+
+        currentTime,
+
+        duration,
+
+        playlists: ALL_PLAYLISTS,
+
+        currentPlaylist,
+
+        setSongs,
+
+        setCurrentSongIndex,
+
+        setIsPlaying,
+
+        setSongProgress,
+
+        setVolume,
+
+        togglePlay,
+
+        playNext,
+
+        playPrevious,
+
+        audioRef,
+
+        playPlaylist,
+
+        isWallpaperMode,
+
+        toggleWallpaperMode,
+
+        fmModeEnabled,
+
+        toggleFmMode,
+
+        // New shuffle-related properties
+
+        shuffleModeEnabled,
+
+        toggleShuffleMode,
+
+        resetShuffleForPlaylist,
+
+        shuffledSongIndices,
+      }}
+    >
+      <audio
+        ref={audioRef}
+        src={songs[currentSongIndex]?.path}
+        onPlay={() => setIsPlaying(true)}
+        onPause={() => setIsPlaying(false)}
+      />
+
+      {children}
+    </MusicContext.Provider>
+  );
 }
-
-};
-
-  
-
-const [isWallpaperMode, setIsWallpaperMode] = useState(() => {
-
-if (typeof window === "undefined") return false;
-
-return localStorage.getItem("musicWallpaperMode") === "true";
-
-});
-
-  
-
-// Save wallpaper mode to localStorage
-
-useEffect(() => {
-
-localStorage.setItem("musicWallpaperMode", isWallpaperMode.toString());
-
-}, [isWallpaperMode]);
-
-  
-
-const toggleWallpaperMode = () => {
-
-setIsWallpaperMode((prev) => !prev);
-
-};
-
-  
-
-// State management
-
-const [currentPlaylist, setCurrentPlaylist] = useState<Playlist | null>(
-
-() => {
-
-const persisted = loadPersistedState();
-
-return (
-
-ALL_PLAYLISTS.find((p) => p.id === persisted.currentPlaylistId) ||
-
-ALL_PLAYLISTS[0]
-
-);
-
-}
-
-);
-
-const [songs, setSongs] = useState<Song[]>(
-
-() => currentPlaylist?.songs || []
-
-);
-
-const [currentSongIndex, setCurrentSongIndex] = useState(
-
-() => loadPersistedState().currentSongIndex
-
-);
-
-const [isPlaying, setIsPlaying] = useState(false);
-
-const [songProgress, setSongProgress] = useState(0);
-
-const [volume, setVolume] = useState(() => loadPersistedState().volume);
-
-const [currentTime, setCurrentTime] = useState(
-
-() => loadPersistedState().currentTime
-
-);
-
-const [duration, setDuration] = useState(0);
-
-const [fmModeEnabled, setFmModeEnabled] = useState<Record<string, boolean>>(
-
-() => loadPersistedState().fmModeEnabled || {}
-
-);
-
-  
-
-// New shuffle-related state
-
-const [shuffleModeEnabled, setShuffleModeEnabled] = useState<
-
-Record<string, boolean>
-
->(() => loadPersistedState().shuffleModeEnabled || {});
-
-const [shuffledSongIndices, setShuffledSongIndices] = useState<
-
-Record<string, number[]>
-
->(() => loadPersistedState().shuffledSongIndices || {});
-
-  
-
-const audioRef = useRef<HTMLAudioElement>(null);
-
-  
-
-// Create a function to shuffle songs for a playlist
-
-const shufflePlaylist = useCallback(
-
-(playlistId: string) => {
-
-const playlist = ALL_PLAYLISTS.find((p) => p.id === playlistId);
-
-if (!playlist) return;
-
-  
-
-// Create an array of indices and shuffle it
-
-const indices = Array.from(
-
-{ length: playlist.songs.length },
-
-(_, i) => i
-
-);
-
-  
-
-// Fisher-Yates shuffle algorithm
-
-for (let i = indices.length - 1; i > 0; i--) {
-
-const j = Math.floor(Math.random() * (i + 1));
-
-[indices[i], indices[j]] = [indices[j], indices[i]];
-
-}
-
-  
-
-setShuffledSongIndices((prev) => ({
-
-...prev,
-
-[playlistId]: indices,
-
-}));
-
-  
-
-// Update localStorage
-
-if (currentPlaylist) {
-
-localStorage.setItem(
-
-STORAGE_KEY,
-
-JSON.stringify({
-
-currentSongIndex,
-
-currentTime,
-
-volume,
-
-currentPlaylistId: currentPlaylist.id,
-
-fmModeEnabled,
-
-shuffleModeEnabled,
-
-shuffledSongIndices: {
-
-...shuffledSongIndices,
-
-[playlistId]: indices,
-
-},
-
-})
-
-);
-
-}
-
-},
-
-[
-
-ALL_PLAYLISTS,
-
-currentPlaylist,
-
-currentSongIndex,
-
-currentTime,
-
-volume,
-
-fmModeEnabled,
-
-shuffleModeEnabled,
-
-shuffledSongIndices,
-
-]
-
-);
-
-  
-
-// Toggle shuffle mode for a playlist
-
-const toggleShuffleMode = useCallback(
-
-(playlistId: string) => {
-
-setShuffleModeEnabled((prev) => {
-
-const newState = { ...prev, [playlistId]: !prev[playlistId] };
-
-  
-
-// If enabling shuffle, create shuffled indices
-
-if (
-
-newState[playlistId] &&
-
-(!shuffledSongIndices[playlistId] ||
-
-shuffledSongIndices[playlistId].length === 0)
-
-) {
-
-shufflePlaylist(playlistId);
-
-}
-
-  
-
-// Save to localStorage
-
-if (currentPlaylist) {
-
-localStorage.setItem(
-
-STORAGE_KEY,
-
-JSON.stringify({
-
-currentSongIndex,
-
-currentTime,
-
-volume,
-
-currentPlaylistId: currentPlaylist.id,
-
-fmModeEnabled,
-
-shuffleModeEnabled: newState,
-
-shuffledSongIndices,
-
-})
-
-);
-
-}
-
-  
-
-return newState;
-
-});
-
-},
-
-[
-
-currentPlaylist,
-
-currentSongIndex,
-
-currentTime,
-
-volume,
-
-fmModeEnabled,
-
-shuffledSongIndices,
-
-shufflePlaylist,
-
-]
-
-);
-
-  
-
-// Corrected resetShuffleForPlaylist function for MusicContext.tsx
-
-const resetShuffleForPlaylist = useCallback(
-
-(playlistId: string) => {
-
-// First, clear the shuffled indices for this playlist
-
-setShuffledSongIndices((prev) => {
-
-const newState = { ...prev };
-
-delete newState[playlistId];
-
-  
-
-// If this is the current playlist being reset
-
-if (currentPlaylist && currentPlaylist.id === playlistId) {
-
-// Set the audio to the first track, but paused
-
-setCurrentSongIndex(0);
-
-setSongProgress(0);
-
-setCurrentTime(0);
-
-setIsPlaying(false);
-
-  
-
-// Immediately update the audio element
-
-if (audioRef.current) {
-
-audioRef.current.currentTime = 0;
-
-audioRef.current.pause();
-
-}
-
-}
-
-  
-
-// Save to localStorage
-
-if (currentPlaylist) {
-
-localStorage.setItem(
-
-STORAGE_KEY,
-
-JSON.stringify({
-
-currentSongIndex:
-
-currentPlaylist.id === playlistId ? 0 : currentSongIndex,
-
-currentTime: currentPlaylist.id === playlistId ? 0 : currentTime,
-
-volume,
-
-currentPlaylistId: currentPlaylist.id,
-
-fmModeEnabled,
-
-shuffleModeEnabled,
-
-shuffledSongIndices: newState,
-
-})
-
-);
-
-}
-
-  
-
-return newState;
-
-});
-
-},
-
-[
-
-currentPlaylist,
-
-currentSongIndex,
-
-currentTime,
-
-volume,
-
-fmModeEnabled,
-
-shuffleModeEnabled,
-
-]
-
-);
-
-  
-
-const toggleFmMode = (playlistId: string) => {
-
-setFmModeEnabled((prev) => {
-
-const updated = { ...prev, [playlistId]: !prev[playlistId] };
-
-if (currentPlaylist) {
-
-localStorage.setItem(
-
-STORAGE_KEY,
-
-JSON.stringify({
-
-currentSongIndex,
-
-currentTime,
-
-volume,
-
-currentPlaylistId: currentPlaylist.id,
-
-fmModeEnabled: updated,
-
-shuffleModeEnabled,
-
-shuffledSongIndices,
-
-})
-
-);
-
-}
-
-return updated;
-
-});
-
-};
-
-  
-
-// Persist state changes
-
-useEffect(() => {
-
-if (currentPlaylist) {
-
-localStorage.setItem(
-
-STORAGE_KEY,
-
-JSON.stringify({
-
-currentSongIndex,
-
-currentTime,
-
-volume,
-
-currentPlaylistId: currentPlaylist.id,
-
-fmModeEnabled,
-
-shuffleModeEnabled,
-
-shuffledSongIndices,
-
-})
-
-);
-
-}
-
-}, [
-
-currentSongIndex,
-
-currentTime,
-
-volume,
-
-currentPlaylist,
-
-fmModeEnabled,
-
-shuffleModeEnabled,
-
-shuffledSongIndices,
-
-]);
-
-  
-
-// Restore playback position on mount
-
-useEffect(() => {
-
-if (audioRef.current) {
-
-const savedTime = loadPersistedState().currentTime;
-
-audioRef.current.currentTime = savedTime;
-
-}
-
-}, []);
-
-  
-
-// Find this useEffect that handles periodic saves in MusicContext
-
-useEffect(() => {
-
-if (audioRef.current) {
-
-const audio = audioRef.current;
-
-  
-
-const handleTimeUpdate = () => {
-
-setSongProgress((audio.currentTime / audio.duration) * 100);
-
-setCurrentTime(audio.currentTime);
-
-};
-
-  
-
-const handleDurationChange = () => {
-
-setDuration(audio.duration);
-
-};
-
-  
-
-// Save current time periodically
-
-const saveTimeInterval = setInterval(() => {
-
-if (audio.currentTime > 0 && currentPlaylist) {
-
-localStorage.setItem(
-
-STORAGE_KEY,
-
-JSON.stringify({
-
-currentSongIndex,
-
-currentTime: audio.currentTime,
-
-volume,
-
-currentPlaylistId: currentPlaylist.id,
-
-fmModeEnabled,
-
-shuffleModeEnabled,
-
-shuffledSongIndices,
-
-})
-
-);
-
-}
-
-}, 1000);
-
-  
-
-audio.addEventListener("timeupdate", handleTimeUpdate);
-
-audio.addEventListener("durationchange", handleDurationChange);
-
-  
-
-return () => {
-
-audio.removeEventListener("timeupdate", handleTimeUpdate);
-
-audio.removeEventListener("durationchange", handleDurationChange);
-
-clearInterval(saveTimeInterval);
-
-};
-
-}
-
-}, [
-
-currentSongIndex,
-
-songs.length,
-
-volume,
-
-currentPlaylist,
-
-fmModeEnabled,
-
-shuffleModeEnabled,
-
-shuffledSongIndices,
-
-]);
-
-  
-
-const togglePlay = () => {
-
-if (audioRef.current) {
-
-if (isPlaying) {
-
-audioRef.current.pause();
-
-} else {
-
-audioRef.current.play();
-
-}
-
-setIsPlaying(!isPlaying);
-
-}
-
-};
-
-  
-
-// Updated playNext with shuffle support
-
-const playNext = () => {
-
-if (currentSongIndex < songs.length - 1) {
-
-setSongProgress(0);
-
-setCurrentTime(0);
-
-setDuration(0);
-
-  
-
-// Handle shuffle mode if enabled for current playlist
-
-if (
-
-currentPlaylist &&
-
-shuffleModeEnabled[currentPlaylist.id] &&
-
-shuffledSongIndices[currentPlaylist.id]
-
-) {
-
-const shuffledIndices = shuffledSongIndices[currentPlaylist.id];
-
-const currentShuffleIndex = shuffledIndices.findIndex(
-
-(idx) => idx === currentSongIndex
-
-);
-
-  
-
-if (currentShuffleIndex < shuffledIndices.length - 1) {
-
-const nextSongIndex = shuffledIndices[currentShuffleIndex + 1];
-
-setCurrentSongIndex(nextSongIndex);
-
-} else {
-
-// Loop back to beginning of shuffle if at the end
-
-const nextSongIndex = shuffledIndices[0];
-
-setCurrentSongIndex(nextSongIndex);
-
-}
-
-} else {
-
-// Normal sequential play
-
-setCurrentSongIndex((prev) => prev + 1);
-
-}
-
-  
-
-// Ensure we reset the audio properly
-
-if (audioRef.current) {
-
-audioRef.current.currentTime = 0;
-
-audioRef.current.pause(); // Ensure we pause first
-
-  
-
-// Small timeout to ensure state updates have propagated
-
-setTimeout(() => {
-
-if (audioRef.current) {
-
-const playPromise = audioRef.current.play();
-
-if (playPromise !== undefined) {
-
-playPromise
-
-.then(() => {
-
-setIsPlaying(true);
-
-})
-
-.catch((error) => {
-
-console.error("Error playing audio:", error);
-
-});
-
-}
-
-}
-
-}, 50);
-
-}
-
-}
-
-};
-
-  
-
-// Updated playPrevious with shuffle support
-
-const playPrevious = () => {
-
-if (currentSongIndex > 0) {
-
-// Reset all playback-related states
-
-setSongProgress(0);
-
-setCurrentTime(0);
-
-setDuration(0);
-
-setIsPlaying(false); // Reset playing state first
-
-  
-
-// Handle shuffle mode if enabled for current playlist
-
-if (
-
-currentPlaylist &&
-
-shuffleModeEnabled[currentPlaylist.id] &&
-
-shuffledSongIndices[currentPlaylist.id]
-
-) {
-
-const shuffledIndices = shuffledSongIndices[currentPlaylist.id];
-
-const currentShuffleIndex = shuffledIndices.findIndex(
-
-(idx) => idx === currentSongIndex
-
-);
-
-  
-
-if (currentShuffleIndex > 0) {
-
-const prevSongIndex = shuffledIndices[currentShuffleIndex - 1];
-
-setCurrentSongIndex(prevSongIndex);
-
-} else {
-
-// Loop to end of shuffle if at beginning
-
-const prevSongIndex = shuffledIndices[shuffledIndices.length - 1];
-
-setCurrentSongIndex(prevSongIndex);
-
-}
-
-} else {
-
-// Normal sequential play
-
-setCurrentSongIndex((prev) => prev - 1);
-
-}
-
-  
-
-if (audioRef.current) {
-
-audioRef.current.currentTime = 0;
-
-// Small timeout to ensure state updates have propagated
-
-setTimeout(() => {
-
-const playPromise = audioRef.current?.play();
-
-if (playPromise !== undefined) {
-
-playPromise
-
-.then(() => {
-
-setIsPlaying(true);
-
-})
-
-.catch((error) => {
-
-console.error("Error playing audio:", error);
-
-});
-
-}
-
-}, 50);
-
-}
-
-}
-
-};
-
-  
-
-const playPlaylist = (playlistId: string) => {
-
-const playlist = ALL_PLAYLISTS.find((p) => p.id === playlistId);
-
-if (playlist) {
-
-// Reset all playback-related states first
-
-setSongProgress(0);
-
-setCurrentTime(0);
-
-setDuration(0);
-
-setIsPlaying(false); // Reset playing state first
-
-  
-
-// Update playlist and song states
-
-setCurrentPlaylist(playlist);
-
-setSongs(playlist.songs);
-
-  
-
-// If shuffle mode is enabled for this playlist, start with the first shuffled index
-
-if (
-
-shuffleModeEnabled[playlistId] &&
-
-shuffledSongIndices[playlistId]?.length > 0
-
-) {
-
-setCurrentSongIndex(shuffledSongIndices[playlistId][0]);
-
-} else {
-
-// Otherwise start from the beginning
-
-setCurrentSongIndex(0);
-
-}
-
-  
-
-if (audioRef.current) {
-
-audioRef.current.currentTime = 0;
-
-// Small timeout to ensure state updates have propagated
-
-setTimeout(() => {
-
-const playPromise = audioRef.current?.play();
-
-if (playPromise !== undefined) {
-
-playPromise
-
-.then(() => {
-
-setIsPlaying(true);
-
-})
-
-.catch((error) => {
-
-console.error("Error playing audio:", error);
-
-});
-
-}
-
-}, 50);
-
-}
-
-}
-
-};
-
-  
-
-const seek = (time: number) => {
-
-if (audioRef.current) {
-
-audioRef.current.currentTime = Math.min(time, audioRef.current.duration);
-
-setCurrentTime(audioRef.current.currentTime);
-
-setSongProgress(
-
-(audioRef.current.currentTime / audioRef.current.duration) * 100
-
-);
-
-}
-
-};
-
-  
-
-// Update the handleEnded event handler in the useEffect
-
-useEffect(() => {
-
-if (audioRef.current) {
-
-const audio = audioRef.current;
-
-  
-
-const handleEnded = async () => {
-
-const isFmEnabled = fmModeEnabled[currentPlaylist?.id || ""];
-
-  
-
-if (isFmEnabled) {
-
-if (currentSongIndex < songs.length - 1) {
-
-// Reset states first
-
-setSongProgress(0);
-
-setCurrentTime(0);
-
-setDuration(0);
-
-  
-
-// If shuffle is enabled, play next shuffled song
-
-if (
-
-currentPlaylist &&
-
-shuffleModeEnabled[currentPlaylist.id] &&
-
-shuffledSongIndices[currentPlaylist.id]
-
-) {
-
-const shuffledIndices = shuffledSongIndices[currentPlaylist.id];
-
-const currentShuffleIndex = shuffledIndices.findIndex(
-
-(idx) => idx === currentSongIndex
-
-);
-
-  
-
-if (currentShuffleIndex < shuffledIndices.length - 1) {
-
-const nextSongIndex = shuffledIndices[currentShuffleIndex + 1];
-
-setCurrentSongIndex(nextSongIndex);
-
-} else {
-
-// Loop back to beginning of shuffle if at the end
-
-const nextSongIndex = shuffledIndices[0];
-
-setCurrentSongIndex(nextSongIndex);
-
-}
-
-} else {
-
-// Normal sequential play
-
-setCurrentSongIndex((prev) => prev + 1);
-
-}
-
-  
-
-// Reset audio state
-
-audio.currentTime = 0;
-
-audio.pause();
-
-  
-
-// Small delay to ensure state updates
-
-setTimeout(() => {
-
-const playPromise = audio.play();
-
-if (playPromise !== undefined) {
-
-playPromise
-
-.then(() => {
-
-setIsPlaying(true);
-
-})
-
-.catch((error) => {
-
-console.error("Error playing next track:", error);
-
-});
-
-}
-
-}, 50);
-
-} else {
-
-// Handle playlist end - loop back to start
-
-setSongProgress(0);
-
-setCurrentTime(0);
-
-setDuration(0);
-
-  
-
-// If shuffle is enabled, start with the first shuffled index
-
-if (
-
-currentPlaylist &&
-
-shuffleModeEnabled[currentPlaylist.id] &&
-
-shuffledSongIndices[currentPlaylist.id]?.length > 0
-
-) {
-
-setCurrentSongIndex(shuffledSongIndices[currentPlaylist.id][0]);
-
-} else {
-
-// Otherwise start from the beginning
-
-setCurrentSongIndex(0);
-
-}
-
-  
-
-audio.currentTime = 0;
-
-audio.pause();
-
-  
-
-setTimeout(() => {
-
-const playPromise = audio.play();
-
-if (playPromise !== undefined) {
-
-playPromise
-
-.then(() => {
-
-setIsPlaying(true);
-
-})
-
-.catch((error) => {
-
-console.error("Error restarting playlist:", error);
-
-});
-
-}
-
-}, 50);
-
-}
-
-} else {
-
-// If FM mode is disabled, just stop at the end
-
-setIsPlaying(false);
-
-setSongProgress(0);
-
-setCurrentTime(0);
-
-}
-
-};
-
-  
-
-audio.addEventListener("ended", handleEnded);
-
-return () => audio.removeEventListener("ended", handleEnded);
-
-}
-
-}, [
-
-currentSongIndex,
-
-songs.length,
-
-fmModeEnabled,
-
-currentPlaylist,
-
-shuffleModeEnabled,
-
-shuffledSongIndices,
-
-]);
-
-  
-
-return (
-
-<MusicContext.Provider
-
-value={{
-
-seek,
-
-songs,
-
-currentSongIndex,
-
-isPlaying,
-
-songProgress,
-
-volume,
-
-currentTime,
-
-duration,
-
-playlists: ALL_PLAYLISTS,
-
-currentPlaylist,
-
-setSongs,
-
-setCurrentSongIndex,
-
-setIsPlaying,
-
-setSongProgress,
-
-setVolume,
-
-togglePlay,
-
-playNext,
-
-playPrevious,
-
-audioRef,
-
-playPlaylist,
-
-isWallpaperMode,
-
-toggleWallpaperMode,
-
-fmModeEnabled,
-
-toggleFmMode,
-
-// New shuffle-related properties
-
-shuffleModeEnabled,
-
-toggleShuffleMode,
-
-resetShuffleForPlaylist,
-
-shuffledSongIndices,
-
-}}
-
->
-
-<audio
-
-ref={audioRef}
-
-src={songs[currentSongIndex]?.path}
-
-onPlay={() => setIsPlaying(true)}
-
-onPause={() => setIsPlaying(false)}
-
-/>
-
-{children}
-
-</MusicContext.Provider>
-
-);
-
-}
-
-  
 
 export const useMusicContext = () => {
+  const context = useContext(MusicContext);
 
-const context = useContext(MusicContext);
+  if (context === undefined) {
+    throw new Error("useMusicContext must be used within a MusicProvider");
+  }
 
-if (context === undefined) {
-
-throw new Error("useMusicContext must be used within a MusicProvider");
-
-}
-
-return context;
-
+  return context;
 };
